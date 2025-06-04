@@ -1,0 +1,5 @@
+{
+    "watch": ["srcs/backend/src"],
+    "ext": "ts",
+    "exec": "ts-node srcs/backend/src/server.ts"
+}

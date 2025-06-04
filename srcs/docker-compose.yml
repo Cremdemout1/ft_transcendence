@@ -1,0 +1,76 @@
+
+services:
+  # postgres:
+  #   container_name: postgresDB
+  #   restart: always
+  #   env_file: ./.env
+  #   build: 
+  #     context: ./postgres
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - POSTGRES_PASSWORD=${ADMIN_PASSWORD}
+  #     - PG_PASSWORD=${ADMIN_PASSWORD}
+  #     - POSTGRES_USER=${ADMIN_USERNAME}
+  #     - POSTGRES_DB=${DB_NAME}
+  #   volumes:
+  #     - db-vol:/var/lib/postgresql/data
+  #   networks:
+  #     - transcendence
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", " pg_isready -U $ADMIN_USERNAME -d $DB_NAME" ]
+  #     interval: 5s
+  #     timeout: 40s
+  #     retries: 5
+  #     start_period: 30s
+
+  sqlite:
+    container_name: sqliteDB
+    restart: always
+    env_file: ./.env
+    build:
+      context: ./sqlite
+      dockerfile: Dockerfile
+    volumes:
+      - sqlite-vol:/data
+    networks:
+      - transcendence
+    healthcheck:
+      test: ["CMD-SHELL", "sqlite3 /data/database.sqlite 'SELECT 1;' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  backend:
+    container_name: backend
+    restart: always
+    env_file: ./.env
+    environment:
+      - DATABASE_URL=file:/app/data/database.sqlite
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      # - db-vol:/var/lib/postgresql/data
+      - sqlite-vol:/app/data
+    networks:
+      - transcendence
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      sqlite:
+        condition: service_healthy
+
+volumes:
+  # db-vol:
+  #   name: transcendence_db
+  sqlite-vol:
+    name: transcendence_sqlite_db
+    # driver_opts:
+    #   type: none
+    #   device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+    #   o: bind
+
+networks:
+  transcendence:
+    name: transcendence
