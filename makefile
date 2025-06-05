@@ -6,25 +6,39 @@
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/04 21:48:32 by yohan            ###   ########.fr        #
+#    Updated: 2025/06/05 19:40:40 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+PROD_DB_PATH   = file:/data/database.sqlite
 
 all: up
 
-# for backend testing --> seerver.ts is the main file
-b:
+# for backend testing --> server.ts is the main file
+# must do make re and then make down to get instance of a database to work with
+dev:
+	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@echo "Running backend locally with local .env"
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(DEV_DB_PATH)|' srcs/.env
+	@rm srcs/.env.bak
+	@echo "DATABASE_URL changed to $(DEV_DB_PATH) in srcs/.env"
 	npx ts-node srcs/backend/src/server.ts
 
 up:
-# @mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' srcs/.env
+	@rm srcs/.env.bak
+	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in srcs/.env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build
 
 upd:
-# @mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' srcs/.env
+	@rm srcs/.env.bak
+	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in srcs/.env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build -d
 
 start:
@@ -55,6 +69,6 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-# @ rm -rf /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@ rm -rf /Users/yohan/Desktop/ft_transcendence/sqlite-data
 
 .PHONY: all up down start stop re logs fclean 

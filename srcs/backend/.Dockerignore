@@ -1,3 +1,4 @@
-tools/
 Dockerfile
 node_modules/
+generated/
+dist/

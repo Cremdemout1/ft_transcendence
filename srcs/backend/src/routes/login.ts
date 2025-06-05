@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/04 17:01:21 by yohan            ###   ########.fr       */
+/*   Updated: 2025/06/05 17:08:49 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,10 @@ interface loginBody
     password: string;
 };
 
+function generateToken(): string {
+    return lib.crypto.randomBytes(32).toString('hex'); // 64 hex chars, 256 bits
+  }
+  
 async function loginRoute(fastify: lib.FastifyInstance)
 {
     const loginOpts = 
@@ -66,9 +70,9 @@ async function loginRoute(fastify: lib.FastifyInstance)
     fastify.post('/login', loginOpts, async (request: lib.ReqBody<loginBody>, reply: any) =>
     {
         const { email, password }: loginBody = request.body;
-
-        if (email === 'yohancantin22@gmail.com' && password === 'sudowoodo')
-            return reply.send( { token: "fake-token" })
+        
+        if (await lib.userExists(email, password))
+            return reply.send( { token: generateToken() })
         else
             return reply.code(401).send({ error: 'Invalid email or password' });
     })

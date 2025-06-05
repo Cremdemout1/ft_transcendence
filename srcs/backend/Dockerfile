@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    dockerfile                                         :+:      :+:    :+:    #
+#    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/06/04 20:29:56 by yohan            ###   ########.fr        #
+#    Updated: 2025/06/05 19:42:14 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,13 +22,15 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    sqlite-dev \
-    curl \
+    sqlite-dev \ 
     openssl
+    # curl \
 
-RUN npm install sqlite3
+# RUN npm install sqlite3
 
-RUN npm install
+RUN npm install \
+    && apk del python3 make g++ sqlite-dev \
+    && npm cache clean --force
 
 RUN npx prisma generate
 
@@ -38,6 +40,6 @@ RUN npx tsc
 
 EXPOSE 8080
 
-CMD ["node", "dist/src/server.js"]
+CMD ["node", "dist/server.js"]
 
 # CMD [ "sh", "-c", "tail -f /dev/null" ]

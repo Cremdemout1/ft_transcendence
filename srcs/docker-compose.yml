@@ -46,13 +46,13 @@ services:
     restart: always
     env_file: ./.env
     environment:
-      - DATABASE_URL=file:/app/data/database.sqlite
+      - DATABASE_URL=${DATABASE_URL}
     build:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
       # - db-vol:/var/lib/postgresql/data
-      - sqlite-vol:/app/data
+      - sqlite-vol:/data
     networks:
       - transcendence
     depends_on:
@@ -66,10 +66,10 @@ volumes:
   #   name: transcendence_db
   sqlite-vol:
     name: transcendence_sqlite_db
-    # driver_opts:
-    #   type: none
-    #   device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
-    #   o: bind
+    driver_opts:
+      type: none
+      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      o: bind
 
 networks:
   transcendence:
