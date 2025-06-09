@@ -18,13 +18,21 @@
   "description": "",
   "dependencies": {
     "@fastify/cors": "^11.0.1",
-    "fastify": "^5.3.3",
-    "@prisma/client": "^5.x.x"
+    "@fastify/formbody": "^7.x",
+    "@fastify/jwt": "^8.0.1",
+    "@fastify/swagger": "^8.x",
+    "@fastify/swagger-ui": "^4.x",
+    "@prisma/client": "^5.x.x",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "fastify": "^4.x"
   },
   "devDependencies": {
-    "@types/node": "^22.15.29",
+    "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.30",
+    "prisma": "^5.x.x",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "prisma": "^5.x.x"
+    "typescript": "^5.8.3"
   }
 }

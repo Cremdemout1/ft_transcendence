@@ -6,7 +6,7 @@
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/06/05 19:42:14 by yohan            ###   ########.fr        #
+#    Updated: 2025/06/06 11:52:04 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,7 +37,7 @@ RUN npx prisma generate
 COPY src ./src
 
 RUN npx tsc
-
+# might have to change port expose to 3000 to match. lets see
 EXPOSE 8080
 
 CMD ["node", "dist/server.js"]

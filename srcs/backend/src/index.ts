@@ -1,16 +1,25 @@
-import loginRoute from './routes/login';
-import { userExists } from './db/launch';
+import login from './routes/login';
+import SignUp from './routes/signup';
+import { getUser } from './db/launch';
 import Fastify, { FastifyRequest } from 'fastify';
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
-// import sqlite3 from 'sqlite3';
 import crypto from  'crypto';
 import { randomBytes } from  'crypto';
+import swagger from '@fastify/swagger';
+import swaggerUI from '@fastify/swagger-ui';
+import fastifyFormBody from '@fastify/formbody';
+import * as bcrypt from 'bcrypt';
+import { PrismaClient } from '../generated/prisma';
+import jwt from '@fastify/jwt';
 
 export type myRequest = FastifyRequest;
 export type ReqBody<T> = FastifyRequest<{ Body: T }>;
-
+export const prisma = new PrismaClient();
 export { Fastify, FastifyInstance, FastifyPluginAsync };
-export { loginRoute };
-export { userExists };
-// export { sqlite3 };
+export { jwt, fastifyFormBody };
+export { login, SignUp };
+export { getUser };
 export {crypto, randomBytes };
+export { swagger, swaggerUI };
+export { bcrypt };
+export { PrismaClient };

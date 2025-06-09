@@ -6,7 +6,7 @@
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/05 19:40:40 by yohan            ###   ########.fr        #
+#    Updated: 2025/06/09 13:10:23 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,25 +20,28 @@ all: up
 # for backend testing --> server.ts is the main file
 # must do make re and then make down to get instance of a database to work with
 dev:
+	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
 	@echo "Running backend locally with local .env"
-	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(DEV_DB_PATH)|' srcs/.env
-	@rm srcs/.env.bak
-	@echo "DATABASE_URL changed to $(DEV_DB_PATH) in srcs/.env"
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(DEV_DB_PATH)|' .env
+	@rm .env.bak
+	@echo "DATABASE_URL changed to $(DEV_DB_PATH) in .env"
 	npx ts-node srcs/backend/src/server.ts
 
 up:
+	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
-	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' srcs/.env
-	@rm srcs/.env.bak
-	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in srcs/.env"
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
+	@rm .env.bak
+	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build
 
 upd:
+	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
-	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' srcs/.env
-	@rm srcs/.env.bak
-	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in srcs/.env"
+	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
+	@rm .env.bak
+	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build -d
 
 start:

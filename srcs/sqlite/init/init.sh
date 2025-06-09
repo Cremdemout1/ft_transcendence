@@ -17,17 +17,17 @@ CREATE TABLE IF NOT EXISTS $DB_USER_INFO_TABLE (
 		-- We declare login_type as TEXT but restrict values
 		-- We allow empty password when login is handled by third party Oauth
 
-CREATE TABLE IF NOT EXISTS $DB_USER_TABLE (
+CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
   provider_id TEXT NOT NULL,
   login_type TEXT NOT NULL CHECK (login_type IN ('google', '42', 'local')),
   password TEXT,
-  email TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
   UNIQUE (login_type, provider_id),
-  FOREIGN KEY (user_id) REFERENCES $DB_USER_INFO_TABLE(id) ON DELETE CASCADE
-  CHECK
-  (
+  UNIQUE (email, login_type),
+  FOREIGN KEY (user_id) REFERENCES user_info(id) ON DELETE CASCADE,
+  CHECK (
     (login_type = 'local' AND password IS NOT NULL AND password <> '')
     OR login_type <> 'local'
   )
