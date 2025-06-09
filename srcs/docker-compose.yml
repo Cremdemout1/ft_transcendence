@@ -58,6 +58,20 @@ services:
       #   condition: service_healthy
       sqlite:
         condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    container_name: frontend
+    restart: always
+    env_file: ../.env
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - transcendence
+    depends_on:
+      - backend
 
 volumes:
   # db-vol:
@@ -66,7 +80,7 @@ volumes:
     name: transcendence_sqlite_db
     driver_opts:
       type: none
-      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      device: /sgoinfre/ycantin/ft_transcendence/sqlite-data
       o: bind
 
 networks:

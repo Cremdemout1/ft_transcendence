@@ -3,16 +3,18 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/09 13:10:23 by yohan            ###   ########.fr        #
+#    Updated: 2025/06/09 16:32:57 by ycantin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
-DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /sgoinfre/ycantin/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/sgoinfre/ycantin/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 all: up
@@ -21,7 +23,7 @@ all: up
 # must do make re and then make down to get instance of a database to work with
 dev:
 	@cd srcs/backend && npm install && cd ../..
-	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@mkdir -p ${DEV_DB_DIR}
 	@echo "Running backend locally with local .env"
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(DEV_DB_PATH)|' .env
 	@rm .env.bak
@@ -30,7 +32,7 @@ dev:
 
 up:
 	@cd srcs/backend && npm install && cd ../..
-	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
 	@rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
@@ -38,7 +40,7 @@ up:
 
 upd:
 	@cd srcs/backend && npm install && cd ../..
-	@mkdir -p /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
 	@rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
@@ -72,6 +74,6 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	@ rm -rf /Users/yohan/Desktop/ft_transcendence/sqlite-data
+	@ rm -rf ${DEV_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 

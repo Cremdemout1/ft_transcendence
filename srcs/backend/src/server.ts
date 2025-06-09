@@ -3,21 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   server.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/09 13:00:35 by yohan            ###   ########.fr       */
+/*   Updated: 2025/06/10 00:14:41 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import * as lib from './index';
-import { login } from './index';
-import dotenv from 'dotenv';
-import { SignUp } from './index';
 import { dashboard } from './routes/dashboard';
+import cors from '@fastify/cors';
 
-dotenv.config();
-const fastify = lib.Fastify({ logger: true })
+lib.dotenv.config();
+const fastify = lib.Fastify({ logger: true });
+
 
 
 async function startSwagger(){
@@ -28,8 +27,8 @@ async function startSwagger(){
             description: 'API documentation',
             version: '1.0.0',
           },
-          host: 'localhost:3000',
-          schemes: ['http'],
+          host: 'localhost:8080',
+          schemes: ['https'],
           consumes: ['application/json'],
           produces: ['application/json'],
         }
@@ -90,8 +89,8 @@ async function startServer()
     try
     {
       await startSwagger()
-      await fastify.listen({port : 3000, host : '0.0.0.0'})
-      console.log("server listening on port 3000")
+      await fastify.listen({port : 8080, host : '0.0.0.0'})
+      console.log("server listening on port 8080")
     }
     catch (err)
     {   
@@ -103,11 +102,13 @@ async function startServer()
 async function registerAll(fastify:lib.FastifyInstance)
 {
   const jwtSecret = process.env.JWT_SECRET || 'super-secret';
-  await fastify.register(lib.jwt, { secret : jwtSecret });
+  await fastify.register(lib.fjwt, { secret : jwtSecret });
   await fastify.register(lib.fastifyFormBody);
+  await fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
   registerNewRoute(fastify, dashboard);
-  registerNewRoute(fastify, login);
-  registerNewRoute(fastify, SignUp);  
+  registerNewRoute(fastify, lib.login);
+  registerNewRoute(fastify, lib.googleAuth);
+  registerNewRoute(fastify, lib.SignUp);
 }
 
 startServer();
