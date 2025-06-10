@@ -6,18 +6,17 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/10 00:14:41 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/10 17:27:01 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+import fastifySwaggerUi from '@fastify/swagger-ui';
 import * as lib from './index';
 import { dashboard } from './routes/dashboard';
 import cors from '@fastify/cors';
 
 lib.dotenv.config();
 const fastify = lib.Fastify({ logger: true });
-
-
 
 async function startSwagger(){
     await fastify.register(lib.swagger, {
@@ -102,13 +101,27 @@ async function startServer()
 async function registerAll(fastify:lib.FastifyInstance)
 {
   const jwtSecret = process.env.JWT_SECRET || 'super-secret';
-  await fastify.register(lib.fjwt, { secret : jwtSecret });
+  const cookieSecret = process.env.COOKIE_SECRET || 'super-cookie';
+  await fastify.register(lib.fjwt, {
+    secret: jwtSecret,
+    cookie: {
+      cookieName: 'token',
+      signed: false,
+  }});
+  await fastify.register(lib.cookie, {secret: cookieSecret});
   await fastify.register(lib.fastifyFormBody);
   await fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
   registerNewRoute(fastify, dashboard);
   registerNewRoute(fastify, lib.login);
   registerNewRoute(fastify, lib.googleAuth);
   registerNewRoute(fastify, lib.SignUp);
+
+  fastify.decorate('authenticate', async (request: lib.myRequest, reply: any) => {
+    try {
+      await request.jwtVerify();
+    } catch(err: any) {
+        reply.code(401).send({message: 'Unauthorized:' + err.message})
+  }});
 }
 
 startServer();

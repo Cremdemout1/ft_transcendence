@@ -16,6 +16,7 @@ import dotenv from 'dotenv';
 import { userInfo } from 'os';
 import fs from 'fs';
 import path from 'path';
+import cookie from '@fastify/cookie';
 
 interface userInfo
 {
@@ -32,12 +33,11 @@ interface userInfo
   "aud": string,
 };
 
-
 export type myRequest = FastifyRequest;
 export type ReqBody<T> = FastifyRequest<{ Body: T }>;
 export const prisma = new PrismaClient();
 export { Fastify, FastifyInstance, FastifyPluginAsync };
-export { fjwt, jwt, fastifyFormBody };
+export { fjwt, jwt, fastifyFormBody, cookie };
 export { login, SignUp, googleAuth };
 export { getUser };
 export {crypto, randomBytes };

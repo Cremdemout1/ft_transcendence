@@ -6,7 +6,7 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 12:33:23 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/09 20:03:40 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/10 17:18:10 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,13 @@ async function dashboard(fastify: lib.FastifyInstance)
     })
     
 }
+
+// async function dashboardGameRoute(fastify: lib.FastifyInstance)
+// {
+//     fastify.post('/dashboard/game', async (request: lib.myRequest, reply: any) =>
+//     {
+        
+//     })
+// }
 
 export { dashboard }

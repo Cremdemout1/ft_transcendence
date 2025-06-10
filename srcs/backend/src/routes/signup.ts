@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 15:40:36 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/06 18:56:18 by yohan            ###   ########.fr       */
+/*   Updated: 2025/06/10 13:38:08 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ async function SignUp(fastify: lib.FastifyInstance) {
         return { received: message ?? null };
     })
     
-    fastify.post('/signup', localSignUpOps, async (request: lib.ReqBody<signupBody>, reply: any) =>
+    fastify.post('/api/signup', localSignUpOps, async (request: lib.ReqBody<signupBody>, reply: any) =>
     {
         const { email, password, username, firstname, lastname }: signupBody = request.body;
         

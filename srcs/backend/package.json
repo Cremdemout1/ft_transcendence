@@ -17,6 +17,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fastify/cookie": "^7.x",
     "@fastify/cors": "^8.x",
     "@fastify/formbody": "^7.x",
     "@fastify/jwt": "^8.0.1",

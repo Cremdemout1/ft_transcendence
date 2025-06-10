@@ -6,7 +6,7 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/09 23:41:42 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/10 15:33:46 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,8 +140,8 @@ async function googleAuth(fastify: lib.FastifyInstance)
                 expiresIn: '1h'
             }
             )
-            // reply.setCookie('token', token, { httpOnly: true,  path: '/', maxAge: 3600, });
-            // console.log (reply.send( { token: token }));
+            reply.setCookie('token', token, { httpOnly: true,  path: '/', maxAge: 3600, });
+            console.log (reply.send( { token: token }));
             console.log (token);
             return reply.redirect('/dashboard');
         }
