@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-async function backendLogin(){
+export async function backendLogin() {
 
     const form  = document.querySelector("#login-form");
     const messageDiv = document.querySelector("#message");
@@ -51,8 +51,7 @@ async function backendLogin(){
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  backendLogin();
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//   backendLogin();
+// });
 
-backendLogin();

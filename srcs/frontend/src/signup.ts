@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-async function backendSignup() {
+export async function backendSignup() {
     const form = document.querySelector("#signup-form");
     const messageDiv = document.querySelector("#message");
     form?.addEventListener("submit", async event => {
@@ -40,9 +40,9 @@ async function backendSignup() {
                 if (messageDiv) {
                     messageDiv.textContent = "Successfully signup!";
                 }
-                setTimeout(() => {
-                    window.location.href = '/dashboard';
-                })
+                // setTimeout(() => {
+                //     window.location.href = '/dashboard';
+                // })
             } else {
                 if (messageDiv) {
                     messageDiv.textContent = `Sign up failed: ${data.message || data.error || 'Unknown error'}`;
@@ -56,8 +56,6 @@ async function backendSignup() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  backendSignup();
-});
-
-backendSignup();
+// document.addEventListener('DOMContentLoaded', () => {
+//   backendSignup();
+// });
