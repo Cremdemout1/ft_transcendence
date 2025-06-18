@@ -6,11 +6,12 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/10 17:27:01 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/11 10:40:07 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import fastifySwaggerUi from '@fastify/swagger-ui';
+// import fastifySwaggerUi from '@fastify/swagger-ui';
+import fastifyJwt from '@fastify/jwt';
 import * as lib from './index';
 import { dashboard } from './routes/dashboard';
 import cors from '@fastify/cors';
@@ -62,20 +63,20 @@ async function startSwagger(){
       });
 }
 
-function registerNewRoute(fastify: lib.FastifyInstance, route: lib.FastifyPluginAsync): boolean
-{
-    let success: boolean = true;
-    try
-    {
-        fastify.register(route);
-    }
-    catch(err)
-    {
-        success = false;
-        console.log(err);
-    }
-    return success;
-}
+// function registerNewRoute(fastify: lib.FastifyInstance, route: lib.FastifyPluginAsync): boolean
+// {
+//     let success: boolean = true;
+//     try
+//     {
+//         fastify.register(route);
+//     }
+//     catch(err)
+//     {
+//         success = false;
+//         console.log(err);
+//     }
+//     return success;
+// }
 
 fastify.get('/', async (request: lib.myRequest, reply: any) =>
 {
@@ -100,28 +101,19 @@ async function startServer()
 
 async function registerAll(fastify:lib.FastifyInstance)
 {
-  const jwtSecret = process.env.JWT_SECRET || 'super-secret';
-  const cookieSecret = process.env.COOKIE_SECRET || 'super-cookie';
-  await fastify.register(lib.fjwt, {
-    secret: jwtSecret,
-    cookie: {
-      cookieName: 'token',
-      signed: false,
-  }});
-  await fastify.register(lib.cookie, {secret: cookieSecret});
-  await fastify.register(lib.fastifyFormBody);
-  await fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
-  registerNewRoute(fastify, dashboard);
-  registerNewRoute(fastify, lib.login);
-  registerNewRoute(fastify, lib.googleAuth);
-  registerNewRoute(fastify, lib.SignUp);
-
   fastify.decorate('authenticate', async (request: lib.myRequest, reply: any) => {
     try {
       await request.jwtVerify();
     } catch(err: any) {
         reply.code(401).send({message: 'Unauthorized:' + err.message})
   }});
+  fastify.register(fastifyJwt, {secret: process.env.JWT_SECRET || 'secret'});
+  fastify.register(lib.fastifyFormBody);
+  fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
+  fastify.register(dashboard);
+  fastify.register(lib.login);
+  fastify.register(lib.googleAuth);
+  fastify.register(lib.SignUp);
 }
 
 startServer();

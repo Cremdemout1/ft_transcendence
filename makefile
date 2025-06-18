@@ -6,7 +6,7 @@
 #    By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/10 12:43:59 by ycantin          ###   ########.fr        #
+#    Updated: 2025/06/11 09:28:27 by ycantin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,8 @@ dev:
 
 front:
 	@cd srcs/frontend && npm install && npm run dev
+
+local: upd dev front
 
 up:
 	@cd srcs/backend && npm install && cd ../..

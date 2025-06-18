@@ -38,9 +38,6 @@ async function backendLogin(){
                 if (messageDiv) {
                 messageDiv.textContent = "Login successful! 🎉";
                 }
-                setTimeout(() => {
-                    window.location.href = '/dashboard';
-                })
             } else {
                 if (messageDiv) {
                 messageDiv.textContent = `Login failed: ${data.message || data.error || "Unknown error"}`;

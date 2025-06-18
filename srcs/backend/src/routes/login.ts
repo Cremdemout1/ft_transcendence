@@ -98,7 +98,10 @@ async function login(fastify: lib.FastifyInstance)
             // reply.setCookie('token', token, { httpOnly: true,  path: '/', maxAge: 3600, });
             // console.log (reply.send( { token: token }));
             console.log (token);
-            return reply.redirect('/dashboard');
+            // return reply.redirect('/dashboard');
+            return reply.send({ user: user,
+                     token: token
+             });
         }
         else
             return reply.code(401).send({ error: 'Invalid email or password' });

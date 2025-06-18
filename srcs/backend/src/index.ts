@@ -1,7 +1,7 @@
 import { login, googleAuth } from './routes/login';
 import SignUp from './routes/signup';
 import { getUser } from './db/launch';
-import Fastify, { FastifyRequest } from 'fastify';
+import Fastify, { FastifyRequest, } from 'fastify';
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import crypto from  'crypto';
 import { randomBytes } from  'crypto';
@@ -32,6 +32,15 @@ interface userInfo
   "exp": number,
   "aud": string,
 };
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+  }
+  interface FastifyRequest {
+    user: string | object | Buffer<ArrayBufferLike>; // Replace 'any' with your JWT payload type if you have one
+  }
+}
 
 export type myRequest = FastifyRequest;
 export type ReqBody<T> = FastifyRequest<{ Body: T }>;
