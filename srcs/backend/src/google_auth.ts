@@ -6,13 +6,28 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 20:45:38 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/10 00:15:07 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 15:16:27 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as lib from './index';
 import querystring from 'querystring';
 import http from 'http';
+import { FastifyInstance } from 'fastify';
+
+interface userInfo
+{
+  "iss": string,
+  "sub": string,
+  "email": string,
+  "email_verified": boolean,
+  "name": string,
+  "picture": string,
+  "given_name": string,
+  "family_name": string,
+  "iat": number,
+  "exp": number,
+  "aud": string,
+};
 
 const googleId = process.env.GOOGLE_ID || 'ERROR';
 const googleSecret = process.env.GOOGLE_SECRET || 'ERROR_SECRET';
@@ -72,10 +87,10 @@ function exchangeCodeForToken(code:string): Promise<string>{
     });
 }
 
-async function decodeToken(token: string): Promise<lib.userInfo>{
+async function decodeToken(token: string, fastify: FastifyInstance): Promise<userInfo>{
     return new Promise((resolve, reject) => {
         try {
-            const firstDecode = lib.jwt.decode(token);
+            const firstDecode = fastify.jwt.decode(token);
             if (!firstDecode || typeof firstDecode !== 'object') {
                 return reject(new Error('Invalid token response'));
             }
@@ -85,11 +100,11 @@ async function decodeToken(token: string): Promise<lib.userInfo>{
                 return reject(new Error('No id_token found'));
             }
             
-            const userInfo = lib.jwt.decode(idToken);
+            const userInfo = fastify.jwt.decode(idToken);
             if (!userInfo || typeof userInfo !== 'object')
                 return reject(new Error('Invalid token'));
             
-            resolve(userInfo as lib.userInfo);
+            resolve(userInfo as userInfo);
         }
         catch(err) {
             reject(err);

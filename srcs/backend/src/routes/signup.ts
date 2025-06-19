@@ -6,11 +6,13 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 15:40:36 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/10 13:38:08 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 16:34:33 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as lib from '../index';
+import { FastifyInstance,FastifyRequest } from 'fastify';
+import * as bcrypt from 'bcrypt';
+import { prisma } from '../server';
 
 interface signupBody
 {
@@ -22,6 +24,9 @@ interface signupBody
     lastname:string;
     provider_id:string;
 };
+
+type myRequest = FastifyRequest;
+type ReqBody<T> = FastifyRequest<{ Body: T }>;
 
 const localSignUpOps =
 {
@@ -72,11 +77,11 @@ const localSignUpOps =
     }
 }
 
-async function SignUp(fastify: lib.FastifyInstance) {
+async function SignUp(fastify: FastifyInstance) {
 
    const login_type = 'local'
     
-    fastify.get('/signup', async (request: lib.myRequest, reply: any) =>
+    fastify.get('/#signup', async (request: myRequest, reply: any) =>
     {
         reply.send({message:'Sign Up page'});
         const { message } = request.body as { message?: string};
@@ -84,18 +89,18 @@ async function SignUp(fastify: lib.FastifyInstance) {
         return { received: message ?? null };
     })
     
-    fastify.post('/api/signup', localSignUpOps, async (request: lib.ReqBody<signupBody>, reply: any) =>
+    fastify.post('/api/signup', localSignUpOps, async (request: ReqBody<signupBody>, reply: any) =>
     {
         const { email, password, username, firstname, lastname }: signupBody = request.body;
         
-        const existingUser = await lib.prisma.users.findMany({ where: { email } });
+        const existingUser = await prisma.users.findMany({ where: { email } });
         for (const user of existingUser)
             if (user.login_type === login_type)
                 return (reply.code(409).send({
                     error: "Conflict",
                     message: "User with this email and login type already exists. would you like to log in instead?"}))
 
-        const usernameTaken = await lib.prisma.user_info.findFirst({ where: { username } });
+        const usernameTaken = await prisma.user_info.findFirst({ where: { username } });
         if (usernameTaken)
             return (reply.code(409).send({
                 error: "Conflict",
@@ -106,7 +111,7 @@ async function SignUp(fastify: lib.FastifyInstance) {
                 userInfoTableID = existingUser[0].user_id;
         else
         {
-            const userInfo = await lib.prisma.user_info.create({
+            const userInfo = await prisma.user_info.create({
                 data: {
                     username: username,
                     firstname: firstname,
@@ -120,12 +125,12 @@ async function SignUp(fastify: lib.FastifyInstance) {
         let hashedPassword: string | undefined;
 
         if (login_type === 'local')
-            hashedPassword = await lib.bcrypt.hash(password, 10);
+            hashedPassword = await bcrypt.hash(password, 10);
         else if (login_type === 'google')
             provider_id = 'GOOGLE_ID'; // TODO: replace with actual Google provider_id
         else if (login_type === '42')
             provider_id = 'INTRA_ID'; // TODO: replace with actual 42 provider_id
-        await lib.prisma.users.create({
+        await prisma.users.create({
             data: {
                 email: email,
                 login_type: login_type,

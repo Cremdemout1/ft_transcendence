@@ -10,7 +10,7 @@
     <main id="app"></main>
 
     <script type="module">
-        import { backendLogin } from './src/login';
+        import { backendLogin, logout } from './src/login';
         import { backendSignup } from './src/signup';
         import { fetchDashboard } from './src/dashboard';
 
@@ -25,7 +25,7 @@
         function renderLogin() {
             app.innerHTML  = `
             <form id="login-form">
-                <input name="email" type="email" class="'input" required/>
+                <input name="email" type="email" class="input" required/>
                 <input name="password" type="password" class="'input" required/>
                 <button type="submit" class="'btn">Login</button>
             </form>
@@ -56,12 +56,14 @@
                 <button>Profile</button>
                 <button>Play</button>
                 <button>History</button>
+                <button id="logoutBtn" class="btn">log out</button>
             </div>`;
 
             fetchDashboard();
+            logout();
         };
         function router() {
-            const route = location.hash.replace('#', '') || 'login';
+            const route = location.hash.slice(1).toLowerCase() || 'login';
             const render = routes[route] || renderLogin;
             render();
         }

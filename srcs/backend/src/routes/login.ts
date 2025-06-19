@@ -6,12 +6,13 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 14:46:35 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 16:51:41 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as lib from '../index';
-import { exchangeCodeForToken, getAuthURL, decodeToken } from '../google_auth'
+import { FastifyInstance, FastifyRequest } from 'fastify';
+import { exchangeCodeForToken, getAuthURL, decodeToken } from '../google_auth';
+import { getUser } from '../db/db_queries';
 
 interface loginBody
 {
@@ -19,6 +20,24 @@ interface loginBody
     password: string;
     login_type?: string;
 };
+
+interface userInfo
+{
+  "iss": string,
+  "sub": string,
+  "email": string,
+  "email_verified": boolean,
+  "name": string,
+  "picture": string,
+  "given_name": string,
+  "family_name": string,
+  "iat": number,
+  "exp": number,
+  "aud": string,
+};
+
+type myRequest = FastifyRequest;
+type ReqBody<T> = FastifyRequest<{ Body: T }>;
 
 const loginOpts = 
 {
@@ -56,9 +75,9 @@ const loginOpts =
     }
 }
   
-async function login(fastify: lib.FastifyInstance)
+async function login(fastify: FastifyInstance)
 {
-    fastify.get('/login', async (request: lib.myRequest, reply: any) =>
+    fastify.get('/#login', async (request: myRequest, reply: any) =>
     {
         void request;
         reply.type('text/html').send(`
@@ -76,10 +95,10 @@ async function login(fastify: lib.FastifyInstance)
           `);
     })
 
-    fastify.post('/api/login', loginOpts, async (request: lib.ReqBody<loginBody>, reply: any) =>
+    fastify.post('/api/login', loginOpts, async (request: ReqBody<loginBody>, reply: any) =>
     {
         const { email, password }: loginBody = request.body;
-        const user = await lib.getUser(email, password);
+        const user = await getUser(email, password);
         if (user)
         {
             const token = fastify.jwt.sign(
@@ -107,7 +126,7 @@ interface OAuthCallbackQuery {
   error?: string;
 }
 
-async function googleAuth(fastify: lib.FastifyInstance)
+async function googleAuth(fastify: FastifyInstance)
 {
     fastify.get<{ Querystring: OAuthCallbackQuery }>('/auth/google/callback', async (request, reply) => {
     const { code, error } = request.query;
@@ -119,9 +138,9 @@ async function googleAuth(fastify: lib.FastifyInstance)
         }
         
         const token = await exchangeCodeForToken(code);
-        const userInfo: lib.userInfo = await decodeToken(token);
+        const userInfo: userInfo = await decodeToken(token, fastify);
 
-        const user = await lib.getUser(userInfo.email, '', 'google', userInfo.sub);
+        const user = await getUser(userInfo.email, '', 'google', userInfo.sub);
         if (user)
         {
             const token = fastify.jwt.sign(

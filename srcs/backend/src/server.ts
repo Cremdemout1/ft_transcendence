@@ -6,21 +6,32 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 14:46:55 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 15:22:03 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// import fastifySwaggerUi from '@fastify/swagger-ui';
+import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
-import * as lib from './index';
-import { dashboard } from './routes/dashboard';
 import cors from '@fastify/cors';
+import fastifyFormBody from '@fastify/formbody';
+import swagger from '@fastify/swagger';
+import swaggerUI from '@fastify/swagger-ui';
+import { FastifyRequest, FastifyInstance } from 'fastify';
+import dotenv from 'dotenv';
+import { PrismaClient } from '../generated/prisma';
 
-lib.dotenv.config();
-const fastify = lib.Fastify({ logger: true });
+import { dashboard } from './routes/dashboard';
+import SignUp from './routes/signup';
+import { login, googleAuth } from './routes/login';
+
+
+export const prisma = new PrismaClient();
+dotenv.config();
+const fastify = Fastify({ logger: true });
+type myRequest = FastifyRequest;
 
 async function startSwagger(){
-    await fastify.register(lib.swagger, {
+    await fastify.register(swagger, {
         swagger: {
           info: {
             title: 'My API',
@@ -34,7 +45,7 @@ async function startSwagger(){
         }
       });
       
-      await fastify.register(lib.swaggerUI, {
+      await fastify.register(swaggerUI, {
         routePrefix: '/docs',
         uiConfig: {
           docExpansion: 'full',
@@ -63,22 +74,7 @@ async function startSwagger(){
       });
 }
 
-// function registerNewRoute(fastify: lib.FastifyInstance, route: lib.FastifyPluginAsync): boolean
-// {
-//     let success: boolean = true;
-//     try
-//     {
-//         fastify.register(route);
-//     }
-//     catch(err)
-//     {
-//         success = false;
-//         console.log(err);
-//     }
-//     return success;
-// }
-
-fastify.get('/', async (request: lib.myRequest, reply: any) =>
+fastify.get('/', async (request: myRequest, reply: any) =>
 {
     void request;
     reply.send({message:'Initial page'});
@@ -99,15 +95,15 @@ async function startServer()
     }
 }
 
-async function registerAll(fastify:lib.FastifyInstance)
+async function registerAll(fastify:FastifyInstance)
 {
   fastify.register(fastifyJwt, {secret: process.env.JWT_TOKEN || 'secret-jwt'});
-  fastify.register(lib.fastifyFormBody);
+  fastify.register(fastifyFormBody);
   fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
   fastify.register(dashboard);
-  fastify.register(lib.login);
-  fastify.register(lib.googleAuth);
-  fastify.register(lib.SignUp);
+  fastify.register(login);
+  fastify.register(googleAuth);
+  fastify.register(SignUp);
 }
 
 startServer();
