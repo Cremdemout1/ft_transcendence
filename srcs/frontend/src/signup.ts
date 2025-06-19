@@ -6,7 +6,7 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/10 14:18:44 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:30:52 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,9 @@ export async function backendSignup() {
             console.log(data);
             if (res.ok) {
                 if (messageDiv) {
-                    messageDiv.textContent = "Successfully signup!";
+                    messageDiv.textContent = "Successful signup!";
                 }
-                // setTimeout(() => {
-                //     window.location.href = '/dashboard';
-                // })
+                location.hash = '#dashboard';
             } else {
                 if (messageDiv) {
                     messageDiv.textContent = `Sign up failed: ${data.message || data.error || 'Unknown error'}`;

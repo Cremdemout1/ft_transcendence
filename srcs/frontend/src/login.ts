@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.ts                                            :+:      :+:    :+:   */
+/*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/10 13:34:49 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:38:03 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,29 +29,26 @@ export async function backendLogin() {
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({email, password }),
+                    body: JSON.stringify({ email, password }),
                 });
 
             const data = await res.json();
-            console.log(data);
+            
             if (res.ok) {
+                localStorage.setItem('jwt', data.token);
                 if (messageDiv) {
-                messageDiv.textContent = "Login successful! 🎉";
+                    messageDiv.textContent = "Login successful! 🎉";
                 }
+                location.hash = '#dashboard';
             } else {
                 if (messageDiv) {
-                messageDiv.textContent = `Login failed: ${data.message || data.error || "Unknown error"}`;
+                    messageDiv.textContent = `Login failed: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
                 }
             }
-            console.log("Response from backend:", data);
         }
         catch(err) {
             console.log("Error connecting to backend:", err);
         }
     });
 }
-
-// document.addEventListener('DOMContentLoaded', () => {
-//   backendLogin();
-// });
 

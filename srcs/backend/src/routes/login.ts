@@ -6,7 +6,7 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/10 15:33:46 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:46:35 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,7 @@ async function login(fastify: lib.FastifyInstance)
                 expiresIn: '1h'
             }
             )
-            // reply.setCookie('token', token, { httpOnly: true,  path: '/', maxAge: 3600, });
-            // console.log (reply.send( { token: token }));
-            console.log (token);
-            // return reply.redirect('/dashboard');
-            return reply.send({ user: user,
-                     token: token
-             });
+            return reply.send({ user: user, token: token });
         }
         else
             return reply.code(401).send({ error: 'Invalid email or password' });
@@ -143,12 +137,8 @@ async function googleAuth(fastify: lib.FastifyInstance)
                 expiresIn: '1h'
             }
             )
-            reply.setCookie('token', token, { httpOnly: true,  path: '/', maxAge: 3600, });
-            console.log (reply.send( { token: token }));
-            console.log (token);
-            return reply.redirect('/dashboard');
+            return reply.send({token: token});
         }
-        
         return reply.code(401).send({ error: 'Invalid email or password' });
     })
 

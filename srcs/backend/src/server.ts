@@ -6,7 +6,7 @@
 /*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/11 10:40:07 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/19 14:46:55 by ycantin          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,13 +101,7 @@ async function startServer()
 
 async function registerAll(fastify:lib.FastifyInstance)
 {
-  fastify.decorate('authenticate', async (request: lib.myRequest, reply: any) => {
-    try {
-      await request.jwtVerify();
-    } catch(err: any) {
-        reply.code(401).send({message: 'Unauthorized:' + err.message})
-  }});
-  fastify.register(fastifyJwt, {secret: process.env.JWT_SECRET || 'secret'});
+  fastify.register(fastifyJwt, {secret: process.env.JWT_TOKEN || 'secret-jwt'});
   fastify.register(lib.fastifyFormBody);
   fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
   fastify.register(dashboard);
