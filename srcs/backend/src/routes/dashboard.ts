@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 12:33:23 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 15:21:24 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/30 14:02:34 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,12 +45,5 @@ async function dashboard(fastify: FastifyInstance)
     })
 }
 
-// async function dashboardGameRoute(fastify: FastifyInstance)
-// {
-//     fastify.post('/dashboard/game', async (request: myRequest, reply: any) =>
-//     {
-        
-//     })
-// }
 
 export { dashboard }

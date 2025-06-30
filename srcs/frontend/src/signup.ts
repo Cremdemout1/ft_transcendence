@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/19 14:30:52 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/30 14:36:45 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ export async function backendSignup() {
             const data = await res.json();
             console.log(data);
             if (res.ok) {
+                localStorage.setItem('jwt', data.token);
                 if (messageDiv) {
                     messageDiv.textContent = "Successful signup!";
                 }

@@ -3,18 +3,19 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+         #
+#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/11 09:28:27 by ycantin          ###   ########.fr        #
+#    Updated: 2025/06/30 14:16:32 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
-DEV_DB_DIR	   = /sgoinfre/ycantin/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/sgoinfre/ycantin/ft_transcendence/sqlite-data/database.sqlite
-# DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_DIR	   = /sgoinfre/ycantin/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/sgoinfre/ycantin/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 all: up
@@ -80,5 +81,6 @@ fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
 	@ rm -rf ${DEV_DB_DIR}
+	@ rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 

@@ -13,6 +13,7 @@
         import { backendLogin, logout } from './src/login';
         import { backendSignup } from './src/signup';
         import { fetchDashboard } from './src/dashboard';
+        import { renderPong } from './src/pong';
 
         const app = document.getElementById('app');
 
@@ -20,6 +21,7 @@
             login: renderLogin,
             signup: renderSignup,
             dashboard: renderDashboard,
+            pong: renderPong,
         };
 
         function renderLogin() {
@@ -62,9 +64,28 @@
             fetchDashboard();
             logout();
         };
+
         function router() {
-            const route = location.hash.slice(1).toLowerCase() || 'login';
-            const render = routes[route] || renderLogin;
+            let rawHash = location.hash.slice(1);
+
+            // Extract only first segment before '/' or '#'
+            let firstSegment = rawHash.split(/[\/#]/)[0].toLowerCase();
+            // Check if firstSegment is a valid route
+            const isValidRoute = firstSegment && routes.hasOwnProperty(firstSegment);
+            if (!isValidRoute) {
+                // Replace URL with default route '#login' if invalid or empty
+                const defaultRoute = 'login';
+                const baseURL = location.origin + location.pathname;
+                history.replaceState(null, '', baseURL + '#' + defaultRoute);
+                firstSegment = defaultRoute;
+            } else {
+                // If original hash had extra junk beyond first segment, clean URL
+                if (rawHash !== firstSegment) {
+                    const baseURL = location.origin + location.pathname;
+                    history.replaceState(null, '', baseURL + '#' + firstSegment);
+                }
+            }
+            const render = routes[firstSegment] || renderLogin;
             render();
         }
 

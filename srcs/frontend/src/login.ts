@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/19 16:45:31 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/30 14:53:28 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ export async function logout() {
     if (btn) {
     btn.addEventListener('click', () => {
         localStorage.removeItem('jwt');
-        location.href = '/login';
+        location.href = '/#login';
         });
     };
 }

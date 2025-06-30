@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 15:40:36 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 16:34:33 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/06/30 14:22:02 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { FastifyInstance,FastifyRequest } from 'fastify';
 import * as bcrypt from 'bcrypt';
 import { prisma } from '../server';
+import { getUser } from '../db/db_queries'
 
 interface signupBody
 {
@@ -25,7 +26,6 @@ interface signupBody
     provider_id:string;
 };
 
-type myRequest = FastifyRequest;
 type ReqBody<T> = FastifyRequest<{ Body: T }>;
 
 const localSignUpOps =
@@ -52,7 +52,7 @@ const localSignUpOps =
                 type: 'object',
                 properties:
                 {
-                    message: { type: 'string' }
+                    token: { type: 'string' }
                 }
             },
             401: // Not authorized
@@ -80,15 +80,7 @@ const localSignUpOps =
 async function SignUp(fastify: FastifyInstance) {
 
    const login_type = 'local'
-    
-    fastify.get('/#signup', async (request: myRequest, reply: any) =>
-    {
-        reply.send({message:'Sign Up page'});
-        const { message } = request.body as { message?: string};
-        console.log(message);
-        return { received: message ?? null };
-    })
-    
+   
     fastify.post('/api/signup', localSignUpOps, async (request: ReqBody<signupBody>, reply: any) =>
     {
         const { email, password, username, firstname, lastname }: signupBody = request.body;
@@ -98,7 +90,7 @@ async function SignUp(fastify: FastifyInstance) {
             if (user.login_type === login_type)
                 return (reply.code(409).send({
                     error: "Conflict",
-                    message: "User with this email and login type already exists. would you like to log in instead?"}))
+                    message: "User with this email and login type already exists. would you like to log-in instead?"}))
 
         const usernameTaken = await prisma.user_info.findFirst({ where: { username } });
         if (usernameTaken)
@@ -139,9 +131,28 @@ async function SignUp(fastify: FastifyInstance) {
                 user_info: { connect: { id: userInfoTableID } }
             }
         });
-        return reply.code(200).send({
-            message: 'User created successfully'
-        });
+
+        const user = await getUser(email, password);
+        if (user)
+        {
+            const token = fastify.jwt.sign(
+            {
+                id: user.id,
+                email: user.email,  
+                login_type: user.login_type,
+                username: user.user_info.username,
+                firstname: user.user_info.firstname,
+                lastname: user.user_info.lastname,
+            },
+            {
+                expiresIn: '1h'
+            }
+            )
+            return reply.send({ user: user, token: token });
+        }
+        else
+            console.log("user not found even after creation");
+        return reply.code(500).send({ error: 'Failed to generate token' });
     })
 }
 
