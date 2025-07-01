@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 15:22:03 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/07/01 13:11:51 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ import { PrismaClient } from '../generated/prisma';
 import { dashboard } from './routes/dashboard';
 import SignUp from './routes/signup';
 import { login, googleAuth } from './routes/login';
+import { pong } from './routes/pong';
+import { profile } from './routes/profile';
 
 
 export const prisma = new PrismaClient();
@@ -104,6 +106,8 @@ async function registerAll(fastify:FastifyInstance)
   fastify.register(login);
   fastify.register(googleAuth);
   fastify.register(SignUp);
+  fastify.register(pong);
+  fastify.register(profile);
 }
 
 startServer();

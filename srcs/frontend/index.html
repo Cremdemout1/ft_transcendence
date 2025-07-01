@@ -13,7 +13,8 @@
         import { backendLogin, logout } from './src/login';
         import { backendSignup } from './src/signup';
         import { fetchDashboard } from './src/dashboard';
-        import { renderPong } from './src/pong';
+        import { renderPong, play, backToDashboard } from './src/pong';
+        import { renderProfile, me } from './src/profile';
 
         const app = document.getElementById('app');
 
@@ -22,6 +23,7 @@
             signup: renderSignup,
             dashboard: renderDashboard,
             pong: renderPong,
+            me: renderProfile,
         };
 
         function renderLogin() {
@@ -55,14 +57,16 @@
         function renderDashboard() {
             app.innerHTML = `
             <div name="options">
-                <button>Profile</button>
-                <button>Play</button>
+                <button id="profileBtn" class="btn">Profile</button>
+                <button id="playBtn" class="btn">Play</button>
                 <button>History</button>
                 <button id="logoutBtn" class="btn">log out</button>
             </div>`;
 
             fetchDashboard();
             logout();
+            play();
+            me();
         };
 
         function router() {
