@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 12:33:23 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/01 12:45:07 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/06 21:15:29 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,13 @@ export async function authenticateJWT(request: myRequest, reply: any, fastify: F
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         reply.status(401).send({ error: 'Missing token' })
+        return ;
     };
 
     const token = authHeader?.split(' ')[1];
     if (token) {
         try {
-            const decoded = fastify.jwt.verify(token)
+            const decoded = await fastify.jwt.verify(token)
             request.user = decoded;
     } catch (err) {
         reply.status(401).send({ error: err })

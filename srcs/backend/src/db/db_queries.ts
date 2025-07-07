@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   db_queries.ts                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:32:46 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/19 15:23:55 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/07/04 09:43:07 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,7 @@ async function getUser(email:string, password:string, login_type:string='local',
                 email,
                 login_type: 'local'
                 },
-            include: {
-                user_info: true,
-            }
+            include: { user_info: true }
             });
         if (!user || !user.password)
             return null;
@@ -42,9 +40,7 @@ async function getUser(email:string, password:string, login_type:string='local',
                 provider_id,
                 login_type
                 },
-            include: {
-                user_info: true,
-            }
+            include: { user_info: true }
             });
         if (!user)
             return null;

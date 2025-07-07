@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/06/30 12:25:42 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/04 09:41:26 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,6 +104,7 @@ async function login(fastify: FastifyInstance)
             const token = fastify.jwt.sign(
             {
                 id: user.id,
+                user_id: user.user_info.id,
                 email: user.email,  
                 login_type: user.login_type,
                 username: user.user_info.username,
