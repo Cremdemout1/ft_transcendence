@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 13:10:50 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/06 22:44:58 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/07 14:40:45 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,4 +79,64 @@ async function changeUsername(fastify: FastifyInstance)
     })
 }
 
-export { profile, changeUsername };
+
+async function changeFirstname(fastify: FastifyInstance)
+{
+    fastify.patch('/api/me/firstname', async (request: myRequest, reply: any) =>
+    {
+        await authenticateJWT(request, reply, fastify);
+        if (reply.sent)
+            return;
+        const { newFirstname } = request.body as { newFirstname: string };
+        const user = request.user as JWTformat;
+
+        if (!newFirstname || newFirstname.trim() === '')
+            return reply.status(400).send({error: "newFirstname invalid"});
+        else
+        {
+            await prisma.user_info.update({
+                where: { id: user.user_id },
+                data:  { firstname: newFirstname }
+            });
+        }
+        const newToken = await createNewToken(fastify, user);
+        if (newToken)
+            return reply.send({ 
+                message: `successfully changed username to ${newFirstname}`, 
+                token: newToken
+            });
+        return reply.status(400).send({ error: "error fetching new JWT" });
+    })
+}
+
+
+async function changeLastname(fastify: FastifyInstance)
+{
+    fastify.patch('/api/me/lastname', async (request: myRequest, reply: any) =>
+    {
+        await authenticateJWT(request, reply, fastify);
+        if (reply.sent)
+            return;
+        const { newLastname } = request.body as { newLastname: string };
+        const user = request.user as JWTformat;
+
+        if (!newLastname || newLastname.trim() === '')
+            return reply.status(400).send({error: "newLastname invalid"});
+        else
+        {
+            await prisma.user_info.update({
+                where: { id: user.user_id },
+                data:  { lastname: newLastname }
+            });
+        }
+        const newToken = await createNewToken(fastify, user);
+        if (newToken)
+            return reply.send({ 
+                message: `successfully changed username to ${newLastname}`, 
+                token: newToken
+            });
+        return reply.status(400).send({ error: "error fetching new JWT" });
+    })
+}
+
+export { profile, changeUsername, changeFirstname, changeLastname };

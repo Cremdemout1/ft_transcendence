@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/06 21:25:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/08 22:56:46 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@ import { dashboard } from './routes/dashboard';
 import SignUp from './routes/signup';
 import { login, googleAuth } from './routes/login';
 import { pong } from './routes/pong';
-import { profile, changeUsername } from './routes/profile';
-
+import { profile, changeUsername, changeFirstname, changeLastname } from './routes/profile';
+import { changePassword, changePasswordLogic } from './routes/changePassword';
 
 
 export const prisma = new PrismaClient();
@@ -110,6 +110,10 @@ async function registerAll(fastify:FastifyInstance)
   fastify.register(pong);
   fastify.register(profile);
   fastify.register(changeUsername);
+  fastify.register(changeFirstname);
+  fastify.register(changeLastname);
+  fastify.register(changePassword);
+  fastify.register(changePasswordLogic);
 }
 
 startServer();

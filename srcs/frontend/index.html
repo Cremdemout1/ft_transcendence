@@ -15,6 +15,7 @@
         import { fetchDashboard } from './src/dashboard';
         import { renderPong, play, backToDashboard } from './src/pong';
         import { renderProfile, me } from './src/profile';
+        import { renderchangePassword } from './src/changePassword' //continue making this new page
 
         const app = document.getElementById('app');
 
@@ -70,27 +71,34 @@
         };
 
         function router() {
-            let rawHash = location.hash.slice(1);
+            const hash = window.location.hash || '#login';
+            const [path, queryString] = hash.slice(1).split('?');  // slice off '#' once here
+            const params = new URLSearchParams(queryString);
 
-            // Extract only first segment before '/' or '#'
-            let firstSegment = rawHash.split(/[\/#]/)[0].toLowerCase();
-            // Check if firstSegment is a valid route
+            const firstSegment = path.toLowerCase();
+
             const isValidRoute = firstSegment && routes.hasOwnProperty(firstSegment);
-            if (!isValidRoute) {
-                // Replace URL with default route '#login' if invalid or empty
+            if (!isValidRoute)
+            {
                 const defaultRoute = 'login';
                 const baseURL = location.origin + location.pathname;
                 history.replaceState(null, '', baseURL + '#' + defaultRoute);
-                firstSegment = defaultRoute;
-            } else {
-                // If original hash had extra junk beyond first segment, clean URL
-                if (rawHash !== firstSegment) {
-                    const baseURL = location.origin + location.pathname;
-                    history.replaceState(null, '', baseURL + '#' + firstSegment);
-                }
+                return routes[defaultRoute]();
             }
-            const render = routes[firstSegment] || renderLogin;
-            render();
+
+            if (!queryString && window.location.hash.slice(1) !== firstSegment)
+            {
+                const baseURL = location.origin + location.pathname;
+                history.replaceState(null, '', baseURL + '#' + firstSegment);
+            }
+
+            if (firstSegment === 'me' && params.get('section') === 'change-password')
+                renderchangePassword();
+            else
+            {
+                const render = routes[firstSegment] || renderLogin;
+                render();
+            }
         }
 
         window.addEventListener('hashchange', router);
