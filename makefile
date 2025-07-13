@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/06/30 14:16:32 by yohan            ###   ########.fr        #
+#    Updated: 2025/07/13 15:18:13 by phantasiae       ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,8 @@ DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
 # DEV_DB_DIR	   = /sgoinfre/ycantin/ft_transcendence/sqlite-data
 # DEV_DB_PATH	   = file:/sgoinfre/ycantin/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 all: up
