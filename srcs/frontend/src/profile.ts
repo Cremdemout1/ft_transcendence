@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/08 22:09:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/14 09:20:43 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ async function changeUsername() {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${localStorage.getItem('jwt')}`
                             },
-                body: JSON.stringify({ newUsername: newUsername }) // replace with actual new username
+                body: JSON.stringify({ newUsername: newUsername })
             });
             const data = await res.json() as { message: string; token: string };
             if (res.ok)

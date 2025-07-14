@@ -54,8 +54,8 @@ services:
     networks:
       - transcendence
     depends_on:
-      # postgres:
-      #   condition: service_healthy
+      redis:
+        condition: service_started
       sqlite:
         condition: service_healthy
     ports:
@@ -72,6 +72,14 @@ services:
       - transcendence
     depends_on:
       - backend
+
+  redis:
+    container_name: redis
+    image: redis:6
+    ports:
+      - "6379:6379"
+    networks:
+      - transcendence
 
 volumes:
   # db-vol:

@@ -10,7 +10,7 @@
     <main id="app"></main>
 
     <script type="module">
-        import { backendLogin, logout } from './src/login';
+        import { backendLogin, logout, verify2faCode } from './src/login';
         import { backendSignup } from './src/signup';
         import { fetchDashboard } from './src/dashboard';
         import { renderPong, play, backToDashboard } from './src/pong';
@@ -25,6 +25,7 @@
             dashboard: renderDashboard,
             pong: renderPong,
             me: renderProfile,
+            twoFA: verify2faCode,
         };
 
         function renderLogin() {
@@ -36,7 +37,8 @@
             </form>
             <a href="#signup" class="'btn">Signup instead</a>
             <div id="message"></div>`;
-
+            if (localStorage.getItem('jwt'))
+                location.href = '/#dashboard';
             backendLogin();
         };
 
@@ -94,6 +96,12 @@
 
             if (firstSegment === 'me' && params.get('section') === 'change-password')
                 renderchangePassword();
+            else if (firstSegment === 'login' && params.get('section') === '2FA-verification')
+            {
+                if (localStorage.getItem('jwt'))
+                    return location.href = '/#dashboard';
+                verify2faCode();
+            }
             else
             {
                 const render = routes[firstSegment] || renderLogin;
