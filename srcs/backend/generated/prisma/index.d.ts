@@ -1942,11 +1942,13 @@ export namespace Prisma {
   export type UsersAvgAggregateOutputType = {
     id: number | null
     user_id: number | null
+    twoFactorAuth: number | null
   }
 
   export type UsersSumAggregateOutputType = {
     id: number | null
     user_id: number | null
+    twoFactorAuth: number | null
   }
 
   export type UsersMinAggregateOutputType = {
@@ -1956,6 +1958,7 @@ export namespace Prisma {
     login_type: string | null
     password: string | null
     email: string | null
+    twoFactorAuth: number | null
   }
 
   export type UsersMaxAggregateOutputType = {
@@ -1965,6 +1968,7 @@ export namespace Prisma {
     login_type: string | null
     password: string | null
     email: string | null
+    twoFactorAuth: number | null
   }
 
   export type UsersCountAggregateOutputType = {
@@ -1974,6 +1978,7 @@ export namespace Prisma {
     login_type: number
     password: number
     email: number
+    twoFactorAuth: number
     _all: number
   }
 
@@ -1981,11 +1986,13 @@ export namespace Prisma {
   export type UsersAvgAggregateInputType = {
     id?: true
     user_id?: true
+    twoFactorAuth?: true
   }
 
   export type UsersSumAggregateInputType = {
     id?: true
     user_id?: true
+    twoFactorAuth?: true
   }
 
   export type UsersMinAggregateInputType = {
@@ -1995,6 +2002,7 @@ export namespace Prisma {
     login_type?: true
     password?: true
     email?: true
+    twoFactorAuth?: true
   }
 
   export type UsersMaxAggregateInputType = {
@@ -2004,6 +2012,7 @@ export namespace Prisma {
     login_type?: true
     password?: true
     email?: true
+    twoFactorAuth?: true
   }
 
   export type UsersCountAggregateInputType = {
@@ -2013,6 +2022,7 @@ export namespace Prisma {
     login_type?: true
     password?: true
     email?: true
+    twoFactorAuth?: true
     _all?: true
   }
 
@@ -2109,6 +2119,7 @@ export namespace Prisma {
     login_type: string
     password: string | null
     email: string
+    twoFactorAuth: number
     _count: UsersCountAggregateOutputType | null
     _avg: UsersAvgAggregateOutputType | null
     _sum: UsersSumAggregateOutputType | null
@@ -2137,6 +2148,7 @@ export namespace Prisma {
     login_type?: boolean
     password?: boolean
     email?: boolean
+    twoFactorAuth?: boolean
     user_info?: boolean | user_infoDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["users"]>
 
@@ -2147,6 +2159,7 @@ export namespace Prisma {
     login_type?: boolean
     password?: boolean
     email?: boolean
+    twoFactorAuth?: boolean
     user_info?: boolean | user_infoDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["users"]>
 
@@ -2157,6 +2170,7 @@ export namespace Prisma {
     login_type?: boolean
     password?: boolean
     email?: boolean
+    twoFactorAuth?: boolean
   }
 
   export type usersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2178,6 +2192,7 @@ export namespace Prisma {
       login_type: string
       password: string | null
       email: string
+      twoFactorAuth: number
     }, ExtArgs["result"]["users"]>
     composites: {}
   }
@@ -2578,6 +2593,7 @@ export namespace Prisma {
     readonly login_type: FieldRef<"users", 'String'>
     readonly password: FieldRef<"users", 'String'>
     readonly email: FieldRef<"users", 'String'>
+    readonly twoFactorAuth: FieldRef<"users", 'Int'>
   }
     
 
@@ -2935,7 +2951,8 @@ export namespace Prisma {
     provider_id: 'provider_id',
     login_type: 'login_type',
     password: 'password',
-    email: 'email'
+    email: 'email',
+    twoFactorAuth: 'twoFactorAuth'
   };
 
   export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
@@ -3048,6 +3065,7 @@ export namespace Prisma {
     login_type?: StringFilter<"users"> | string
     password?: StringNullableFilter<"users"> | string | null
     email?: StringFilter<"users"> | string
+    twoFactorAuth?: IntFilter<"users"> | number
     user_info?: XOR<User_infoRelationFilter, user_infoWhereInput>
   }
 
@@ -3058,6 +3076,7 @@ export namespace Prisma {
     login_type?: SortOrder
     password?: SortOrderInput | SortOrder
     email?: SortOrder
+    twoFactorAuth?: SortOrder
     user_info?: user_infoOrderByWithRelationInput
   }
 
@@ -3073,6 +3092,7 @@ export namespace Prisma {
     login_type?: StringFilter<"users"> | string
     password?: StringNullableFilter<"users"> | string | null
     email?: StringFilter<"users"> | string
+    twoFactorAuth?: IntFilter<"users"> | number
     user_info?: XOR<User_infoRelationFilter, user_infoWhereInput>
   }, "id" | "login_type_provider_id" | "email_login_type">
 
@@ -3083,6 +3103,7 @@ export namespace Prisma {
     login_type?: SortOrder
     password?: SortOrderInput | SortOrder
     email?: SortOrder
+    twoFactorAuth?: SortOrder
     _count?: usersCountOrderByAggregateInput
     _avg?: usersAvgOrderByAggregateInput
     _max?: usersMaxOrderByAggregateInput
@@ -3100,6 +3121,7 @@ export namespace Prisma {
     login_type?: StringWithAggregatesFilter<"users"> | string
     password?: StringNullableWithAggregatesFilter<"users"> | string | null
     email?: StringWithAggregatesFilter<"users"> | string
+    twoFactorAuth?: IntWithAggregatesFilter<"users"> | number
   }
 
   export type user_infoCreateInput = {
@@ -3157,6 +3179,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
     user_info: user_infoCreateNestedOneWithoutUsersInput
   }
 
@@ -3167,6 +3190,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
   }
 
   export type usersUpdateInput = {
@@ -3174,6 +3198,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
     user_info?: user_infoUpdateOneRequiredWithoutUsersNestedInput
   }
 
@@ -3184,6 +3209,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
   export type usersCreateManyInput = {
@@ -3193,6 +3219,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
   }
 
   export type usersUpdateManyMutationInput = {
@@ -3200,6 +3227,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
   export type usersUncheckedUpdateManyInput = {
@@ -3209,6 +3237,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -3349,11 +3378,13 @@ export namespace Prisma {
     login_type?: SortOrder
     password?: SortOrder
     email?: SortOrder
+    twoFactorAuth?: SortOrder
   }
 
   export type usersAvgOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
+    twoFactorAuth?: SortOrder
   }
 
   export type usersMaxOrderByAggregateInput = {
@@ -3363,6 +3394,7 @@ export namespace Prisma {
     login_type?: SortOrder
     password?: SortOrder
     email?: SortOrder
+    twoFactorAuth?: SortOrder
   }
 
   export type usersMinOrderByAggregateInput = {
@@ -3372,11 +3404,13 @@ export namespace Prisma {
     login_type?: SortOrder
     password?: SortOrder
     email?: SortOrder
+    twoFactorAuth?: SortOrder
   }
 
   export type usersSumOrderByAggregateInput = {
     id?: SortOrder
     user_id?: SortOrder
+    twoFactorAuth?: SortOrder
   }
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -3584,6 +3618,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
   }
 
   export type usersUncheckedCreateWithoutUser_infoInput = {
@@ -3592,6 +3627,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
   }
 
   export type usersCreateOrConnectWithoutUser_infoInput = {
@@ -3629,6 +3665,7 @@ export namespace Prisma {
     login_type?: StringFilter<"users"> | string
     password?: StringNullableFilter<"users"> | string | null
     email?: StringFilter<"users"> | string
+    twoFactorAuth?: IntFilter<"users"> | number
   }
 
   export type user_infoCreateWithoutUsersInput = {
@@ -3679,6 +3716,7 @@ export namespace Prisma {
     login_type: string
     password?: string | null
     email: string
+    twoFactorAuth?: number
   }
 
   export type usersUpdateWithoutUser_infoInput = {
@@ -3686,6 +3724,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
   export type usersUncheckedUpdateWithoutUser_infoInput = {
@@ -3694,6 +3733,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
   export type usersUncheckedUpdateManyWithoutUser_infoInput = {
@@ -3702,6 +3742,7 @@ export namespace Prisma {
     login_type?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     email?: StringFieldUpdateOperationsInput | string
+    twoFactorAuth?: IntFieldUpdateOperationsInput | number
   }
 
 

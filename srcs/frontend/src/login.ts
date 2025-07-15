@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/14 17:43:11 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:24:00 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,12 +31,18 @@ export async function backendLogin() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password }),
                 });
-
             const data = await res.json();
-            
             if (res.ok) {
-                localStorage.setItem('pendingEmail', email);
-                location.href = '/#login?section=2FA-verification';
+                if (Number(data.twoFA) === 1)
+                {
+                    localStorage.setItem('pendingEmail', email);
+                    location.href = '/#login?section=2FA-verification';
+                }
+                else
+                {
+                    localStorage.setItem('jwt', data.token);
+                    location.href = '/#dashboard';
+                }
             } else {
                 if (messageDiv) {
                     messageDiv.textContent = `Login failed: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;

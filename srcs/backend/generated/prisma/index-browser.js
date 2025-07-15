@@ -132,7 +132,8 @@ exports.Prisma.UsersScalarFieldEnum = {
   provider_id: 'provider_id',
   login_type: 'login_type',
   password: 'password',
-  email: 'email'
+  email: 'email',
+  twoFactorAuth: 'twoFactorAuth'
 };
 
 exports.Prisma.SortOrder = {

@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/14 17:36:45 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:22:01 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,9 @@ const loginOpts =
                 type: 'object',
                 properties:
                 {
-                    token: { type: 'string' }
+                    message: { type: 'string' },
+                    twoFA: { type: 'number' },
+                    token: { type: 'string' },
                 }
             },
             401: // Not authorized
@@ -96,13 +98,45 @@ async function login(fastify: FastifyInstance)
     fastify.post('/api/login', loginOpts, async (request: ReqBody<loginBody>, reply: any) =>
     {
         const { email, password }: loginBody = request.body;
-        const user = await getUser(email, password);
-        if (user)
+        const authenticated = await getUser(email, password);
+        if (authenticated)
         {
-            const code = Math.floor(100000 + Math.random() * 900000).toString(); //random 6 digit code
-            await fastify.redis.set(`2fa:${email}`, code, 'EX', 300);
-            await send2FAcode(email, code);
-            return reply.send({ message: '2FA code sent to email' });
+            const user = await prisma.users.findFirst({
+                where: { email },
+                include: { user_info: true },
+            });
+            if (user)
+            {
+                if (user.twoFactorAuth === 1)
+                {
+                    const code = Math.floor(100000 + Math.random() * 900000).toString(); //random 6 digit code
+                    await fastify.redis.set(`2fa:${email}`, code, 'EX', 300);
+                    await send2FAcode(email, code);
+                    return reply.send({
+                        message: '2FA code sent to email',
+                        twoFA: 1,
+                    });
+                }
+                else
+                {
+                    const token = fastify.jwt.sign(
+                        {
+                            id: user.id,
+                            user_id: user.user_info.id,
+                            email: user.email,  
+                            login_type: user.login_type,
+                            username: user.user_info.username,
+                            firstname: user.user_info.firstname,
+                            lastname: user.user_info.lastname,
+                            twoFactorAuth: user.twoFactorAuth,
+                        },
+                        {
+                            expiresIn: '1h'
+                        }
+                        )
+                    return reply.send({ user: user, token: token, twoFA: 0 });
+                }
+            }
         }
         else
             return reply.code(401).send({ error: 'Invalid email or password' });
@@ -131,6 +165,7 @@ async function verify2fa(fastify: FastifyInstance) {
                     username: user.user_info.username,
                     firstname: user.user_info.firstname,
                     lastname: user.user_info.lastname,
+                    twoFactorAuth: user.twoFactorAuth,
                 },
                 {
                     expiresIn: '1h'
@@ -172,11 +207,13 @@ async function googleAuth(fastify: FastifyInstance)
             const token = fastify.jwt.sign(
             {
                 id: user.id,
+                user_id: user.user_info.id,
                 email: user.email,  
                 login_type: user.login_type,
                 username: user.user_info.username,
                 firstname: user.user_info.firstname,
                 lastname: user.user_info.lastname,
+                twoFactorAuth: user.twoFactorAuth,
             },
             {
                 expiresIn: '1h'

@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 15:40:36 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/04 09:40:35 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 11:33:01 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,7 @@ async function SignUp(fastify: FastifyInstance) {
                 username: user.user_info.username,
                 firstname: user.user_info.firstname,
                 lastname: user.user_info.lastname,
+                twoFactorAuth: user.twoFactorAuth,
             },
             {
                 expiresIn: '1h'
