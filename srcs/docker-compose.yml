@@ -88,8 +88,8 @@ volumes:
     name: transcendence_sqlite_db
     driver_opts:
       type: none
+      # device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
       device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
-      # device: /sgoinfre/ycantin/ft_transcendence/sqlite-data
       o: bind
 
 networks:
