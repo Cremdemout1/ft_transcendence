@@ -34,7 +34,7 @@ dev:
 	npx ts-node srcs/backend/src/server.ts
 
 front:
-	@cd srcs/frontend && npm install && npm run dev
+	@cd srcs/frontend && npm install && npm run dev 
 
 local: upd dev front
 
