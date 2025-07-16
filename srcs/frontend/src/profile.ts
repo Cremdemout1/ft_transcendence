@@ -6,14 +6,14 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 12:48:57 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/16 14:54:17 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { checkLoginState } from './dashboard';
 import { backToDashboard } from './pong';
 
-export function decodeJwt(token: string) {
+function decodeJwt(token: string) {
     try {
       const payloadBase64Url = token.split('.')[1]; // middle part is payload
       const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -263,4 +263,4 @@ async function toggle2FA() {
     }
 }
 
-export { me, renderProfile, changeUsername };
+export { me, renderProfile, changeUsername, decodeJwt };

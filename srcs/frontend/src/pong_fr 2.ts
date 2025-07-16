@@ -97,4 +97,5 @@ scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1);
   return scene;
 };
 
+
 export { initBabylon };

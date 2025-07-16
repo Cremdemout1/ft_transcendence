@@ -6,11 +6,11 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/15 12:24:00 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/16 14:55:39 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-export async function backendLogin() {
+async function backendLogin() {
 
     const form = document.querySelector("#login-form");
     const messageDiv = document.querySelector("#message");
@@ -55,7 +55,7 @@ export async function backendLogin() {
     });
 }
 
-export async function logout() {
+async function logout() {
    const btn = document.getElementById('logoutBtn');
     if (btn) {
     btn.addEventListener('click', () => {
@@ -65,7 +65,7 @@ export async function logout() {
     };
 }
 
-export async function verify2faCode () {
+async function verify2faCode () {
     const app = document.getElementById('app');
     if (!app)
         return ;
@@ -125,3 +125,5 @@ async function send2FA() {
         }
     })
 }
+
+export { backendLogin, logout, verify2faCode };

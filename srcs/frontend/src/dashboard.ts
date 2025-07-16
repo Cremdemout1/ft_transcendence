@@ -6,11 +6,11 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/01 12:55:58 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/16 14:55:58 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-export async function checkLoginState(path:string) {
+async function checkLoginState(path:string) {
     const token = localStorage.getItem('jwt');
     if (!token) {
         return location.hash = '/#login';
@@ -30,6 +30,8 @@ export async function checkLoginState(path:string) {
     }
 }
 
-export async function fetchDashboard() {
+async function fetchDashboard() {
     checkLoginState("http://localhost:8080/api/dashboard");
 }
+
+export { checkLoginState, fetchDashboard };

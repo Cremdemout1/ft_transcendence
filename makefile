@@ -6,7 +6,7 @@
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/15 13:14:11 by yohan            ###   ########.fr        #
+#    Updated: 2025/07/16 14:34:32 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,22 +22,10 @@ PROD_DB_PATH   = file:/data/database.sqlite
 
 all: up
 
-# for backend testing --> server.ts is the main file
-# must do make re and then make down to get instance of a database to work with
-dev:
-	@cd srcs/backend && npm install && cd ../..
-	@mkdir -p ${DEV_DB_DIR}
-	@echo "Running backend locally with local .env"
-	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(DEV_DB_PATH)|' .env
-	@rm .env.bak
-	@echo "DATABASE_URL changed to $(DEV_DB_PATH) in .env"
-	npx ts-node srcs/backend/src/server.ts
-
 front:
 	@cd srcs/frontend && npm install && npm run dev
-
-local: upd dev front
-
+build:
+	@cd srcs/frontend && npm install && npm run build && npx serve -s -l 3000 dist
 up:
 	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}

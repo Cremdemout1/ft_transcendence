@@ -6,11 +6,11 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/30 14:36:45 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/16 14:53:56 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-export async function backendSignup() {
+async function backendSignup() {
     const form = document.querySelector("#signup-form");
     const messageDiv = document.querySelector("#message");
     form?.addEventListener("submit", async event => {
@@ -58,3 +58,5 @@ export async function backendSignup() {
 // document.addEventListener('DOMContentLoaded', () => {
 //   backendSignup();
 // });
+
+export { backendSignup };

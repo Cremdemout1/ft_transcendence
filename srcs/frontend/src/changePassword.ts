@@ -13,7 +13,7 @@
 import { checkLoginState } from "./dashboard";
 import {decodeJwt } from './profile'
 
-export async function renderchangePassword() {
+async function renderchangePassword() {
     checkLoginState("http://localhost:8080/api/change-password")
     const app = document.getElementById('app');
     if (!app)
@@ -95,3 +95,5 @@ async function changePassword() {
         });
     });
 }
+
+export { changePassword, renderchangePassword };
