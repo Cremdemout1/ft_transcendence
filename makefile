@@ -6,7 +6,7 @@
 #    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/13 15:18:13 by phantasiae       ###   ########.fr        #
+#    Updated: 2025/07/14 10:49:23 by phantasiae       ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ dev:
 	npx ts-node srcs/backend/src/server.ts
 
 front:
-	@cd srcs/frontend && npm install && npm run dev
+	@cd srcs/frontend && npm install && npm run dev 
 
 local: upd dev front
 

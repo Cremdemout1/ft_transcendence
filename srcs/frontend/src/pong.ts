@@ -6,13 +6,13 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/13 19:29:00 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/07/15 13:14:19 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //must call backend to receive stored old match info nd whatnot.
 import { checkLoginState } from "./dashboard";
-import { initBabylon } from "./pong_fr";
+import { initBabylon } from "./game";
 
 async function renderPong() {
     await checkLoginState("http://localhost:8080/api/pong");
