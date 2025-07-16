@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   login_type TEXT NOT NULL CHECK (login_type IN ('google', '42', 'local')),
   password TEXT,
   email TEXT NOT NULL,
+  twoFactorAuth INTEGER DEFAULT 0,
   UNIQUE (login_type, provider_id),
   UNIQUE (email, login_type),
   FOREIGN KEY (user_id) REFERENCES user_info(id) ON DELETE CASCADE,

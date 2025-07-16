@@ -54,8 +54,8 @@ services:
     networks:
       - transcendence
     depends_on:
-      # postgres:
-      #   condition: service_healthy
+      redis:
+        condition: service_started
       sqlite:
         condition: service_healthy
     ports:
@@ -73,6 +73,14 @@ services:
     depends_on:
       - backend
 
+  redis:
+    container_name: redis
+    image: redis:6
+    ports:
+      - "6379:6379"
+    networks:
+      - transcendence
+
 volumes:
   # db-vol:
   #   name: transcendence_db
@@ -80,8 +88,8 @@ volumes:
     name: transcendence_sqlite_db
     driver_opts:
       type: none
-      device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-      # device: /sgoinfre/ycantin/ft_transcendence/sqlite-data
+      # device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
       o: bind
 
 networks:

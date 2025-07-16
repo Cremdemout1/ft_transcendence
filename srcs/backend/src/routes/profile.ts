@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 13:10:50 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/07 14:40:45 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:45:15 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ export interface JWTformat
         username: string,
         firstname: string,
         lastname: string,
+        twoFactorAuth: number,
 }
 
 async function profile(fastify: FastifyInstance)
@@ -121,7 +122,7 @@ async function changeLastname(fastify: FastifyInstance)
         const user = request.user as JWTformat;
 
         if (!newLastname || newLastname.trim() === '')
-            return reply.status(400).send({error: "newLastname invalid"});
+            return reply.status(400).send({error: "new Lastname invalid"});
         else
         {
             await prisma.user_info.update({
@@ -139,4 +140,73 @@ async function changeLastname(fastify: FastifyInstance)
     })
 }
 
-export { profile, changeUsername, changeFirstname, changeLastname };
+// async function toggle2FA(fastify: FastifyInstance)
+// {
+//     fastify.patch('/api/me/2fa-checkbox', async (request: myRequest, reply: any) => 
+//     {
+//         await authenticateJWT(request, reply, fastify);
+//         if (reply.sent)
+//             return ;
+//         const { twoFAEnabled } = request.body as { twoFAEnabled: number };
+//         const user = request.user as JWTformat;
+
+//         if (twoFAEnabled !== 0 && twoFAEnabled !== 1)
+//             return reply.code(400).send({ error: "Invalid value for 2FA" });
+//         await prisma.users.update({
+//             where: { id: user.user_id },
+//             data: { twoFactorAuth: twoFAEnabled },
+//         });
+//         // const updatedUser = await prisma.users.findFirst({
+//         //     where: { id: user.id },
+//         //     include: {user_info: true },
+//         // });
+//         // if (updatedUser)
+//         // {
+//         //     createNewToken(fastify, updatedUser);
+//         // }
+//         createNewToken(fastify, user);
+//         return reply.send({ success: true, twoFA: twoFAEnabled });
+//     });
+// }
+
+async function toggle2FA(fastify: FastifyInstance)
+{
+    fastify.patch('/api/me/2fa-checkbox', async (request: myRequest, reply: any) => 
+    {
+        await authenticateJWT(request, reply, fastify);
+        if (reply.sent) return;
+
+        const { twoFAEnabled } = request.body as { twoFAEnabled: number };
+        const user = request.user as JWTformat;
+
+        if (twoFAEnabled !== 0 && twoFAEnabled !== 1)
+            return reply.code(400).send({ error: "Invalid value for 2FA" });
+
+        await prisma.users.update({
+            where: { id: user.user_id },
+            data: { twoFactorAuth: twoFAEnabled },
+        });
+        const updatedUser = await prisma.users.findUnique({
+            where: { id: user.user_id },
+            include: { user_info: true },
+        });
+        if (!updatedUser)
+            return reply.code(500).send({ error: "Updated user not found" });
+
+        const token = await createNewToken(fastify, {
+            id: updatedUser.id,
+            user_id: updatedUser.user_info.id,
+            email: updatedUser.email,
+            login_type: updatedUser.login_type,
+            username: updatedUser.user_info.username,
+            firstname: updatedUser.user_info.firstname,
+            lastname: updatedUser.user_info.lastname,
+            twoFactorAuth: updatedUser.twoFactorAuth,
+        });
+
+        return reply.send({ success: true, twoFA: twoFAEnabled, token });
+    });
+}
+
+
+export { profile, changeUsername, changeFirstname, changeLastname, toggle2FA };

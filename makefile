@@ -3,20 +3,22 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
+#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/14 10:49:23 by phantasiae       ###   ########.fr        #
+#    Updated: 2025/07/15 13:14:11 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
-# DEV_DB_DIR	   = /sgoinfre/ycantin/ft_transcendence/sqlite-data
-# DEV_DB_PATH	   = file:/sgoinfre/ycantin/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+
+# DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
+
 
 all: up
 

@@ -6,13 +6,13 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/30 14:53:28 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:24:00 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 export async function backendLogin() {
 
-    const form  = document.querySelector("#login-form");
+    const form = document.querySelector("#login-form");
     const messageDiv = document.querySelector("#message");
     form?.addEventListener("submit", async event => {
         event.preventDefault();
@@ -31,15 +31,18 @@ export async function backendLogin() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password }),
                 });
-
             const data = await res.json();
-            
             if (res.ok) {
-                localStorage.setItem('jwt', data.token);
-                if (messageDiv) {
-                    messageDiv.textContent = "Login successful! 🎉";
+                if (Number(data.twoFA) === 1)
+                {
+                    localStorage.setItem('pendingEmail', email);
+                    location.href = '/#login?section=2FA-verification';
                 }
-                location.hash = '#dashboard';
+                else
+                {
+                    localStorage.setItem('jwt', data.token);
+                    location.href = '/#dashboard';
+                }
             } else {
                 if (messageDiv) {
                     messageDiv.textContent = `Login failed: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
@@ -60,4 +63,65 @@ export async function logout() {
         location.href = '/#login';
         });
     };
+}
+
+export async function verify2faCode () {
+    const app = document.getElementById('app');
+    if (!app)
+        return ;
+    const email = localStorage.getItem('pendingEmail');
+    app.innerHTML = `
+    <div id='2FA-verification'>
+        <p>We've sent a code to "${email}". Please enter the code in the email below</p>
+        <h3>Enter code here: </h3>
+        <input id='twoFA' placeholder='code'></input>
+        <button type='submit' id="enter2FA">enter</button>
+        <p id="error-msg"></p>
+    </div>`;
+    send2FA();
+}
+
+async function send2FA() {
+    const btn = document.getElementById('enter2FA');
+    const input = document.querySelector<HTMLInputElement>('#twoFA');
+    
+    if (!btn || !input)
+        return ;
+    
+    const handleVerification = async () => {
+        const code = input?.value.trim();
+        const email = localStorage.getItem('pendingEmail');
+        const errorMsg = document.getElementById('error-msg');
+
+        if (!code)
+            return alert("Please enter a code");
+        
+        try {
+            const res = await fetch("http://localhost:8080/api/verify-2fa", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code, email }),
+            });
+            if (!res.ok) {
+                const { error } = await res.json();
+                if (errorMsg) errorMsg.textContent = error || "Verification failed";
+                return;
+              }
+            const data = await res.json();
+            if (errorMsg)
+                errorMsg.textContent = '';
+            localStorage.setItem('jwt', data.token);
+            localStorage.removeItem('pendingEmail');
+            window.location.hash = '#dashboard';
+        } catch (err) {
+            if (errorMsg) errorMsg.textContent = "Network error. Please try again.";
+        }
+    }
+    btn.addEventListener('click', handleVerification);
+    input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        handleVerification();
+        }
+    })
 }

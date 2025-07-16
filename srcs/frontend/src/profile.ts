@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/08 22:09:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:48:57 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,11 @@ async function renderProfile() {
                 <p>email: ${userInfo?.email}</p>
                 <button id='changePassword'>Change password</button>
             </div>
+            <br>
+            <div id='twoFAToggle'>
+                <input id='twoFA' type='checkbox'></input>
+                <label>Enable Two Factor Authentication</label>
+            </div>
         </div>
     </div>`;
     backToDashboard();
@@ -66,6 +71,25 @@ async function renderProfile() {
     changeFirstname();
     changeLastname();
     changePassword();
+    const checkbox = document.querySelector('#twoFA') as HTMLInputElement | null;
+
+    if (checkbox) {
+    const stored2FA = localStorage.getItem('twoFA');
+
+    // Use stored value if it exists, otherwise fall back to userInfo
+    if (stored2FA !== null) {
+        checkbox.checked = stored2FA === 'true';
+    } else {
+        checkbox.checked = !!userInfo.twoFactorAuth;
+        localStorage.setItem('twoFA', checkbox.checked.toString());
+    }
+
+    checkbox.addEventListener('change', () => {
+        localStorage.setItem('twoFA', checkbox.checked.toString());
+        toggle2FA();
+    });
+}
+
 }
 
 async function me() {
@@ -97,7 +121,7 @@ async function changeUsername() {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${localStorage.getItem('jwt')}`
                             },
-                body: JSON.stringify({ newUsername: newUsername }) // replace with actual new username
+                body: JSON.stringify({ newUsername: newUsername })
             });
             const data = await res.json() as { message: string; token: string };
             if (res.ok)
@@ -185,7 +209,7 @@ async function changeLastname() {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${localStorage.getItem('jwt')}`
                             },
-                body: JSON.stringify({ newLastname: newLastname }) // replace with actual new username
+                body: JSON.stringify({ newLastname: newLastname })
             }
             );
             const data = await res.json() as { message: string; token: string };
@@ -215,6 +239,27 @@ async function changePassword() {
         btn.addEventListener('click', () => {
             location.href = '/#me?section=change-password';
         });
+    }
+}
+
+async function toggle2FA() {
+    const checkbox = document.querySelector('#twoFA') as HTMLInputElement | null;
+    const is2FAEnabled = checkbox?.checked ? 1 : 0;
+    let res = null;
+    try {
+        res = await fetch('http://localhost:8080/api/me/2fa-checkbox', {
+            method: "PATCH",
+            headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem('jwt')}`
+                        },
+            body: JSON.stringify({ twoFAEnabled: is2FAEnabled })
+        });
+        if (!res.ok) {
+            console.log('Failed to update 2FA setting');
+        }
+    } catch(err) {
+        console.log('Error toggling 2FA:', err);
     }
 }
 
