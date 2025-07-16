@@ -23,9 +23,16 @@ PROD_DB_PATH   = file:/data/database.sqlite
 all: up
 
 front:
+<<<<<<< HEAD
 	@cd srcs/frontend && npm install && npm run dev
 build:
 	@cd srcs/frontend && npm install && npm run build && npx serve -s -l 3000 dist
+=======
+	@cd srcs/frontend && npm install && npm run dev 
+
+local: upd dev front
+
+>>>>>>> a4915da9d06c79dc7dfa133c42d0956c596d04cd
 up:
 	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
