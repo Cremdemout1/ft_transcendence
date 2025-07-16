@@ -70,7 +70,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
         const result = await SceneLoader.ImportMeshAsync(
             "",
             "../../assets/models/",
-            "box.glb",
+            "arena.glb",
             scene
         );
         
@@ -90,10 +90,10 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
         throw error;
     }
 
-	
+
 
 	scene.clearColor = new Color4(0.1, 0.1, 0.1, 1);
-
+	await scene.whenReadyAsync();
 
     return scene;
 }
