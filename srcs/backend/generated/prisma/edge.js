@@ -130,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/phantasiae/Downloads/transcendence-git/srcs/backend/generated/prisma",
+      "value": "/Users/yohan/Desktop/ft_transcendence/srcs/backend/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -139,12 +139,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-3.0.x",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/phantasiae/Downloads/transcendence-git/srcs/backend/prisma/schema.prisma",
+    "sourceFilePath": "/Users/yohan/Desktop/ft_transcendence/srcs/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

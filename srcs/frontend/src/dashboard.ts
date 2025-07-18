@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/16 14:55:58 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/18 08:35:39 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ async function checkLoginState(path:string) {
         //display user info correctly later
         console.log(data);
     } else {
-        alert(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
+        console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
         return location.hash = '/#login';
     }
 }
