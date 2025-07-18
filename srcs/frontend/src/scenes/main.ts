@@ -1,5 +1,6 @@
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Mesh, Color4, Color3, SceneLoader, RectAreaLight, AxesViewer, StandardMaterial } from "@babylonjs/core";
 import { Game } from "../game";
+import arenaModel from '@/assets/models/arena.glb';
 
 
 function createLight(position: Vector3, rotation: Vector3, color:Color3, name: string, scene: Scene){
@@ -69,8 +70,8 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement)
 	try {
         const result = await SceneLoader.ImportMeshAsync(
             "",
-            "../../assets/models/",
-            "arena.glb",
+            "",
+            arenaModel,
             scene
         );
         

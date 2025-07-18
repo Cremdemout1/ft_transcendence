@@ -3,36 +3,29 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/16 14:34:32 by yohan            ###   ########.fr        #
+#    Updated: 2025/07/18 11:00:23 by phantasiae       ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
 
-# DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-# DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 
 all: up
 
 front:
-<<<<<<< HEAD
 	@cd srcs/frontend && npm install && npm run dev
 build:
 	@cd srcs/frontend && npm install && npm run build && npx serve -s -l 3000 dist
-=======
-	@cd srcs/frontend && npm install && npm run dev 
-
-local: upd dev front
-
->>>>>>> a4915da9d06c79dc7dfa133c42d0956c596d04cd
 up:
 	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
