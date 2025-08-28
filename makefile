@@ -3,20 +3,20 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/18 08:22:53 by yohan            ###   ########.fr        #
+#    Updated: 2025/07/18 15:17:09 by phantasiae       ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
 
-# DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-# DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 
@@ -70,7 +70,7 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	@ rm -rf ${DEV_DB_DIR}
-	@ rm -rf ${PROD_DB_DIR}
+	@ sudo rm -rf ${DEV_DB_DIR}
+	@ sudo rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 
