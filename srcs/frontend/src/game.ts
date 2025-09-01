@@ -103,7 +103,7 @@ export class Game {
         //return await createStartScene(this._engine);
       case State.GAME:
 		const gameMath = new GameMath();
-        return await createGameScene(this._engine, this._canvas, gameMath, 1);
+        return await createGameScene(this._engine, this._canvas, gameMath);
       case State.LOSE:
         //return await createLoseScene(this._engine);
       case State.CUTSCENE:

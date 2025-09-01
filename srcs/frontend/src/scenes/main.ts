@@ -26,6 +26,7 @@ import {
   ActionManager,
   ExecuteCodeAction,
   KeyboardEventTypes,
+  TrailMesh,
 } from "@babylonjs/core";
 import arenaModel from "@/assets/models/transcendence_full.glb";
 import city from "@/assets/models/mid_city.glb";
@@ -66,11 +67,33 @@ function createLight(
   light.intensity = 10;
 }
 
+function createTrail(ball: Mesh | undefined, scene: Scene) {
+  let options = {
+    diameter: 2,
+    length: 25,
+    segments: 10,
+    sections: 4,
+    doNotTaper: false,
+    autoStart: true,
+  };
+
+  if (ball) {
+    const trail = new TrailMesh("trail", ball, scene, options);
+    let sourceMat = new StandardMaterial("sourceMat", scene);
+    let color = Color3.Purple();
+    sourceMat.emissiveColor = sourceMat.diffuseColor = color;
+    sourceMat.specularColor = Color3.Black();
+    trail.material = sourceMat;
+    trail.start();
+    return trail;
+  }
+  return null;
+}
+
 export async function createGameScene(
   engine: Engine,
   canvas: HTMLCanvasElement,
-  gameMath: GameMath,
-  firstTime: number
+  gameMath: GameMath
 ): Promise<Scene> {
   const scene = new Scene(engine);
 
@@ -131,14 +154,14 @@ export async function createGameScene(
   ground.position.y -= 1000;
   ground.material = groundMat;
 
-//   var skybox = Mesh.CreateBox("skyBox", 3000.0, scene);
-//     var skyboxMaterial = new StandardMaterial("skyBox", scene);
-//     skyboxMaterial.backFaceCulling = false;
-//     skyboxMaterial.reflectionTexture = new CubeTexture("srcs/frontend/assets/hdris/sky", scene);
-//     skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-//     skyboxMaterial.diffuseColor = new Color3(0, 0, 0);
-//     skyboxMaterial.specularColor = new Color3(0, 0, 0);
-//     skybox.material = skyboxMaterial; 
+  //   var skybox = Mesh.CreateBox("skyBox", 3000.0, scene);
+  //     var skyboxMaterial = new StandardMaterial("skyBox", scene);
+  //     skyboxMaterial.backFaceCulling = false;
+  //     skyboxMaterial.reflectionTexture = new CubeTexture("srcs/frontend/assets/hdris/sky", scene);
+  //     skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+  //     skyboxMaterial.diffuseColor = new Color3(0, 0, 0);
+  //     skyboxMaterial.specularColor = new Color3(0, 0, 0);
+  //     skybox.material = skyboxMaterial;
 
   type GameMeshes = {
     ball?: Mesh;
@@ -235,12 +258,8 @@ export async function createGameScene(
   });
   gl.intensity = 0.75;
 
+  const trail = createTrail(meshes.ball, scene);
 
-
-  if (firstTime) {
-    //play animation
-    firstTime = 0;
-  }
 
   type Input = {
     up: number;
@@ -367,6 +386,12 @@ export async function createGameScene(
         gameMath.getState().ball.y,
         gameMath.getState().ball.z
       );
+      if (gameMath.getState().ball.reset) {
+        if (trail) {
+          trail.reset();
+          console.log("RESET!");
+        }
+      }
     }
     if (meshes.paddle1) {
       //red paddle

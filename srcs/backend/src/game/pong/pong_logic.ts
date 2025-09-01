@@ -16,6 +16,7 @@ export class GameMath {
     z: 0,
     velocity: { x: 2, y: 4, z: -1 },
     radius: 3,
+	reset: 0//flag for when the ball has just been reset (to tell client to reset the trail)
   };
   private tmp_ball = {
     x: 0,
@@ -60,20 +61,13 @@ export class GameMath {
       this.ball.x += this.ball.velocity.x;
       this.ball.y += this.ball.velocity.y;
       this.ball.z += this.ball.velocity.z;
+	  this.ball.reset=0;
       this.movePaddle(up, down, left, right); //the input needs to be assigned to a player id (on the game server?) which will then decide which paddle is moved, do movePaddle for each player
-      this.paddleCollisionManager();
+      this.paddleCollisionManager();//here we check all the paddles as well (that we need to)
       this.wallCollisions(); //also checks score
-      this.fetchOtherPaddlePos();
       //console.log(this.ball.velocity)
       //this.checkScoring();
     }
-  }
-
-  private fetchOtherPaddlePos() {
-    return this.other_paddles;
-    //here you need to send the final position of this paddle to the other players through the API, and then receive the other paddles positions
-    //forEach(player that exists) => other_paddles[player].x = whatever, other_paddles[player].y = whatever
-    //this information will then need to be translated by me into the correct axes, and the values flipped or not depending on what paddle it is, but that will be done in the client after the information is delivered
   }
 
   private wallCollisions() {
@@ -110,7 +104,7 @@ export class GameMath {
     if (left) horizontal--;
     if (right) horizontal++;
 
-    moveAmount = horizontal < 0 ? -moveAmount : moveAmount; //i might be getting this wrong xD ------- IMPORTANT THE AXIS AND THE WAY OF THE MOVEMENT WILL CHANGE DEPENDING ON THE PLAYER
+    moveAmount = horizontal < 0 ? -moveAmount : moveAmount;
     if (horizontal != 0) this.paddle.x += moveAmount;
     moveAmount = this.paddle.speed;
     moveAmount = vertical < 0 ? -moveAmount : moveAmount;
@@ -290,6 +284,7 @@ export class GameMath {
         z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
       },
       radius: this.ball.radius,
+	  reset: 1
     };
     //console.log("Ball reset! Scores:", this.scores);
   }
