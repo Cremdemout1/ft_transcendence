@@ -70,6 +70,11 @@
             logout();
             play();
             me();
+            // Attach Play button event listener after dashboard is rendered
+            if (window.attachPlayBtnListener) window.attachPlayBtnListener();
+            import('./src/dashboard').then(mod => {
+                if (mod.requestMenu) mod.requestMenu();
+            });
         };
 
         function router() {

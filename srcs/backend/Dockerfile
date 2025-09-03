@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/06/06 11:52:04 by yohan            ###   ########.fr        #
+#    Updated: 2025/09/01 13:45:44 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,12 +34,14 @@ RUN npm install \
 
 RUN npx prisma generate
 
+RUN npm install pm2 -g
+
 COPY src ./src
+COPY ./pm2.json ./pm2.json
 
 RUN npx tsc
 # might have to change port expose to 3000 to match. lets see
 EXPOSE 8080
+EXPOSE 8081
 
-CMD ["node", "dist/server.js"]
-
-# CMD [ "sh", "-c", "tail -f /dev/null" ]
+CMD ["pm2-runtime", "pm2.json"]

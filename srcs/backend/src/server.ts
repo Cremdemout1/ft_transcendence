@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   server.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 08:57:57 by yohan            ###   ########.fr       */
+/*   Updated: 2025/08/29 17:19:49 by gcapa-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import Fastify from 'fastify';
+import fastifySocketIO from 'fastify-socket.io';
 import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import fastifyFormBody from '@fastify/formbody';
@@ -87,9 +88,17 @@ async function startServer()
 {
     try
     {
+      // Register Socket.IO plugin before listen
+      await fastify.register(fastifySocketIO);
       await startSwagger()
       await fastify.listen({port : 8080, host : '0.0.0.0'})
       console.log("server listening on port 8080")
+      // Access socket.io instance and set up connection event
+      const io = fastify.io;
+      io.on('connection', (socket) => {
+        console.log('A user connected:', socket.id);
+        // Add your socket event handlers here
+      });
     }
     catch (err)
     {   

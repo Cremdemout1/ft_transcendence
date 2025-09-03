@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 12:33:23 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/06 21:15:29 by yohan            ###   ########.fr       */
+/*   Updated: 2025/08/21 08:50:06 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ async function dashboard(fastify: FastifyInstance)
 {
     fastify.get('/api/dashboard', async (request: myRequest, reply: any) =>
     {
-        await authenticateJWT(request, reply, fastify);
+        //await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return ;
         const user = request.user;

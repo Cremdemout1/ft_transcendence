@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "api",
+      "script": "dist/server.js"
+    },
+    {
+      "name": "game",
+      "script": "dist/game_server.js"
+    }
+  ]
+}

@@ -3,22 +3,24 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/07/18 08:22:53 by yohan            ###   ########.fr        #
+#    Updated: 2025/09/01 11:26:07 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-# DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-# DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
-PROD_DB_PATH   = file:/data/database.sqlite
+#DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR    = /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
+DEV_DB_PATH   = file:/home/capa/Documents/ft_transcendence-new_branch/sqlite-data/database.sqlite
 
+PROD_DB_PATH = file:/data/database.sqlite
 
 all: up
 
@@ -41,6 +43,9 @@ upd:
 	@rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build -d
+
+deploy:
+	docker exec -it backend npx prisma migrate deploy
 
 start:
 	$(DOCKER_COMPOSE) -f $(YML) start
@@ -70,7 +75,7 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	@ rm -rf ${DEV_DB_DIR}
-	@ rm -rf ${PROD_DB_DIR}
+	@ sudo rm -rf ${DEV_DB_DIR}
+	@ sudo rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 

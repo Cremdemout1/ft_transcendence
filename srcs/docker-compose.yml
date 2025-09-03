@@ -60,6 +60,7 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+      - "8081:8081"
 
   frontend:
     container_name: frontend
@@ -89,7 +90,8 @@ volumes:
     driver_opts:
       type: none
       # device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      #device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      device: /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
       o: bind
 
 networks:
