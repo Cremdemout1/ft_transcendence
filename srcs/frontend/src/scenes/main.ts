@@ -27,8 +27,10 @@ import {
   ExecuteCodeAction,
   KeyboardEventTypes,
   TrailMesh,
+  Viewport,
 } from "@babylonjs/core";
-import arenaModel from "@/assets/models/transcendence_full.glb";
+import { Inspector } from "@babylonjs/inspector";
+import arenaModel from "@/assets/models/transcendence_big.glb";
 import city from "@/assets/models/mid_city.glb";
 import { simmetrical_vec } from "../babylonUtils";
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
@@ -65,11 +67,12 @@ function createLight(
   light.specular = color;
   light.diffuse = color;
   light.intensity = 10;
+  light.includeOnlyWithLayerMask = 0x20000000;
 }
 
-function createTrail(ball: Mesh | undefined, scene: Scene) {
+function createTrail(ball: Mesh | undefined, scene: Scene, diameter: number) {
   let options = {
-    diameter: 2,
+    diameter: diameter,
     length: 25,
     segments: 10,
     sections: 4,
@@ -79,8 +82,9 @@ function createTrail(ball: Mesh | undefined, scene: Scene) {
 
   if (ball) {
     const trail = new TrailMesh("trail", ball, scene, options);
+    trail.layerMask = 0x10000000;
     let sourceMat = new StandardMaterial("sourceMat", scene);
-    let color = Color3.Purple();
+    let color = new Color3(244, 0, 255);
     sourceMat.emissiveColor = sourceMat.diffuseColor = color;
     sourceMat.specularColor = Color3.Black();
     trail.material = sourceMat;
@@ -110,10 +114,48 @@ export async function createGameScene(
     Vector3.Zero(),
     scene
   );
-  camera.lowerRadiusLimit = 200;
+  camera.lowerRadiusLimit = 100;
   camera.upperRadiusLimit = 500;
   camera.attachControl(canvas, true);
-  //camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+
+  const ratio = canvas.height / canvas.width;
+  let camera2 = new ArcRotateCamera( //depends on the player id
+    "camera",
+    Math.PI,
+    0,
+    50,
+    new Vector3(0, 100, 0),
+    scene
+  );
+  camera2.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera2.orthoRight = 110;
+  camera2.orthoLeft = -camera2.orthoRight;
+  camera2.orthoTop = camera2.orthoRight * ratio;
+  camera2.orthoBottom = camera2.orthoLeft * ratio;
+
+  let camera3 = new ArcRotateCamera( //depends on the player id
+    "camera",
+    Math.PI,
+    Math.PI / 2,
+    50,
+    new Vector3(0, 10, 0),
+    scene
+  );
+  camera3.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera3.orthoRight = 150;
+  camera3.orthoLeft = -camera3.orthoRight;
+  camera3.orthoTop = camera3.orthoRight * ratio;
+  camera3.orthoBottom = camera3.orthoLeft * ratio;
+
+  camera.viewport = new Viewport(0, 0, 1, 1);
+  camera2.viewport = new Viewport(0.75, 0.1, 0.16, 0.16);
+  camera3.viewport = new Viewport(0.83, 0.087, 0.22, 0.22);
+  camera.layerMask = 0xffffffff;
+  camera2.layerMask = 0x10000000;
+  camera3.layerMask = 0x10000000;
+  scene.activeCameras!.push(camera);
+  scene.activeCameras!.push(camera2);
+  scene.activeCameras!.push(camera3);
 
   //   const light = new HemisphericLight("light1", new Vector3(-1, 1, 0), scene);
   //   light.diffuse = new Color3(0.71, 0.56, 1);
@@ -178,17 +220,31 @@ export async function createGameScene(
       //mainMesh.scaling.addInPlace(new Vector3(100, 100, -100));
       //mainMesh.position.addInPlace(new Vector3(-10, 10, 10));
       camera.setTarget(mainMesh.position);
+      camera2.setTarget(mainMesh.position);
     }
 
     const axes = new AxesViewer(scene, 10); //y green, x red, z blue
 
     result.meshes.forEach((mesh) => {
+      if (
+        mesh.name.includes("ball") ||
+        mesh.name.includes("paddle") ||
+        mesh.name.includes("arena")
+      ) {
+        mesh.layerMask = 0x10000000;
+      }
       let mat = mesh.material as Material;
       if (!mat) return;
 
       if (mesh.name.includes("ball")) {
         mesh.scaling = simmetrical_vec(0.4);
         meshes.ball = mesh as Mesh;
+        // let ball_clone=meshes.ball.clone();
+        // ball_clone.parent= meshes.ball;
+        // ball_clone.scaling=new Vector3(2,2,2);
+        // ball_clone.layerMask= 0x10000000;
+        // let bigtrail= createTrail(ball_clone, scene, 5);
+        // bigtrail!.layerMask = 0x10000000;
       }
       if (mesh.name.includes("arena")) meshes.arena = mesh as Mesh;
       if (mesh.name.includes("paddle2")) meshes.paddle1 = mesh as Mesh;
@@ -210,7 +266,6 @@ export async function createGameScene(
       if (mat.name.toLowerCase().includes("gradient")) {
         mat.transparencyMode = Material.MATERIAL_ALPHABLEND;
         mat.backFaceCulling = false;
-
         if (mat instanceof PBRMaterial) {
           mat.albedoColor = mat.albedoColor.clone();
           mat.alpha = 0.2;
@@ -246,6 +301,9 @@ export async function createGameScene(
     if (cityRoot) {
       cityRoot.scaling.addInPlace(new Vector3(5, 5, -5));
       cityRoot.position.addInPlace(new Vector3(-10, -900, 10));
+      // bg.meshes.forEach((mesh) => {
+      // mesh.layerMask= 0x10000000;
+      // });
     }
   } catch (error) {
     console.error("Failed to load model:", error);
@@ -258,8 +316,7 @@ export async function createGameScene(
   });
   gl.intensity = 0.75;
 
-  const trail = createTrail(meshes.ball, scene);
-
+  const trail = createTrail(meshes.ball, scene, 3);
 
   type Input = {
     up: number;
@@ -377,6 +434,8 @@ export async function createGameScene(
     }
   });
 
+  let reset = 0;
+
   scene.registerBeforeRender(function () {
     if (input.pause) return;
     gameMath.update(input.up, input.down, input.left, input.right, input.reset);
@@ -388,19 +447,26 @@ export async function createGameScene(
       );
       if (gameMath.getState().ball.reset) {
         if (trail) {
-          trail.reset();
+          trail.stop();
           console.log("RESET!");
+          reset = 1;
+        }
+      } else if (reset) {
+        if (trail) {
+          trail.reset();
+          trail.start();
+          reset = 0;
         }
       }
     }
-    if (meshes.paddle1) {
+    if (meshes.paddle1) {//replace with FOREACH WHERE ACTIVE=1
       //red paddle
       // console.log("x before: "+ meshes.paddle1.position.z);
-      meshes.paddle1.position.z = -gameMath.getState().paddle.x; //z is x for this paddle
+      meshes.paddle1.position.z = -gameMath.getState().paddles[0].x; //z is x for this paddle
 
       //console.log("x after: "+ meshes.paddle1.position.z);
       // console.log("y before: "+ meshes.paddle1.position.y);
-      meshes.paddle1.position.y = gameMath.getState().paddle.y;
+      meshes.paddle1.position.y = gameMath.getState().paddles[0].y;
       //console.log("y after: "+ meshes.paddle1.position.y);
     }
   });
