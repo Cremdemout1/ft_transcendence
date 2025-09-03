@@ -6,7 +6,7 @@
 #    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/06/06 11:52:04 by yohan            ###   ########.fr        #
+#    Updated: 2025/07/18 12:17:02 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,8 @@ WORKDIR /home/backend
 COPY ./package.json ./package-lock.json ./tsconfig.json ./
 
 COPY ./prisma ./prisma
+
+COPY ./images ./images
 
 RUN apk add --no-cache \
     python3 \

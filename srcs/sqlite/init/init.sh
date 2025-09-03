@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS $DB_USER_INFO_TABLE (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   firstname TEXT NOT NULL,
   lastname TEXT NOT NULL,
-  username TEXT UNIQUE NOT NULL
+  username TEXT UNIQUE NOT NULL,
+  profile_pic TEXT DEFAULT "/images/default.png"
 );
 
 		-- We declare login_type as TEXT but restrict values

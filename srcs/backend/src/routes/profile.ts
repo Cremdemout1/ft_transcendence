@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 13:10:50 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 12:45:15 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/18 11:21:05 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ export interface JWTformat
         firstname: string,
         lastname: string,
         twoFactorAuth: number,
+        profile_pic: string,
 }
 
 async function profile(fastify: FastifyInstance)
@@ -202,6 +203,7 @@ async function toggle2FA(fastify: FastifyInstance)
             firstname: updatedUser.user_info.firstname,
             lastname: updatedUser.user_info.lastname,
             twoFactorAuth: updatedUser.twoFactorAuth,
+            profile_pic: updatedUser.user_info.profile_pic,
         });
 
         return reply.send({ success: true, twoFA: twoFAEnabled, token });

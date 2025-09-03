@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 12:22:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/18 11:19:50 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,6 +129,7 @@ async function login(fastify: FastifyInstance)
                             firstname: user.user_info.firstname,
                             lastname: user.user_info.lastname,
                             twoFactorAuth: user.twoFactorAuth,
+                            profile_pic: user.user_info.profile_pic,
                         },
                         {
                             expiresIn: '1h'
@@ -166,6 +167,7 @@ async function verify2fa(fastify: FastifyInstance) {
                     firstname: user.user_info.firstname,
                     lastname: user.user_info.lastname,
                     twoFactorAuth: user.twoFactorAuth,
+                    profile_pic: user.user_info.profile_pic,
                 },
                 {
                     expiresIn: '1h'
@@ -214,6 +216,7 @@ async function googleAuth(fastify: FastifyInstance)
                 firstname: user.user_info.firstname,
                 lastname: user.user_info.lastname,
                 twoFactorAuth: user.twoFactorAuth,
+                profile_pic: user.user_info.profile_pic,
             },
             {
                 expiresIn: '1h'

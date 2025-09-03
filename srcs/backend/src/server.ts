@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 08:57:57 by yohan            ###   ########.fr       */
+/*   Updated: 2025/09/03 10:18:11 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@ import { FastifyRequest, FastifyInstance } from 'fastify';
 import dotenv from 'dotenv';
 import { PrismaClient } from '../generated/prisma';
 import fastifyRedis from '@fastify/redis';
+import fastifyStatic from '@fastify/static';
+import fastifyMultipart from '@fastify/multipart';
+import path from 'path';
 
 import { dashboard } from './routes/dashboard';
 import SignUp from './routes/signup';
@@ -27,6 +30,7 @@ import { login, googleAuth, verify2fa } from './routes/login';
 import { pong } from './routes/pong';
 import { profile, changeUsername, changeFirstname, changeLastname, toggle2FA } from './routes/profile';
 import { changePassword, changePasswordLogic } from './routes/changePassword';
+import { changeProfilePic } from './routes/changeProfilePic';
 
 export const prisma = new PrismaClient();
 dotenv.config();
@@ -100,15 +104,20 @@ async function startServer()
 
 async function registerAll(fastify:FastifyInstance)
 {
+  fastify.register(fastifyMultipart);
+  fastify.register(fastifyStatic, {
+    root: path.join('/home/backend/images'),
+    prefix: '/images/',
+  });
   fastify.register(fastifyJwt, {secret: process.env.JWT_TOKEN || 'secret-jwt'});
   fastify.register(fastifyRedis, {
     host: 'redis',
     port: 6379,
     reconnectOnError: () => true,
     retryStrategy: times => Math.min(times * 50, 2000),
-  })
+  });
   fastify.register(fastifyFormBody);
-  fastify.register(cors, { origin: true }); // replace true by our true URL when it will be hosted
+  fastify.register(cors, { origin: true, credentials: true }); // replace true by our true URL when it will be hosted
   fastify.register(dashboard);
   fastify.register(login);
   fastify.register(verify2fa);
@@ -122,6 +131,7 @@ async function registerAll(fastify:FastifyInstance)
   fastify.register(changePassword);
   fastify.register(toggle2FA);
   fastify.register(changePasswordLogic);
+  fastify.register(changeProfilePic);
 }
 
 startServer();

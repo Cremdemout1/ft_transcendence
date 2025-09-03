@@ -10,12 +10,13 @@
     <main id="app"></main>
 
     <script type="module">
-        import { backendLogin, logout, verify2faCode } from './src/login';
         import { backendSignup } from './src/signup';
         import { fetchDashboard } from './src/dashboard';
         import { renderPong, play, backToDashboard } from './src/pong';
         import { renderProfile, me } from './src/profile';
-        import { renderchangePassword } from './src/changePassword' //continue making this new page
+        import { renderchangePassword } from './src/changePassword';
+        import { renderDashboard } from './src/dashboard';
+        import { verify2faCode, backendLogin } from './src/login'
 
         const app = document.getElementById('app');
 
@@ -55,21 +56,6 @@
             <div id="message"></div>`;
 
             backendSignup();
-        };
-
-        function renderDashboard() {
-            app.innerHTML = `
-            <div name="options">
-                <button id="profileBtn" class="btn">Profile</button>
-                <button id="playBtn" class="btn">Play</button>
-                <button>History</button>
-                <button id="logoutBtn" class="btn">log out</button>
-            </div>`;
-
-            fetchDashboard();
-            logout();
-            play();
-            me();
         };
 
         function router() {

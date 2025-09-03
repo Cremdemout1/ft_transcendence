@@ -9,11 +9,12 @@ datasource db {
 }
 
 model user_info {
-  id        Int     @id @default(autoincrement())
-  firstname String
-  lastname  String
-  username  String  @unique(map: "sqlite_autoindex_user_info_1")
-  users     users[]
+  id          Int     @id @default(autoincrement())
+  firstname   String
+  lastname    String
+  username    String  @unique(map: "sqlite_autoindex_user_info_1")
+  profile_pic String  @default("/images/default.png")
+  users       users[]
 }
 
 model users {

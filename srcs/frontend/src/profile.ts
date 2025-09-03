@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/16 14:54:17 by yohan            ###   ########.fr       */
+/*   Updated: 2025/08/13 11:09:39 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ function decodeJwt(token: string) {
       console.error('Invalid JWT token', e);
       return null;
     }
-}  
+}
 
 async function renderProfile() {
     await checkLoginState("http://localhost:8080/api/me")
