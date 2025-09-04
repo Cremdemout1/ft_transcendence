@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
+#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/09/01 11:26:07 by gcapa-pe         ###   ########.fr        #
+#    Updated: 2025/09/03 10:49:15 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,10 +15,10 @@ YML 		   = ./srcs/docker-compose.yml
 
 #DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
-#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR    = /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
-DEV_DB_PATH   = file:/home/capa/Documents/ft_transcendence-new_branch/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_DIR    = /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
+# DEV_DB_PATH   = file:/home/capa/Documents/ft_transcendence-new_branch/sqlite-data/database.sqlite
 
 PROD_DB_PATH = file:/data/database.sqlite
 

@@ -90,8 +90,8 @@ volumes:
     driver_opts:
       type: none
       # device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-      #device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
-      device: /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
+      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      # device: /home/capa/Documents/ft_transcendence-new_branch/sqlite-data
       o: bind
 
 networks:

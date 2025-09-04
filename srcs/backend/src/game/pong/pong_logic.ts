@@ -1,7 +1,7 @@
 
 // ...existing code...
 
-type Paddle = {
+export type Paddle = {
   x: number;
   y: number;
   height: number;
