@@ -7,7 +7,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 06:59:30 by yohan             #+#    #+#             */
-/*   Updated: 2025/09/04 09:52:55 by yohan            ###   ########.fr       */
+/*   Updated: 2025/09/04 09:54:45 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -171,10 +171,10 @@ function simulateTrainingData(numSamples) {
     }
     return { states: states, correctActions: correctActions };
 }
-// Usage:
 var _a = simulateTrainingData(1000), states = _a.states, correctActions = _a.correctActions;
 var ai = new learning_ai_opponent();
 ai.fit(states, correctActions, 500);
+// Compare predictions vs correct actions
 for (var i = 0; i < 20; i++) { // just print first 20 for readability
     var predicted = ai.predict(states[i]);
     var correct = correctActions[i];

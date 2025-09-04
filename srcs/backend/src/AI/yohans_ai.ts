@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 06:59:30 by yohan             #+#    #+#             */
-/*   Updated: 2025/09/04 09:52:55 by yohan            ###   ########.fr       */
+/*   Updated: 2025/09/04 10:00:20 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,52 +180,102 @@ class learning_ai_opponent {
 
 export default learning_ai_opponent;
   
-  function simulateTrainingData(numSamples: number = 500) {
-    const gameArea = { width: 1.8, height: 1.8, depth: 1.8 };
+//   function simulateTrainingData(numSamples: number = 500) {
+//     const gameArea = { width: 1.8, height: 1.8, depth: 1.8 };
   
+//     const states: state[] = [];
+//     const correctActions: action[] = [];
+  
+//     for (let i = 0; i < numSamples; i++) {
+//       // Random ball position
+//       let X_pos = (Math.random() - 0.5) * gameArea.width;
+//       let Y_pos = (Math.random() - 0.5) * gameArea.height;
+//       let Z_pos = (Math.random() - 0.5) * gameArea.depth;
+  
+//       // Random paddle position
+//       let X_paddle = (Math.random() - 0.5) * gameArea.width;
+//       let Y_paddle = (Math.random() - 0.5) * gameArea.height;
+  
+//       // Determine correct action
+//       let moveX = Math.abs(X_pos - X_paddle) > 0.05 ? (X_pos > X_paddle ? 'right' : 'left') : 'none';
+//       let moveY = Math.abs(Y_pos - Y_paddle) > 0.05 ? (Y_pos > Y_paddle ? 'up' : 'down') : 'none';
+  
+//       // Prioritize vertical movement if ball is far vertically, else horizontal
+//       let chosenAction: action;
+//       if (moveY !== 'none') chosenAction = moveY as action;
+//       else if (moveX !== 'none') chosenAction = moveX as action;
+//       else chosenAction = 'none';
+  
+//       states.push({ X_pos, Y_pos, Z_pos, X_paddle, Y_paddle });
+//       correctActions.push(chosenAction);
+//     }
+  
+//     return { states, correctActions };
+//   }
+  
+//   const { states, correctActions } = simulateTrainingData(1000);
+//   const ai = new learning_ai_opponent();
+//   ai.fit(states, correctActions, 500);
+  
+//   // Compare predictions vs correct actions
+//   for (let i = 0; i < 20; i++) { // just print first 20 for readability
+//       const predicted = ai.predict(states[i]);
+//       const correct = correctActions[i];
+//       console.log(`Sample ${i + 1}: Predicted = ${predicted}, Correct = ${correct}`);
+//   }
+  
+//   // Optional: compute accuracy
+//   let correctCount = 0;
+//   for (let i = 0; i < states.length; i++) {
+//       if (ai.predict(states[i]) === correctActions[i]) correctCount++;
+//   }
+//   console.log(`Accuracy: ${(correctCount / states.length * 100).toFixed(2)}%`);
+
+
+function simulateWallBounceData(numSamples: number = 200) {
+    const gameArea = { width: 1.8, height: 1.8, depth: 1.8 };
     const states: state[] = [];
     const correctActions: action[] = [];
-  
+
     for (let i = 0; i < numSamples; i++) {
-      // Random ball position
-      let X_pos = (Math.random() - 0.5) * gameArea.width;
-      let Y_pos = (Math.random() - 0.5) * gameArea.height;
-      let Z_pos = (Math.random() - 0.5) * gameArea.depth;
-  
-      // Random paddle position
-      let X_paddle = (Math.random() - 0.5) * gameArea.width;
-      let Y_paddle = (Math.random() - 0.5) * gameArea.height;
-  
-      // Determine correct action
-      let moveX = Math.abs(X_pos - X_paddle) > 0.05 ? (X_pos > X_paddle ? 'right' : 'left') : 'none';
-      let moveY = Math.abs(Y_pos - Y_paddle) > 0.05 ? (Y_pos > Y_paddle ? 'up' : 'down') : 'none';
-  
-      // Prioritize vertical movement if ball is far vertically, else horizontal
-      let chosenAction: action;
-      if (moveY !== 'none') chosenAction = moveY as action;
-      else if (moveX !== 'none') chosenAction = moveX as action;
-      else chosenAction = 'none';
-  
-      states.push({ X_pos, Y_pos, Z_pos, X_paddle, Y_paddle });
-      correctActions.push(chosenAction);
+        // Random paddle position
+        const X_paddle = (Math.random() - 0.5) * gameArea.width;
+        const Y_paddle = (Math.random() - 0.5) * gameArea.height;
+
+        // Ball near top or bottom wall
+        const nearTop = Math.random() < 0.5;
+        const Y_pos = nearTop ? gameArea.height / 2 - 0.02 : -gameArea.height / 2 + 0.02;
+        const X_pos = (Math.random() - 0.5) * gameArea.width;
+        const Z_pos = (Math.random() - 0.5) * gameArea.depth;
+
+        // Decide correct action: if ball is above paddle -> move up, below -> move down
+        let chosenAction: action;
+        if (Y_pos > Y_paddle + 0.05) chosenAction = 'up';
+        else if (Y_pos < Y_paddle - 0.05) chosenAction = 'down';
+        else chosenAction = 'none';
+
+        states.push({ X_pos, Y_pos, Z_pos, X_paddle, Y_paddle });
+        correctActions.push(chosenAction);
     }
-  
+
     return { states, correctActions };
-  }
-  
-  // Usage:
-  const { states, correctActions } = simulateTrainingData(1000);
-  const ai = new learning_ai_opponent();
-  ai.fit(states, correctActions, 500);
-  for (let i = 0; i < 20; i++) { // just print first 20 for readability
-    const predicted = ai.predict(states[i]);
-    const correct = correctActions[i];
-    console.log(`Sample ${i + 1}: Predicted = ${predicted}, Correct = ${correct}`);
 }
 
-// Optional: compute accuracy
-let correctCount = 0;
-for (let i = 0; i < states.length; i++) {
-    if (ai.predict(states[i]) === correctActions[i]) correctCount++;
+// Usage example
+const { states: wallStates, correctActions: wallActions } = simulateWallBounceData(300);
+const ai = new learning_ai_opponent();
+ai.fit(wallStates, wallActions, 500);
+
+// Check predictions near walls and log first 20
+for (let i = 0; i < 20; i++) {
+    const predicted = ai.predict(wallStates[i]);
+    console.log(`Wall Sample ${i + 1}: Predicted = ${predicted}, Correct = ${wallActions[i]}`);
 }
-console.log(`Accuracy: ${(correctCount / states.length * 100).toFixed(2)}%`);
+
+// Compute overall accuracy for the wall-bounce dataset
+let correctCount = 0;
+for (let i = 0; i < wallStates.length; i++) {
+    if (ai.predict(wallStates[i]) === wallActions[i]) correctCount++;
+}
+
+console.log(`Wall-bounce dataset Accuracy: ${(correctCount / wallStates.length * 100).toFixed(2)}%`);
