@@ -401,7 +401,7 @@ export class GameMath {
   }
 
   public getState() {
-    //console.log("state returning:");
+    console.log("collision: " + this.collision + " and reset: " + this.ball.reset);
     return {
       ball: { ...this.ball },
       scores: { ...this.scores },
