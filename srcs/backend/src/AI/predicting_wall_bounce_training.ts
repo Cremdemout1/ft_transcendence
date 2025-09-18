@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/06 21:53:47 by yohan             #+#    #+#             */
-/*   Updated: 2025/09/06 23:21:43 by yohan            ###   ########.fr       */
+/*   Updated: 2025/09/06 23:33:38 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,8 +288,7 @@ function testTrajectory(ai: neural_intercept, steps = 50) {
         Vy *= -1;
         bounceInfo = `${colors.yellow}[Y-bounce]${colors.reset}`;
         Y_pos = Math.max(Math.min(Y_pos, gameArea.height / 2), -gameArea.height / 2);
-      }
-  
+      }  
       console.log(
         `Step ${t + 1}: ` +
         `${colors.blue}Ball=(${X_pos.toFixed(2)}, ${Y_pos.toFixed(2)})${colors.reset} ` +
@@ -301,8 +300,7 @@ function testTrajectory(ai: neural_intercept, steps = 50) {
           : `${colors.red}Ideal=${idealAction}${colors.reset}`) +
         ` ${bounceInfo}`
       );
-  
-      // check intercept
+    //   check intercept
       if (
         Math.abs(X_pos - X_paddle) < paddle_width / 2 &&
         Math.abs(Y_pos - Y_paddle) < paddle_height / 2 &&

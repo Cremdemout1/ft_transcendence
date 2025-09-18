@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 06:59:30 by yohan             #+#    #+#             */
-/*   Updated: 2025/09/06 23:09:51 by yohan            ###   ########.fr       */
+/*   Updated: 2025/09/07 10:10:38 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ export const actions: action[] = [
 
 
 
-class neural_ai {
+class neural_ai { // plays similarly to a human (can lose)
     public num_inputs = 10;
     public num_of_hidden_neurons = 12;
     public num_outputs = 9 //possible outcomes
@@ -311,7 +311,7 @@ class neural_ai {
 }
 
 
-class neural_intercept {
+class neural_intercept { // is acc OP, like it's not even funny. I'll need to add a shit ton of noise or reduce paddle speed to allow losses
     public num_inputs = 14;
     public num_of_hidden_neurons = 12;
     public num_outputs = 9 //possible outcomes
@@ -505,10 +505,8 @@ class neural_intercept {
         
     // stochastic gradient descent: (is stochastic because I update after every pass)
         let target = [];
-        // let error = [];
         for (let i = 0; i < this.num_outputs; i++) {
             target[i] = actions[i] === correctAction ? 1 : 0;
-            // error[i] = target[i] - outputs[i];
         }
 
             //back propagation:
