@@ -135,6 +135,10 @@ export async function createGameScene( //function that makes all the visuals (up
     createSkybox: false,
   });
 
+ let envtex = CubeTexture.CreateFromPrefilteredData("../../assets/hdris/night_sky2.env", scene);
+ scene.environmentTexture=envtex;
+ scene.createDefaultSkybox(envtex, true, 100000);
+
   //With the cameras keep in mind right now it is as if the player is the RED PADDLE
   const camera = new ArcRotateCamera( //the camera is created here. it's an arc rotate camera, so it looks towards a target (center of the arena), and spins around it on 2 axes. needs to be rotated after creation based on player id so it starts facing the correct paddle
     "Camera",
