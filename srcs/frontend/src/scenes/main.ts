@@ -33,16 +33,20 @@ import {
   PhysicsAggregate,
   PhysicsShapeType,
   SpotLight,
+  Matrix,
+  Ray,
+  RayHelper,
 } from "@babylonjs/core";
 
 import { Inspector } from "@babylonjs/inspector";
 import HavokPhysics from "@babylonjs/havok";
-import model from "@/assets/models/transcendence_big.glb"; //arena, paddles and ball models
+import model from "@/assets/models/transcendence_fixed.glb"; //arena, paddles and ball models
 import city from "@/assets/models/mid_city.glb"; //city model
 import score from "@/assets/models/score.glb"; //score sign model
 import { simmetrical_vec } from "../babylonUtils";
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
 import { PointLight } from "babylonjs";
+import hitCircle_tex from "../../assets/tex/hit_circle.png";
 
 function createLight( //this function just creates a rectangular area light (right now none are being used in the scene)
   position: Vector3,
@@ -121,6 +125,10 @@ export async function createGameScene( //function that makes all the visuals (up
   //returns a babylon js scene
   const scene = new Scene(engine);
 
+  //initial call to the API to fetch game information such as how many players there are will go here
+
+  let player_nbr = 6;
+
   scene.createDefaultEnvironment({
     //i just use this to give random reflections to the arena glass
     groundOpacity: 0,
@@ -180,15 +188,6 @@ export async function createGameScene( //function that makes all the visuals (up
   scene.activeCameras!.push(camera2);
   scene.activeCameras!.push(camera3);
 
-  //   const light = new HemisphericLight("light1", new Vector3(-1, 1, 0), scene);
-  //   light.diffuse = new Color3(0.71, 0.56, 1);
-  //   light.specular = new Color3(1, 0.64, 0.93);
-  //   light.groundColor = new Color3(0.2, 0.23, 0.47);
-
-  //   const hk = new HavokPlugin(true, await havokModule);
-  //     scene.enablePhysics(new Vector3(0, 0, 0), hk);
-  //     let physEngine = scene.getPhysicsEngine();
-
   //   createLight(
   //     new Vector3(800, 240, -1000),
   //     new Vector3(50, 1.596,60),
@@ -237,12 +236,14 @@ export async function createGameScene( //function that makes all the visuals (up
     //array of the important meshes (objects/models), obviously will be developed to include all paddles when all their positions are actually being updated
     ball?: Mesh;
     arena?: Mesh;
-    paddle1?: Mesh;
-    paddle2?: Mesh;
+    paddles?: Mesh[];
     score_title?: Mesh;
   };
   const meshes: GameMeshes = {};
-
+  meshes.paddles = [];
+//   console.log("Array right after init: ");
+//   console.log(meshes.paddles);
+//   console.log("-------------------------");
   try {
     const result = await SceneLoader.ImportMeshAsync("", "", model, scene); //imports the arena, paddles and ball
     const mainMesh = result.meshes[0]; //mesh 0 which i name mainMesh here is a root mesh that contains all 3 mentioned above
@@ -258,6 +259,9 @@ export async function createGameScene( //function that makes all the visuals (up
     const axes = new AxesViewer(scene, 10); //this just shows the world axes, y green, x red, z blue
 
     result.meshes.forEach((mesh) => {
+      console.log(mesh.name);
+      console.log("Array first:");
+      console.log(meshes.paddles);
       if (
         mesh.name.includes("ball") ||
         mesh.name.includes("paddle") ||
@@ -280,8 +284,24 @@ export async function createGameScene( //function that makes all the visuals (up
         // bigtrail!.layerMask = 0x10000000;
       }
       if (mesh.name.includes("arena")) meshes.arena = mesh as Mesh;
-      if (mesh.name.includes("paddle2")) meshes.paddle1 = mesh as Mesh;
-      if (mesh.name.includes("paddle3")) meshes.paddle2 = mesh as Mesh;
+      for (let i = 0; i < player_nbr; i++) {
+        const paddle_name = "paddle" + (i + 1); //paddle1 will be meshes.paddles[0]
+        console.log("paddle_name: " + paddle_name);
+        if (
+          meshes.paddles &&
+          mesh.name.includes(paddle_name) &&
+          !mesh.name.includes("border")
+        )
+          meshes.paddles[i] = mesh as Mesh;
+      }
+      for (let i = player_nbr; i < 6; i++) {
+        const paddle_name = "paddle" + (i + 1);
+        console.log("paddle_name: " + paddle_name);
+        if (meshes.paddles && mesh.name.includes(paddle_name))
+          mesh.isVisible = false;
+      }
+      console.log("Array after:");
+      console.log(meshes.paddles);
       //forEach player (API call)
 
       if (mat.name.toLowerCase().includes("glass")) {
@@ -291,7 +311,6 @@ export async function createGameScene( //function that makes all the visuals (up
 
         if (mat instanceof PBRMaterial) {
           mat.alpha = 0.5;
-          // mat.needDepthPrePass =true;
           mat.transparencyMode = 2;
           mat.metallic = 0;
           mat.indexOfRefraction = 1.5;
@@ -312,7 +331,6 @@ export async function createGameScene( //function that makes all the visuals (up
         if (mat instanceof PBRMaterial) {
           mat.albedoColor = mat.albedoColor.clone();
           mat.alpha = 0.2;
-          // mat.needDepthPrePass =true;
           mat.transparencyMode = 2;
           mat.metallic = 1;
           mat.roughness = 1;
@@ -331,14 +349,6 @@ export async function createGameScene( //function that makes all the visuals (up
           mat.environmentBRDFTexture = scene.environmentTexture;
           mat.subSurface.useMaskFromThicknessTexture = true;
           mat.forceIrradianceInFragment = true;
-          mat.stencil.enabled = true;
-          mat.stencil.func = Engine.ALWAYS;
-          mat.stencil.funcRef = 1;
-          mat.stencil.funcMask = 0xff;
-          mat.stencil.opStencilFail = Engine.KEEP;
-          mat.stencil.opStencilFail = Engine.KEEP;
-          mat.stencil.opStencilDepthPass = Engine.REPLACE;
-          mat.stencil.mask = 0xff;
         }
 
         if (mat instanceof StandardMaterial) {
@@ -369,7 +379,7 @@ export async function createGameScene( //function that makes all the visuals (up
     throw error;
   }
 
-  meshes.arena!.renderingGroupId = 0;
+  //   meshes.arena!.renderingGroupId = 0;
 
   scene.clearColor = new Color4(0.1, 0.1, 0.1, 1);
   const gl = new GlowLayer("glow", scene, {
@@ -421,14 +431,6 @@ export async function createGameScene( //function that makes all the visuals (up
   };
 
   var isLocked = false;
-
-  //   const spot_light = new SpotLight("spotLight", new Vector3(meshes.ball?.position.x, meshes.ball?.position.y, meshes.ball?.position.z), new Vector3(0, -1, 0), Math.PI / 2, 10, scene);
-  //   spot_light.diffuse = new Color3(1, 0, 0);
-
-  //   var ground2 = MeshBuilder.CreateGround("ground", {width: 400, height: 400}, scene);
-  //   ground2.position.y=-100;
-  //   ground2.material= new StandardMaterial("ground2");
-  //   ground2.material.alpha=0.8;
 
   // On click event, request pointer lock
   scene.onPointerDown = function (evt) {
@@ -528,21 +530,29 @@ export async function createGameScene( //function that makes all the visuals (up
     }
   });
 
-  let hitCircle: Mesh; //hit circle is (will be eventually, it's still not correct, and it's lagging because rn it's a light, i'm trying to make it a mesh)
+  let decal: Mesh;
   let reset = 0;
-  //createLight(simmetrical_vec(0), simmetrical_vec(0), Color3.White(), "a", scene);
+  var decalMaterial = new StandardMaterial("decalMat", scene);
+  decalMaterial.diffuseTexture = new Texture(hitCircle_tex, scene);
+  decalMaterial.diffuseTexture.hasAlpha = true;
+  decalMaterial.useAlphaFromDiffuseTexture = true; 
+  decalMaterial.emissiveColor = Color3.Red();
+  decalMaterial.zOffset = -2;
+  decalMaterial.backFaceCulling = false;
+  let decal_alpha = 1;
 
-  scene.registerBeforeRender(function () {//the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
-	sign_flicker(scoregl, scoremat); //this just flickers the score sign
-    meshes.arena!.updateFacetData();
+  scene.registerBeforeRender(function () {
+    //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
+    sign_flicker(scoregl, scoremat); //this just flickers the score sign
+    //meshes.arena!.updateFacetData();
     if (input.pause) return; //if the game is paused nothing is sent to or returned from update
     gameMath.update(input.up, input.down, input.left, input.right, input.reset); //this is where i send the inputs (only the inputs, no positions of anything, for the aforementioned security reasons). needs to be replaced by an API send. This function is in the pong_logic.ts
     if (meshes.ball) {
       //updating the position of the ball with the returned values
       meshes.ball.position.set(
-        gameMath.getState().ball.x, //getState() returns the updated postion of everything
-        gameMath.getState().ball.y,
-        gameMath.getState().ball.z
+        gameMath.getState().ball.pos.x, //getState() returns the updated postion of everything
+        gameMath.getState().ball.pos.y,
+        gameMath.getState().ball.pos.z
         // 10,
         // 10,
         // 10
@@ -563,58 +573,58 @@ export async function createGameScene( //function that makes all the visuals (up
         }
       }
     }
-    if (meshes.paddle1) {
-      //moving the paddle mesh to the updated poisition (this will be a for loop with all the paddles after merging)
-      //replace with FOREACH WHERE ACTIVE=1
-      //red paddle
-      // console.log("x before: "+ meshes.paddle1.position.z);
-      meshes.paddle1.position.z = gameMath.getState().paddles[0].x; //z is x for this paddle
+    meshes.paddles!.forEach((paddle, index) => {//replace meshes[0] with meshes[i]
+      if (paddle.name == "paddle1" || paddle.name == "paddle5")
+        paddle.position.z = gameMath.getState().paddles[index].x;
+      else if (paddle.name == "paddle2" || paddle.name == "paddle6")
+        paddle.position.z = -gameMath.getState().paddles[index].x;
+      else if (paddle.name == "paddle3")
+        paddle.position.x = -gameMath.getState().paddles[index].x;
+      else paddle.position.x = gameMath.getState().paddles[index].x;
 
-      //console.log("x after: "+ meshes.paddle1.position.z);
-      // console.log("y before: "+ meshes.paddle1.position.y);
-      meshes.paddle1.position.y = gameMath.getState().paddles[0].y;
-      //console.log("y after: "+ meshes.paddle1.position.y);
+      if (
+        paddle.name == "paddle1" ||
+        paddle.name == "paddle2" ||
+        paddle.name == "paddle3" ||
+        paddle.name == "paddle4"
+      )
+        paddle.position.y = gameMath.getState().paddles[index].y;
+      else if (paddle.name == "paddle5")
+        paddle.position.x = -gameMath.getState().paddles[index].y;
+      else paddle.position.x = gameMath.getState().paddles[index].y;
+    });
+    if (decal) {
+      decal.material!.alpha = decal_alpha;
+      decal_alpha-=0.02;
+	  if(decal.scaling.x>0)
+	  	decal.scaling.set(decal.scaling.x-0.005, decal.scaling.y-0.005, decal.scaling.z-0.005);
     }
-    let options_hit = {
-      diameter: 10,
-    };
-	console.log("hit: "+ gameMath.getState().hit);
     if (gameMath.getState().hit) {
-      if (hitCircle == null) {
-        hitCircle = MeshBuilder.CreateSphere("hit", options_hit);
-        let hitMat = new PBRMaterial("hitMat");
-        hitMat._albedoColor = Color3.Red();
-        hitMat.ambientColor = Color3.Red();
-        hitMat.metallic = 0;
-        hitMat.disableLighting = true;
-        hitMat.emissiveColor = new Color3(1, 0, 0);
-
-        hitCircle.material = hitMat;
-        hitCircle.renderingGroupId = 1;
-        if (hitMat) {
-          //trying to make a circle from the intersection of the sphere mesh with the arena mesh
-          hitMat.stencil.enabled = true;
-          hitMat.stencil.func = Engine.EQUAL;
-          hitMat.stencil.funcRef = 1;
-          hitMat.stencil.funcMask = 0xff;
-          hitMat.stencil.opStencilFail = Engine.KEEP;
-          hitMat.stencil.opStencilFail = Engine.KEEP;
-          hitMat.stencil.opStencilDepthPass = Engine.KEEP;
-          hitMat.stencil.mask = 0xff;
-        }
-      }
-      hitCircle.position.set(
-        gameMath.getState().hitPoint.x,
-        gameMath.getState().hitPoint.y,
-        gameMath.getState().hitPoint.z
-        // 10,
-        // 10,
-        // 10
+      const hitPoint = new Vector3(
+        gameMath.getState().hitPoint.pos.x,
+        gameMath.getState().hitPoint.pos.y,
+        gameMath.getState().hitPoint.pos.z
       );
+      const origin = new Vector3(0, 0, 0);
+      const rayDirection = origin.subtract(hitPoint).normalize();
+      const ray = new Ray(hitPoint, rayDirection, 10);
+      const pickInfo = scene.pickWithRay(ray);
+      meshes.arena!.isPickable = true;
+      if (decal) decal.dispose();
+      if (pickInfo) {
+        decal = MeshBuilder.CreateDecal("decal", meshes.arena!, {
+          position: pickInfo!.pickedPoint!,
+          normal: pickInfo!.getNormal(true, true)!,
+          size: simmetrical_vec((gameMath.getState().hitPoint.dist)/2),
+          cullBackFaces: false,
+        });
+        decal.material = decalMaterial;
+        decal_alpha = 1;
+      }
     }
-	input.reset=0;
+    input.reset = 0;
   });
-
+  //scene.debugLayer.show();
   SceneOptimizer.OptimizeAsync(scene);
   await scene.whenReadyAsync();
   return scene;
