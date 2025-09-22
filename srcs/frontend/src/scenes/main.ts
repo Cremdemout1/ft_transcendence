@@ -573,7 +573,7 @@ export async function createGameScene( //function that makes all the visuals (up
         }
       }
     }
-    meshes.paddles!.forEach((paddle, index) => {//replace meshes[0] with meshes[i]
+    meshes.paddles!.forEach((paddle, index) => {
       if (paddle.name == "paddle1" || paddle.name == "paddle5")
         paddle.position.z = gameMath.getState().paddles[index].x;
       else if (paddle.name == "paddle2" || paddle.name == "paddle6")
@@ -589,9 +589,8 @@ export async function createGameScene( //function that makes all the visuals (up
         paddle.name == "paddle4"
       )
         paddle.position.y = gameMath.getState().paddles[index].y;
-      else if (paddle.name == "paddle5")
+      else if (paddle.name == "paddle5" || paddle.name == "paddle6")
         paddle.position.x = -gameMath.getState().paddles[index].y;
-      else paddle.position.x = gameMath.getState().paddles[index].y;
     });
     if (decal) {
       decal.material!.alpha = decal_alpha;
