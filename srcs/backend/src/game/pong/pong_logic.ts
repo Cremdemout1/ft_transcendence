@@ -177,10 +177,9 @@ export class GameMath {
   }
 
   private wallCollisions() {
-    // ADD SCORING IN ALL THE WALLS AFTER COLLISIONS ARE WORKING
     if (
       Math.abs(this.ball.pos.x) >=
-      this.gameArea.width / 2 - this.ball.radius
+      this.gameArea.width / 2
     ) {
       this.ball.velocity.x *= -1;
       // Clamp
@@ -197,7 +196,7 @@ export class GameMath {
 
     if (
       Math.abs(this.ball.pos.y) >=
-      this.gameArea.height / 2 - this.ball.radius
+      this.gameArea.height / 2
     ) {
       this.ball.velocity.y *= -1;
       this.ball.pos.y =
