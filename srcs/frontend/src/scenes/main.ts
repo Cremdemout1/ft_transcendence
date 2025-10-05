@@ -5,29 +5,38 @@ import HavokPhysics from "@babylonjs/havok";
 import model from "@/assets/models/arena.glb"; //arena, paddles and ball models
 import city from "@/assets/models/mid_city_separate.glb"; //city model
 import score from "@/assets/models/score.glb"; //score sign model
-import counter from "@/assets/models/digital_clock_new.glb"; //score counter
-import score_unit from "@/assets/models/score_unit.glb"; //score digit
 import {
   simmetrical_vec,
   createLight,
   createTrail,
   sign_flicker,
+  glow_score_title,
+  save_materials,
 } from "../utils/babylonUtils";
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
 import { BaseTexture, int, PointLight } from "babylonjs";
 import hitCircle_tex from "../../assets/tex/hit_circle.png";
-import pfp from "../../assets/tex/profile_pic.jpg";
-import { stick, print_score } from "../utils/scorePrinting";
+import { stick, print_score, score_counter } from "../utils/scorePrinting";
 import { Dispose } from "babylonjs/Misc/dumpTools";
 
 export type GameMeshes = {
-  //array of the important meshes (objects/models), obviously will be developed to include all paddles when all their positions are actually being updated
+  //array of the important meshes (objects/models)
   ball?: BABYLON.Mesh;
   arena?: BABYLON.Mesh;
   paddles?: BABYLON.Mesh[];
   score_title?: BABYLON.Mesh;
   score_counter?: BABYLON.Mesh[];
   score_units?: stick[];
+};
+
+export type Input = {
+  //input object
+  up: number;
+  left: number;
+  down: number;
+  right: number;
+  reset: number;
+  pause: number;
 };
 
 function camera_setup(
@@ -37,7 +46,7 @@ function camera_setup(
 ) {
   const camera = new BABYLON.ArcRotateCamera( //the camera is created here. it's an arc rotate camera, so it looks towards a target (center of the arena), and spins around it on 2 axes.
     "Camera",
-    0,
+    Math.PI,
     Math.PI / 2,
     100,
     BABYLON.Vector3.Zero(),
@@ -51,7 +60,7 @@ function camera_setup(
   const ratio = canvas.height / canvas.width;
   let camera2 = new BABYLON.ArcRotateCamera( //this is the first extra view (top view). needs to be rotated depending on the player id so the respective paddle shows on the bottom
     "camera",
-    0,
+    Math.PI,
     0,
     50,
     new BABYLON.Vector3(0, 100, 0),
@@ -65,7 +74,7 @@ function camera_setup(
 
   let camera3 = new BABYLON.ArcRotateCamera( //extra view #2 (front view). again needs to be rotated based on player id so the respective paddle is on the front/center
     "camera",
-    0,
+    Math.PI,
     Math.PI / 2,
     50,
     new BABYLON.Vector3(0, 10, 0),
@@ -80,12 +89,84 @@ function camera_setup(
   camera.viewport = new BABYLON.Viewport(0, 0, 1, 1);
   camera2.viewport = new BABYLON.Viewport(0.75, 0.1, 0.16, 0.16);
   camera3.viewport = new BABYLON.Viewport(0.83, 0.087, 0.22, 0.22);
-  camera.layerMask = 0xffffffff;
-  camera2.layerMask = 0x10000000;
+  camera.layerMask = 0xffffffff; //everything shows up on the main camera
+  camera2.layerMask = 0x10000000; //only the arena and paddles show up on the ortographic ones
   camera3.layerMask = 0x10000000;
   scene.activeCameras!.push(camera);
   scene.activeCameras!.push(camera2);
   scene.activeCameras!.push(camera3);
+}
+
+async function import_meshes(
+  scene: BABYLON.Scene,
+  meshes: GameMeshes,
+  player_nbr: number,
+  player_id: number
+) {
+  let arena_meshes: BABYLON.ISceneLoaderAsyncResult;
+  try {
+    arena_meshes = await BABYLON.SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      model,
+      scene
+    ); //imports the arena, paddles and ball
+    const mainMesh = arena_meshes.meshes[0]; //mesh 0 which i name mainMesh here is a root mesh that contains all 3 mentioned above
+    if (mainMesh) mainMesh.scaling = new BABYLON.Vector3(-1, 1, -1);
+  } catch (error) {
+    console.error("Failed to load arena model:", error);
+    throw error;
+  }
+  arena_meshes.meshes.forEach((mesh) => {
+    mesh.layerMask = 0x10000000; //this is for attributing a specific rendering order to make the transparency work properly
+
+    if (mesh.name.includes("ball")) meshes.ball = mesh as BABYLON.Mesh;
+    if (mesh.name.includes("arena")) meshes.arena = mesh as BABYLON.Mesh;
+    if (meshes.paddles && mesh.name.includes("paddle")) {
+      const paddle_nbr = +mesh.name.substring(6, 7);
+      if (!mesh.name.includes("border"))
+        meshes.paddles[paddle_nbr - 1] = mesh as BABYLON.Mesh;
+      if (paddle_nbr > player_nbr) mesh.isVisible = false;
+    }
+
+    save_materials(scene, meshes, mesh.material as BABYLON.PBRMaterial);
+  });
+  try {
+    const cityscene = await BABYLON.SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      city,
+      scene
+    ); //importing city model, i want it to be animated later on but first i need to figure out a way to get the materials to look at least close to how they do in blender
+    const cityRoot = cityscene.meshes[0]; //root mesh
+    if (cityRoot) {
+      cityRoot.scaling.addInPlace(new BABYLON.Vector3(5, 5, 5));
+      cityRoot.position.addInPlace(new BABYLON.Vector3(-10, -900, 10));
+    }
+  } catch (error) {
+    console.error("Failed to load city model:", error);
+    throw error;
+  }
+  try {
+    const score_sign = await BABYLON.SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      score,
+      scene
+    ); //importing score sign
+    const scoreRoot = score_sign.meshes[0]; //root
+    if (scoreRoot) {
+      meshes.score_title = scoreRoot as BABYLON.Mesh;
+      scoreRoot.scaling.addInPlace(new BABYLON.Vector3(60, 60, -60));
+      scoreRoot.position.addInPlace(new BABYLON.Vector3(1500, 900, 900));
+      scoreRoot.rotation = new BABYLON.Vector3(0, Math.PI / 2, 0);
+    }
+  } catch (error) {
+    console.error("Failed to load score title sign model:", error);
+    throw error;
+  }
+
+  await score_counter(player_nbr, scene, meshes, player_id);
 }
 
 export async function createGameScene( //function that makes all the visuals (updates are at the bottom), it takes the engine, the html canvas and the backend calculations object as parameters
@@ -99,7 +180,7 @@ export async function createGameScene( //function that makes all the visuals (up
   //initial call to the API to fetch game information such as how many players there are will go here
 
   let player_nbr = 6;
-  let player_id = 1;
+  let player_id = 2;
 
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",
@@ -110,6 +191,7 @@ export async function createGameScene( //function that makes all the visuals (up
     scene
   );
   let helper = scene.createDefaultEnvironment({
+    //this creates the skybox, environment texture etc
     groundOpacity: 0,
     createSkybox: true,
     skyboxTexture: sky,
@@ -118,14 +200,12 @@ export async function createGameScene( //function that makes all the visuals (up
   });
 
   const axes = new BABYLON.AxesViewer(scene, 10); //this just shows the world axes, y green, x red, z blue
-  //const light = new HemisphericLight("HemiLight", new Vector3(0.5, 1, 0.2), scene);
   //   scene.environmentTexture = desert;
   //   scene.createDefaultSkybox(sky, true, 100000);
 
-  camera_setup(scene, player_id, canvas);
+  camera_setup(scene, player_id, canvas); //creates the main camera + the 2 little views in the corner
 
   const groundMat = new BABYLON.StandardMaterial("StandardMaterial", scene); //ground under the city (here i'm creating the material for it first for some reason)
-  groundMat.roughness = 0.25;
   groundMat.diffuseColor = BABYLON.Color3.Black();
 
   const ground = BABYLON.MeshBuilder.CreateGround(
@@ -137,316 +217,28 @@ export async function createGameScene( //function that makes all the visuals (up
   ground.position.y -= 1000;
   ground.material = groundMat; //this assigns the material
 
-  //   var skybox = Mesh.CreateBox("skyBox", 3000.0, scene);
-  //     var skyboxMaterial = new StandardMaterial("skyBox", scene);
-  //     skyboxMaterial.backFaceCulling = false;
-  //     skyboxMaterial.reflectionTexture = new CubeTexture("srcs/frontend/assets/hdris/sky", scene);
-  //     skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-  //     skyboxMaterial.diffuseColor = new Color3(0, 0, 0);
-  //     skyboxMaterial.specularColor = new Color3(0, 0, 0);
-  //     skybox.material = skyboxMaterial;
-
   const meshes: GameMeshes = {};
   meshes.paddles = [];
   meshes.score_units = [];
   meshes.score_counter = [];
-  //   console.log("Array right after init: ");
-  //   console.log(meshes.paddles);
-  //   console.log("-------------------------");
-  try {
-    const result = await BABYLON.SceneLoader.ImportMeshAsync(
-      "",
-      "",
-      model,
-      scene
-    ); //imports the arena, paddles and ball
-    const mainMesh = result.meshes[0]; //mesh 0 which i name mainMesh here is a root mesh that contains all 3 mentioned above
-    if (mainMesh) {
-      //do rotation here
-      //if player= white or black only?
-      //mainMesh.rotateAround(simmetrical_vec(0), new Vector3(1,0,0), Math.PI/2);
-      mainMesh.scaling = new BABYLON.Vector3(-1, 1, -1);
-    }
 
-    result.meshes.forEach((mesh) => {
-      console.log(mesh.name);
-      console.log("Array first:");
-      console.log(meshes.paddles);
-      if (
-        mesh.name.includes("ball") ||
-        mesh.name.includes("paddle") ||
-        mesh.name.includes("arena")
-      ) {
-        mesh.layerMask = 0x10000000; //this is for attributing a specific rendering order to make the transparency work properly
-        mesh.mustDepthSortFacets = true;
-      }
-      let mat = mesh.material as BABYLON.Material;
-      if (!mat) return;
+  await import_meshes(scene, meshes, player_nbr, player_id);
 
-      if (mesh.name.includes("ball")) {
-        mesh.scaling = simmetrical_vec(0.4);
-        meshes.ball = mesh as BABYLON.Mesh;
-        // let ball_clone=meshes.ball.clone();
-        // ball_clone.parent= meshes.ball;
-        // ball_clone.scaling=new Vector3(2,2,2);
-        // ball_clone.layerMask= 0x10000000;
-        // let bigtrail= createTrail(ball_clone, scene, 5);
-        // bigtrail!.layerMask = 0x10000000;
-      }
-      if (mesh.name.includes("arena")) meshes.arena = mesh as BABYLON.Mesh;
-      for (let i = 0; i < player_nbr; i++) {
-        const paddle_name = "paddle" + (i + 1); //paddle1 will be meshes.paddles[0]
-        console.log("paddle_name: " + paddle_name);
-        if (
-          meshes.paddles &&
-          mesh.name.includes(paddle_name) &&
-          !mesh.name.includes("border")
-        )
-          meshes.paddles[i] = mesh as BABYLON.Mesh;
-      }
-      for (let i = player_nbr; i < 6; i++) {
-        const paddle_name = "paddle" + (i + 1);
-        console.log("paddle_name: " + paddle_name);
-        if (meshes.paddles && mesh.name.includes(paddle_name))
-          mesh.isVisible = false;
-      }
-      console.log("Array after:");
-      console.log(meshes.paddles);
-      //forEach player (API call)
-
-      if (mat.name.toLowerCase().includes("glass")) {
-        //trying to make the paddle glass material look translucid but still have a solid color and be a bit foggy/rough
-        mat.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-        mat.backFaceCulling = false;
-
-        if (mat instanceof BABYLON.PBRMaterial) {
-          mat.alpha = 0.5;
-          mat.transparencyMode = 2;
-          mat.metallic = 0;
-          mat.indexOfRefraction = 1.5;
-        }
-      }
-
-      if (mat.name.toLowerCase().includes("border")) {
-        //borders of the paddles have a different, less transparent material for better visibility
-        if (mat instanceof BABYLON.PBRMaterial) {
-          mat.alpha = 0.9;
-          mat.metallic = 0.9;
-        }
-      }
-      if (mat.name.toLowerCase().includes("gradient")) {
-        //arena glass configuration to make it look decent god somebody shoot me please
-        mat.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
-        mat.backFaceCulling = false;
-        if (mat instanceof BABYLON.PBRMaterial) {
-          mat.albedoColor = mat.albedoColor.clone();
-          mat.alpha = 0.2;
-          mat.transparencyMode = 2;
-          mat.metallic = 0;
-          mat.roughness = 1;
-          mat.indexOfRefraction = 1.5;
-          mat.clearCoat.isEnabled = true;
-          mat.clearCoat.roughness = 0;
-          mat.clearCoat.indexOfRefraction = 2;
-          mat.specularIntensity = 0;
-
-          mat.subSurface.isRefractionEnabled = true;
-          mat.subSurface.refractionIntensity = 1.0;
-          mat.subSurface.indexOfRefraction = 1.5;
-          mat.subSurface.tintColor = new BABYLON.Color3(1, 1, 1);
-          mat.subSurface.minimumThickness = 0.1;
-          mat.subSurface.maximumThickness = 0.5;
-          mat.environmentBRDFTexture = scene.environmentTexture;
-          mat.subSurface.useMaskFromThicknessTexture = true;
-          mat.forceIrradianceInFragment = true;
-        }
-
-        if (mat instanceof BABYLON.StandardMaterial) {
-          mat.diffuseColor = mat.diffuseColor.clone();
-          mat.alpha = 0.6;
-        }
-      }
-    });
-    const bg = await BABYLON.SceneLoader.ImportMeshAsync("", "", city, scene); //importing city model, i want it to be animated later on but first i need to figure out a way to get the materials to look at least close to how they do in blender
-    const cityRoot = bg.meshes[0]; //root mesh
-    if (cityRoot) {
-      cityRoot.scaling.addInPlace(new BABYLON.Vector3(5, 5, 5));
-      cityRoot.position.addInPlace(new BABYLON.Vector3(-10, -900, 10));
-    }
-    const score_sign = await BABYLON.SceneLoader.ImportMeshAsync(
-      "",
-      "",
-      score,
-      scene
-    ); //importing score sign (i've only modeled the title so far but the score system works i'm just not printing it anywhere)
-    const scoreRoot = score_sign.meshes[0]; //root
-    if (scoreRoot) {
-      meshes.score_title = scoreRoot as BABYLON.Mesh;
-      scoreRoot.scaling.addInPlace(new BABYLON.Vector3(60, 60, -60));
-      scoreRoot.position.addInPlace(new BABYLON.Vector3(1500, 900, 900));
-      scoreRoot.rotation = new BABYLON.Vector3(0, Math.PI / 2, 0);
-    }
-    const score_counter = await BABYLON.SceneLoader.ImportMeshAsync(
-      "",
-      "",
-      counter,
-      scene
-    ); //importing score counter
-    const counterRoot = score_counter.meshes[0]; //root
-    if (counterRoot) {
-      meshes.score_counter[0] = counterRoot as BABYLON.Mesh;
-      counterRoot.scaling.addInPlace(new BABYLON.Vector3(10, 10, -10));
-      counterRoot.position.addInPlace(new BABYLON.Vector3(1600, 100, 1500));
-      counterRoot.rotation = new BABYLON.Vector3(0, (Math.PI / 4) * 3, 0);
-      meshes.score_counter[1] = meshes.score_counter[0].clone("second", null);
-      meshes.score_counter[1].position.z = -1500;
-      meshes.score_counter[1].rotation = new BABYLON.Vector3(
-        0,
-        (Math.PI / 4) * 5,
-        0
-      );
-      meshes.score_counter[1].getChildMeshes().forEach((mesh) => {
-        if (mesh.name.includes("second.stick.flag.flag_primitive0")) {
-          const flagmat = new BABYLON.StandardMaterial("flagmat");
-          const tex = new BABYLON.Texture(pfp, scene);
-          tex.uScale = 3.2;
-          tex.vScale = 3.2;
-          tex.wAng = Math.PI / 2;
-          tex.uOffset = 0.5;
-          tex.vOffset = 0.04;
-          flagmat.diffuseTexture = tex;
-          flagmat.emissiveTexture = tex;
-          mesh.material = flagmat;
-        }
-        if (mesh.name.includes("second.stick.flag.flag_primitive2")) {
-          const id_color = new BABYLON.StandardMaterial("id_color");
-          id_color.emissiveColor = BABYLON.Color3.Blue();
-          mesh.material = id_color;
-        }
-      });
-    }
-
-    const scoreunit = await BABYLON.SceneLoader.ImportMeshAsync(
-      "",
-      "",
-      score_unit,
-      scene
-    ); //importing score unit
-    const unitRoot = scoreunit.meshes[0]; //root
-    if (unitRoot) {
-      //unitRoot.scaling.addInPlace(new Vector3(10, 10, -10));
-      //   unitRoot.position.addInPlace(new Vector3(1500, 500, 300));
-      //   unitRoot.rotation = new Vector3(0, Math.PI, 0);
-    }
-
-    scoreunit.meshes.forEach((mesh) => {
-      console.log(mesh.name);
-      if (!mesh.name.includes("root")) return;
-      for (let j = 0; j < 2; j++) {
-        for (let i = 0; i < player_nbr; i++) {
-          const name = "player" + i + "_unit" + j + "_" + mesh.name;
-          const par =
-            i < 3 ? meshes.score_counter![0] : meshes.score_counter![1];
-          const unit = mesh.clone(name, par) as BABYLON.Mesh;
-          unit.position.x = -20;
-          unit.position.z = j == 0 ? -38 * (i % 3) : -38 * (i % 3) - 15;
-          unit.position.z += 45;
-          unit.position.y = 4;
-          unit.getChildMeshes().forEach((element) => {
-            let onoff = element.name.includes("on") ? "on" : "off";
-            let curr_stick: stick = {
-              player: i,
-              unit: j,
-              type: onoff,
-              name: element.name,
-              mesh: element as BABYLON.Mesh,
-            };
-            console.log(curr_stick);
-            console.log(curr_stick.mesh);
-            if (onoff == "on") element.isVisible = false;
-            meshes.score_units?.push(curr_stick);
-          });
-        }
-      }
-    });
-    unitRoot.getChildMeshes().forEach((element) => {
-      element.isVisible = false;
-    });
-  } catch (error) {
-    console.error("Failed to load model:", error);
-    throw error;
-  }
-  meshes.arena?.rotateAround(
-    simmetrical_vec(0),
-    new BABYLON.Vector3(0, 1, 0),
-    -Math.PI / 2
-  );
-  //axes.update(simmetrical_vec(0), new BABYLON.Vector3(0,0,-1), new BABYLON.Vector3(0,1,0), new BABYLON.Vector3(1,0,0));
-
-  //   meshes.arena!.renderingGroupId = 0;
-  // meshes.arena!.material=scene.getMaterialByName("turned_off");
-  // meshes.arena!.material!.backFaceCulling=true
-  scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1);
+  //   meshes.arena?.rotateAround(
+  //     simmetrical_vec(0),
+  //     new BABYLON.Vector3(0, 0, 1),
+  //     -Math.PI / 2
+  //   );
+  const scoremat = scene.getMeshByName("score")
+    ?.material as BABYLON.PBRMaterial;
+  const scoregl = glow_score_title(scene, meshes, scoremat);
   const gl = new BABYLON.GlowLayer("glow", scene, {
     //adds glow to the emissive materials
     mainTextureSamples: 4,
   });
   gl.intensity = 0.6;
 
-  const scoregl = new BABYLON.GlowLayer("score glow", scene); //score sign glow w/ different settings
-  scoregl.customEmissiveColorSelector = function (
-    mesh,
-    subMesh,
-    material,
-    result
-  ) {
-    if (mesh.name === "score") {
-      result.set(1, 0.1, 0, 1);
-    } else {
-      result.set(0, 0, 0, 0);
-    }
-  };
-  scoregl.intensity = 1.2;
-  scoregl.blurKernelSize = 128;
-  const scoremat = scene.getMeshByName("score")
-    ?.material as BABYLON.PBRMaterial;
-  scoremat.emissiveIntensity = 20;
-  const em = scoremat.emissiveIntensity;
-  scoremat.emissiveColor = new BABYLON.Color3(1, 0.005, 0);
-
-  const countergl = new BABYLON.GlowLayer("counter glow", scene); //counter sign glow w/ different settings
-  countergl.customEmissiveColorSelector = function (
-    mesh,
-    subMesh,
-    material,
-    result
-  ) {
-    if (mesh.isVisible == true && mesh.material!.name.includes("turned on")) {
-      result.set(1, 0.1, 0, 1);
-    } else {
-      result.set(0, 0, 0, 0);
-    }
-  };
-  countergl.intensity = 0.1;
-  countergl.blurKernelSize = 64;
-  const countermat = scene.getMaterialByName(
-    "turned on"
-  ) as BABYLON.PBRMaterial;
-  countermat.emissiveIntensity = 20;
-  const emi = countermat.emissiveIntensity;
-  countermat.emissiveColor = new BABYLON.Color3(1, 0, 0);
-
   const trail = createTrail(meshes.ball, scene, 3);
-
-  type Input = {
-    //input object
-    up: number;
-    left: number;
-    down: number;
-    right: number;
-    reset: number;
-    pause: number;
-  };
 
   const input: Input = {
     //these variables are all just flags, they need one per key so we can click several keys at the same time, let them go etc and it all keeps moving smoothly, and for security reasons to prevent hacking attempts + pause and reset ball flags
@@ -458,28 +250,19 @@ export async function createGameScene( //function that makes all the visuals (up
     pause: 0,
   };
 
-  var isLocked = false;
-
+  let isLocked = false;
   // On click event, request pointer lock
   scene.onPointerDown = function (evt) {
     //hide mouse pointer
-    if (!isLocked) {
-      canvas.requestPointerLock = canvas.requestPointerLock;
-      if (canvas.requestPointerLock) {
-        canvas.requestPointerLock();
-      }
-    }
+    canvas.requestPointerLock();
   };
 
-  var pointerlockchange = function () {
+  let pointerlockchange = function () {
     var controlEnabled = document.pointerLockElement || null;
-
     // If the user is already locked
     if (!controlEnabled) {
-      //camera.detachControl(canvas);
       isLocked = false;
     } else {
-      //camera.attachControl(canvas);
       isLocked = true;
     }
   };
@@ -558,17 +341,16 @@ export async function createGameScene( //function that makes all the visuals (up
     }
   });
 
-
   let reset = 0;
-//     let decal: BABYLON.Mesh;
-//   var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-//   decalMaterial.diffuseTexture = new BABYLON.Texture(hitCircle_tex, scene);
-//   decalMaterial.diffuseTexture.hasAlpha = true;
-//   decalMaterial.useAlphaFromDiffuseTexture = true;
-//   decalMaterial.emissiveColor = BABYLON.Color3.Red();
-//   decalMaterial.zOffset = -2;
-//   decalMaterial.backFaceCulling = false;
-//   let decal_alpha = 1;
+  //     let decal: BABYLON.Mesh;
+  //   var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
+  //   decalMaterial.diffuseTexture = new BABYLON.Texture(hitCircle_tex, scene);
+  //   decalMaterial.diffuseTexture.hasAlpha = true;
+  //   decalMaterial.useAlphaFromDiffuseTexture = true;
+  //   decalMaterial.emissiveColor = BABYLON.Color3.Red();
+  //   decalMaterial.zOffset = -2;
+  //   decalMaterial.backFaceCulling = false;
+  //   let decal_alpha = 1;
 
   let orb: BABYLON.Mesh;
   let orbmaterial = new BABYLON.StandardMaterial("aaa");
@@ -585,11 +367,11 @@ export async function createGameScene( //function that makes all the visuals (up
   let booleanCSG: BABYLON.CSG2;
   let booleanCSG2: BABYLON.CSG2;
   let newMesh: BABYLON.Mesh;
-  let smaller= BABYLON.MeshBuilder.CreateBox("smaller", {size: 99});
-  smaller.material=groundMat;
+  let smaller = BABYLON.MeshBuilder.CreateBox("smaller", { size: 99 });
+  smaller.material = groundMat;
   let newnewMesh: BABYLON.Mesh;
   let sphereCSG2 = BABYLON.CSG2.FromMesh(smaller!);
-  smaller!.isVisible=false;
+  smaller!.isVisible = false;
 
   scene.registerBeforeRender(function () {
     //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
@@ -684,36 +466,36 @@ export async function createGameScene( //function that makes all the visuals (up
         centerMesh: false,
         materialToUse: orbmaterial,
       });
-	  boxCSG.dispose();
-	   boxCSG = BABYLON.CSG2.FromMesh(newMesh);
-	  if(booleanCSG2) booleanCSG2.dispose();
-	  booleanCSG2 = boxCSG.subtract(sphereCSG2);
-	  if(newnewMesh) newnewMesh.dispose();
-	  newnewMesh = booleanCSG2.toMesh("newnewMesh", scene, {
+      boxCSG.dispose();
+      boxCSG = BABYLON.CSG2.FromMesh(newMesh);
+      if (booleanCSG2) booleanCSG2.dispose();
+      booleanCSG2 = boxCSG.subtract(sphereCSG2);
+      if (newnewMesh) newnewMesh.dispose();
+      newnewMesh = booleanCSG2.toMesh("newnewMesh", scene, {
         centerMesh: false,
         materialToUse: orbmaterial,
       });
-	  newMesh.dispose();
+      newMesh.dispose();
       const origin = new BABYLON.Vector3(0, 0, 0);
       const rayDirection = origin.subtract(hitPoint).normalize();
       const ray = new BABYLON.Ray(hitPoint, rayDirection, 10);
       const pickInfo = scene.pickWithRay(ray);
       meshes.arena!.isPickable = true;
-    //   if (decal) decal.dispose();
-    //   if (pickInfo) {
-    //     decal = BABYLON.MeshBuilder.CreateDecal("decal", meshes.arena!, {
-    //       position: pickInfo!.pickedPoint!,
-    //       normal: pickInfo!.getNormal(true, true)!,
-    //       size: simmetrical_vec(gameMath.getState().hitPoint.dist / 2),
-    //       cullBackFaces: false,
-    //     });
-    //     decal.material = decalMaterial;
-    //     decal_alpha = 1;
-    //   }
+      //   if (decal) decal.dispose();
+      //   if (pickInfo) {
+      //     decal = BABYLON.MeshBuilder.CreateDecal("decal", meshes.arena!, {
+      //       position: pickInfo!.pickedPoint!,
+      //       normal: pickInfo!.getNormal(true, true)!,
+      //       size: simmetrical_vec(gameMath.getState().hitPoint.dist / 2),
+      //       cullBackFaces: false,
+      //     });
+      //     decal.material = decalMaterial;
+      //     decal_alpha = 1;
+      //   }
     }
     input.reset = 0;
   });
-  //scene.debugLayer.show();
+  scene.debugLayer.show();
   let optimizerOptions = new BABYLON.SceneOptimizerOptions(60, 500);
   optimizerOptions.optimizations = optimizerOptions.optimizations.filter(
     (opt) => !(opt instanceof BABYLON.MergeMeshesOptimization)

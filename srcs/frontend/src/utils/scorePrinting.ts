@@ -1,4 +1,9 @@
 import * as BABYLON from "babylonjs";
+import { GameMeshes } from "../scenes/main";
+import score_unit from "@/assets/models/score_unit.glb"; //score digit
+import counter from "@/assets/models/digital_clock_new.glb"; //score counter
+import pfp from "../../assets/tex/profile_pic.jpg";
+import { glow_score_digits } from "./babylonUtils";
 
 export type stick = {
   player: number;
@@ -7,6 +12,99 @@ export type stick = {
   name: string;
   mesh: BABYLON.Mesh;
 };
+
+export async function score_units(player_nbr:number, scene: BABYLON.Scene, meshes: GameMeshes) {
+	try{
+	const scoreunit = await BABYLON.SceneLoader.ImportMeshAsync(
+	  "",
+	  "",
+	  score_unit,
+	  scene
+	); //importing score unit
+	const unitRoot = scoreunit.meshes[0]; //root
+	scoreunit.meshes.forEach((mesh) => {
+	  if (!mesh.name.includes("root")) return;
+	  for (let j = 0; j < 2; j++) {
+		for (let i = 0; i < player_nbr; i++) {
+		  const name = "player" + i + "_unit" + j + "_" + mesh.name;
+		  const par =
+			i < 3 ? meshes.score_counter![0] : meshes.score_counter![1];
+		  const unit = mesh.clone(name, par) as BABYLON.Mesh;
+		  unit.position.x = -20;
+		  unit.position.z = j == 0 ? -38 * (i % 3) : -38 * (i % 3) - 15;//change order
+		  unit.position.z += 45;
+		  unit.position.y = 4;
+		  unit.getChildMeshes().forEach((element) => {
+			let onoff = element.name.includes("on") ? "on" : "off";
+			let curr_stick: stick = {
+			  player: i,
+			  unit: j,
+			  type: onoff,
+			  name: element.name,
+			  mesh: element as BABYLON.Mesh,
+			};
+			if (onoff == "on") element.isVisible = false;
+			meshes.score_units?.push(curr_stick);
+		  });
+		}
+	  }
+	});
+	unitRoot.getChildMeshes().forEach((element) => {
+	  element.isVisible = false;
+	});
+	glow_score_digits(scene, meshes);
+  } catch (error) {
+	console.error("Failed to load score unit models:", error);
+	throw error;
+  }
+}
+
+export async function score_counter(player_nbr:number, scene: BABYLON.Scene, meshes: GameMeshes, player_id: number) {
+	try{
+	const score_counter = await BABYLON.SceneLoader.ImportMeshAsync(
+	  "",
+	  "",
+	  counter,
+	  scene
+	); //importing score counter
+	const counterRoot = score_counter.meshes[0]; //root
+	if (counterRoot) {
+	  meshes.score_counter?.push(counterRoot as BABYLON.Mesh);
+	  counterRoot.scaling.addInPlace(new BABYLON.Vector3(10, 10, -10));
+	  counterRoot.position.addInPlace(new BABYLON.Vector3(1600, 100, 1500));
+	  counterRoot.rotation = new BABYLON.Vector3(0, (Math.PI / 4) * 3, 0);
+	  meshes.score_counter?.push(meshes.score_counter![0].clone("second", null));
+	  meshes.score_counter![1].position.z = -1500;
+	  meshes.score_counter![1].rotation = new BABYLON.Vector3(
+		0,
+		(Math.PI / 4) * 5,
+		0
+	  );
+	  meshes.score_counter![1].getChildMeshes().forEach((mesh) => {
+		if (mesh.name.includes("second.stick.flag.flag_primitive0")) {
+		  const flagmat = new BABYLON.StandardMaterial("flagmat");
+		  const tex = new BABYLON.Texture(pfp, scene);
+		  tex.uScale = 3.2;
+		  tex.vScale = 3.2;
+		  tex.wAng = Math.PI / 2;
+		  tex.uOffset = 0.5;
+		  tex.vOffset = 0.04;
+		  flagmat.diffuseTexture = tex;
+		  flagmat.emissiveTexture = tex;
+		  mesh.material = flagmat;
+		}
+		if (mesh.name.includes("second.stick.flag.flag_primitive2")) {
+		  const id_color = new BABYLON.StandardMaterial("id_color");
+		  id_color.emissiveColor = BABYLON.Color3.Blue();
+		  mesh.material = id_color;
+		}
+	  });
+	}} catch (error) {
+	console.error("Failed to load score counter models:", error);
+	throw error;
+  }
+  score_units(player_nbr, scene, meshes);
+}
 
 export function should_print(numbers: number[], stick: stick): boolean {
   for (const n in numbers) {

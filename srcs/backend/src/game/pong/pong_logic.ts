@@ -179,7 +179,7 @@ export class GameMath {
   private wallCollisions() {
     if (
       Math.abs(this.ball.pos.x) >=
-      this.gameArea.width / 2
+      this.gameArea.width / 2-this.ball.radius
     ) {
       this.ball.velocity.x *= -1;
       // Clamp
@@ -196,7 +196,7 @@ export class GameMath {
 
     if (
       Math.abs(this.ball.pos.y) >=
-      this.gameArea.height / 2
+      this.gameArea.height / 2 -this.ball.radius
     ) {
       this.ball.velocity.y *= -1;
       this.ball.pos.y =
@@ -210,14 +210,14 @@ export class GameMath {
       //console.log("WALL COLLISION ON Y AXIS");
     }
 
-    if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2) {
+    if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2-this.ball.radius) {
       this.ball.velocity.z *= -1;
       this.ball.pos.z =
         Math.sign(this.ball.pos.z) *
         (this.gameArea.depth / 2 - this.ball.radius - 0.01);
 	if(!this.paddles[2].active && !this.paddles[3].active) return;
-      if (this.ball.pos.z < 0) this.scores.player4++;
-      else this.scores.player3++;
+      if (this.ball.pos.z < 0) this.scores.player3++;
+      else this.scores.player4++;
 	  this.resetBall();
       this.collision = 1;
       //console.log("WALL COLLISION ON Z AXIS");
