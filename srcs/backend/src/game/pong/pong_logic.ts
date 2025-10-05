@@ -187,10 +187,10 @@ export class GameMath {
       this.ball.pos.x =
         Math.sign(this.ball.pos.x) *
         (this.gameArea.width / 2 - this.ball.radius - 0.01);
-      //if each of these players exist
-      if (this.ball.pos.x < 0) this.scores.player1++;
-      else this.scores.player2++;
-      console.log("WALL COLLISION ON X AXIS");
+      if(!this.paddles[0].active && !this.paddles[1].active) return;
+      if (this.ball.pos.x < 0) this.scores.player2++;
+      else this.scores.player1++;
+      //console.log("WALL COLLISION ON X AXIS");
       this.resetBall();
       this.collision = 1;
     }
@@ -203,12 +203,12 @@ export class GameMath {
       this.ball.pos.y =
         Math.sign(this.ball.pos.y) *
         (this.gameArea.height / 2 - this.ball.radius - 0.01);
-		//IF THESE PLAYERS EXIST
-      if (this.ball.pos.y < 0) this.scores.player5++;
-      else this.scores.player6++;
+	if(!this.paddles[4].active && !this.paddles[5].active) return;
+      if (this.ball.pos.y < 0) this.scores.player6++;
+      else this.scores.player5++;
 	  this.resetBall();
       this.collision = 1;
-      console.log("WALL COLLISION ON Y AXIS");
+      //console.log("WALL COLLISION ON Y AXIS");
     }
 
     if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2) {
@@ -216,12 +216,12 @@ export class GameMath {
       this.ball.pos.z =
         Math.sign(this.ball.pos.z) *
         (this.gameArea.depth / 2 - this.ball.radius - 0.01);
-		//IF THESE PLAYERS EXIST
-      if (this.ball.pos.z < 0) this.scores.player3++;
-      else this.scores.player4++;
+	if(!this.paddles[2].active && !this.paddles[3].active) return;
+      if (this.ball.pos.z < 0) this.scores.player4++;
+      else this.scores.player3++;
 	  this.resetBall();
       this.collision = 1;
-      console.log("WALL COLLISION ON Z AXIS");
+      //console.log("WALL COLLISION ON Z AXIS");
     }
     //console.log("wall collisions done!");
   }
@@ -296,26 +296,26 @@ export class GameMath {
     const maxAngle = (75 * Math.PI) / 180;
     const deflection = offset * maxAngle;
 
-    console.log("VELOCITY BEFORE (START): ");
-    console.log(this.tmp_ball.velocity);
-    console.log("ball y: " + this.tmp_ball.pos.y);
-    console.log("paddle y: " + paddle.y);
-    console.log("diff y: " + (this.tmp_ball.pos.y - paddle.y));
-    console.log(paddle.height / 2);
-    console.log("offset: " + offset);
-    console.log("deflection: " + deflection);
-    console.log("final angle: " + (180 / Math.PI) * deflection);
+    // console.log("VELOCITY BEFORE (START): ");
+    // console.log(this.tmp_ball.velocity);
+    // console.log("ball y: " + this.tmp_ball.pos.y);
+    // console.log("paddle y: " + paddle.y);
+    // console.log("diff y: " + (this.tmp_ball.pos.y - paddle.y));
+    // console.log(paddle.height / 2);
+    // console.log("offset: " + offset);
+    // console.log("deflection: " + deflection);
+    // console.log("final angle: " + (180 / Math.PI) * deflection);
 
     const offsetX = (this.tmp_ball.pos.x - paddle.x) / (paddle.height / 2);
     const deflectionX = offsetX * maxAngle;
 
-    console.log("ball x: " + this.tmp_ball.pos.x);
-    console.log("paddle x: " + paddle.x);
-    console.log("diff: " + (this.tmp_ball.pos.x - paddle.x));
-    console.log(paddle.height / 2);
-    console.log("offset x: " + offsetX);
-    console.log("deflection x: " + deflectionX);
-    console.log("final angle: " + (180 / Math.PI) * deflectionX);
+    // console.log("ball x: " + this.tmp_ball.pos.x);
+    // console.log("paddle x: " + paddle.x);
+    // console.log("diff: " + (this.tmp_ball.pos.x - paddle.x));
+    // console.log(paddle.height / 2);
+    // console.log("offset x: " + offsetX);
+    // console.log("deflection x: " + deflectionX);
+    // console.log("final angle: " + (180 / Math.PI) * deflectionX);
 
     const vel = this.dot_product(this.tmp_ball.velocity);
 
@@ -329,30 +329,30 @@ export class GameMath {
     console.log(this.tmp_ball.velocity);
 
     const res = this.normalize(this.tmp_ball.velocity, vel_changed);
-    console.log("vel: " + vel);
-    console.log("_changed: " + vel_changed);
-    console.log("res: ");
-    console.log(res);
+    // console.log("vel: " + vel);
+    // console.log("_changed: " + vel_changed);
+    // console.log("res: ");
+    // console.log(res);
     this.tmp_ball.velocity = this.scale_vec3(vel, res);
 
-    console.log("FINAL DIRECTION/VELOCITY: ");
-    console.log(this.tmp_ball.velocity);
+    // console.log("FINAL DIRECTION/VELOCITY: ");
+    // console.log(this.tmp_ball.velocity);
   }
 
   private paddleCollisions(paddle: Paddle2D) {
     const height = paddle.height + 0; //margin, maybe i'll use one later
-    console.log("tmp_ball z pos: " + this.tmp_ball.pos.z);
-    console.log(
-      "needs to be greater or equal to: " +
-        (this.gameArea.width / 2 -
-          paddle.depth -
-          paddle.distance_from_face -
-          this.ball.radius)
-    );
-    console.log("tmp_ball y pos: " + this.tmp_ball.pos.y);
-    console.log("paddle y: " + paddle.y);
-    console.log("tmp_ball x pos: " + this.tmp_ball.pos.x);
-    console.log("paddle x: " + paddle.x);
+    // console.log("tmp_ball z pos: " + this.tmp_ball.pos.z);
+    // console.log(
+    //   "needs to be greater or equal to: " +
+    //     (this.gameArea.width / 2 -
+    //       paddle.depth -
+    //       paddle.distance_from_face -
+    //       this.ball.radius)
+    // );
+    // console.log("tmp_ball y pos: " + this.tmp_ball.pos.y);
+    // console.log("paddle y: " + paddle.y);
+    // console.log("tmp_ball x pos: " + this.tmp_ball.pos.x);
+    // console.log("paddle x: " + paddle.x);
     if (
       this.tmp_ball.pos.z >=
         this.gameArea.width / 2 -
@@ -365,20 +365,19 @@ export class GameMath {
       this.tmp_ball.pos.x > paddle.x - height / 2 &&
       this.tmp_ball.velocity.z > 0
     ) {
-      console.log("tmp x= " + this.tmp_ball.pos.x);
-      console.log("tmp y= " + this.tmp_ball.pos.y);
-      console.log("tmp z= " + this.tmp_ball.pos.z);
-      console.log("paddle x= " + paddle.x);
-      console.log("paddle y= " + paddle.y);
-      console.log(
-        "rightmost bound (x needs to be less than):" + (paddle.x + height / 2)
-      );
-      console.log(
-        "leftmost bound (x needs to be greater than):" + (paddle.x - height / 2)
-      );
-      //this.tmp_ball.velocity.z *= -1;
+    //   console.log("tmp x= " + this.tmp_ball.pos.x);
+    //   console.log("tmp y= " + this.tmp_ball.pos.y);
+    //   console.log("tmp z= " + this.tmp_ball.pos.z);
+    //   console.log("paddle x= " + paddle.x);
+    //   console.log("paddle y= " + paddle.y);
+    //   console.log(
+    //     "rightmost bound (x needs to be less than):" + (paddle.x + height / 2)
+    //   );
+    //   console.log(
+    //     "leftmost bound (x needs to be greater than):" + (paddle.x - height / 2)
+    //   );
       this.calculateDirection(paddle);
-      console.log("collision with paddle1");
+
       // Clamp
       this.tmp_ball.pos.z =
         Math.sign(this.tmp_ball.pos.z) *
@@ -396,11 +395,11 @@ export class GameMath {
 
   private paddleManager() {
     //if paddle=paddle1 flip axes and values like this, etc etc, i can make a proper flipping function later that just copies and then rotates the vector by multiplying the matrixes
-    console.log("-----------------------START-----------------------");
-    console.log("BALL VELOCITY BEFORE ROTATION: ");
-    console.log(this.ball.velocity);
-    console.log("BALL POSITION BEFORE ROTATION: ");
-    console.log(this.ball.pos);
+    // console.log("-----------------------START-----------------------");
+    // console.log("BALL VELOCITY BEFORE ROTATION: ");
+    // console.log(this.ball.velocity);
+    // console.log("BALL POSITION BEFORE ROTATION: ");
+    // console.log(this.ball.pos);
     const m: Mat3 = {
       //default matrix (only transforms once in the beggining)
       col1: { x: 0, y: 0, z: 1 },
@@ -433,11 +432,11 @@ export class GameMath {
     };
 
     this.tmp_ball.velocity = this.rotate_space(this.ball.velocity, m);
-    console.log("BALL VELOCITY AFTER ROTATION: ");
-    console.log(this.tmp_ball.velocity);
+    // console.log("BALL VELOCITY AFTER ROTATION: ");
+    // console.log(this.tmp_ball.velocity);
     this.tmp_ball.pos = this.rotate_space(this.ball.pos, m);
-    console.log("BALL POSITION AFTER ROTATION: ");
-    console.log(this.tmp_ball.pos);
+    // console.log("BALL POSITION AFTER ROTATION: ");
+    // console.log(this.tmp_ball.pos);
     this.paddles.forEach((paddle: Paddle2D, index: number) => {
       if (paddle.active) {
         this.movePaddle(paddle); //the input needs to be assigned to a player id (on the game server?) which will then decide which paddle is moved each, movePaddle is done for each player
@@ -475,11 +474,11 @@ export class GameMath {
           );
           this.tmp_ball.pos = this.rotate_space(this.tmp_ball.pos, up);
         }
-        console.log("index: " + index);
-        console.log("ball velo: ");
-        console.log(this.tmp_ball.velocity);
-        console.log("ball pos: ");
-        console.log(this.tmp_ball.pos);
+        // console.log("index: " + index);
+        // console.log("ball velo: ");
+        // console.log(this.tmp_ball.velocity);
+        // console.log("ball pos: ");
+        // console.log(this.tmp_ball.pos);
         if (this.paddleCollisions(paddle)) {
           this.collision = 1;
           console.log("COLLISION WITH PADDLE " + index);
@@ -490,14 +489,14 @@ export class GameMath {
     this.tmp_ball.pos = this.rotate_space(this.tmp_ball.pos, back);
     this.ball.velocity = this.rotate_space(this.tmp_ball.velocity, m);
     this.ball.pos = this.rotate_space(this.tmp_ball.pos, m);
-    console.log("----------------------EXITED LOOP----------------------");
-    console.log("FINAL VELOCITY (already flipped):");
-    console.log(this.ball.velocity);
-    console.log("x: " + this.ball.velocity.x);
-    console.log("y: " + this.ball.velocity.y);
-    console.log("z: " + this.ball.velocity.z);
-    console.log("FINAL POSITION (already flipped):");
-    console.log(this.ball.pos);
+    // console.log("----------------------EXITED LOOP----------------------");
+    // console.log("FINAL VELOCITY (already flipped):");
+    // console.log(this.ball.velocity);
+    // console.log("x: " + this.ball.velocity.x);
+    // console.log("y: " + this.ball.velocity.y);
+    // console.log("z: " + this.ball.velocity.z);
+    // console.log("FINAL POSITION (already flipped):");
+    // console.log(this.ball.pos);
   }
 
   private resetBall() {

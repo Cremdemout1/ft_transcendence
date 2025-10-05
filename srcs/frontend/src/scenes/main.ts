@@ -36,17 +36,41 @@ import {
   Matrix,
   Ray,
   RayHelper,
+  TransformNode,
+  SceneOptimizerOptions,
+  MergeMeshesOptimization
 } from "@babylonjs/core";
 
 import { Inspector } from "@babylonjs/inspector";
 import HavokPhysics from "@babylonjs/havok";
 import model from "@/assets/models/transcendence_fixed.glb"; //arena, paddles and ball models
-import city from "@/assets/models/mid_city.glb"; //city model
+import city from "@/assets/models/mid_city_separate.glb"; //city model
 import score from "@/assets/models/score.glb"; //score sign model
+import counter from "@/assets/models/digital_clock_new.glb"; //score counter
+import score_unit from "@/assets/models/score_unit.glb"; //score digit
 import { simmetrical_vec } from "../babylonUtils";
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
-import { PointLight } from "babylonjs";
+import { BaseTexture, int, PointLight } from "babylonjs";
 import hitCircle_tex from "../../assets/tex/hit_circle.png";
+import pfp from "../../assets/tex/profile_pic.jpg";
+
+  type stick = {
+    player: number;
+    unit: number;//0 or 1
+    type: string;//on or off
+    name: string;
+    mesh: Mesh;
+  };
+
+  type GameMeshes = {
+    //array of the important meshes (objects/models), obviously will be developed to include all paddles when all their positions are actually being updated
+    ball?: Mesh;
+    arena?: Mesh;
+    paddles?: Mesh[];
+    score_title?: Mesh;
+    score_counter?: Mesh[];
+    score_units?: stick[];
+  };
 
 function createLight( //this function just creates a rectangular area light (right now none are being used in the scene)
   position: Vector3,
@@ -117,6 +141,82 @@ function sign_flicker(gl: GlowLayer, scoremat: PBRMaterial) {
   scoremat.emissiveIntensity = flicker * 20 + 50;
 }
 
+function should_print(numbers: number[], stick: stick): boolean
+{
+	for(const n in numbers)
+	{
+		if(stick.name.includes("00"+numbers[n]))
+			return true;
+	}
+	return false;
+}
+
+function print_number(unit: number, digit: number, player:number, units: stick[]) {
+	let to_print: number[];
+  switch (digit) {
+    case 0:
+      to_print= [0, 1, 2, 3, 5, 6];
+	  break;
+    case 1:
+      to_print=  [0, 3];
+	  break;
+    case 2:
+      to_print=  [0, 1, 4, 5, 6];
+	  break;
+    case 3:
+      to_print=  [0, 1, 4, 3, 6];
+	  break;
+    case 4:
+      to_print=  [0, 2, 3, 4];
+	  break;
+    case 5:
+      to_print=  [1, 2, 3, 4, 6];
+	  break;
+    case 6:
+      to_print=  [1, 2, 3, 4, 5, 6];
+	  break;
+    case 7:
+      to_print=  [0, 1, 3];
+	  break;
+    case 8:
+      to_print=  [0, 1, 2, 3, 4, 5, 6];
+	  break;
+    case 9:
+      to_print=  [0, 1, 2, 3, 4, 6];
+	  break;
+	default:
+		to_print=  [];
+	  break;
+  }
+  units.forEach(stick => {
+	if(stick.player==player && stick.unit==unit)
+	{
+		if(stick.type=="on")
+		{
+			if(should_print(to_print, stick))
+				stick.mesh.isVisible=true;
+			else
+				stick.mesh.isVisible=false;
+		}
+		else if(stick.type=="off")
+		{
+			if(should_print(to_print, stick))
+				stick.mesh.isVisible=false;
+			else
+				stick.mesh.isVisible=true;
+		}
+	}
+  });
+}
+
+function print_score(scores: any, player_nbr: number, units: stick[]) {
+  for (let i = 0; i < player_nbr; i++) {
+    let score = scores["player" + (i + 1)];
+    if (score > 9) print_number(0, Math.floor(score/10), i, units);
+    print_number(1, Math.floor(score % 10), i, units);
+  }
+}
+
 export async function createGameScene( //function that makes all the visuals (updates are at the bottom), it takes the engine, the html canvas and the backend calculations object as parameters
   engine: Engine,
   canvas: HTMLCanvasElement,
@@ -128,16 +228,30 @@ export async function createGameScene( //function that makes all the visuals (up
   //initial call to the API to fetch game information such as how many players there are will go here
 
   let player_nbr = 6;
+  let player_id=1;
 
-  scene.createDefaultEnvironment({
+
+    let envtex = CubeTexture.CreateFromPrefilteredData(
+      "../../assets/hdris/night_sky2.env",
+      scene
+    );
+
+	    let envtex2 = CubeTexture.CreateFromPrefilteredData(
+      "../../assets/hdris/kiara.env",
+      scene
+    );
+ let helper= scene.createDefaultEnvironment({
     //i just use this to give random reflections to the arena glass
     groundOpacity: 0,
-    createSkybox: false,
+    createSkybox: true,
+	skyboxTexture: envtex,
+	skyboxSize: 10000,
+	environmentTexture:envtex2
   });
 
- let envtex = CubeTexture.CreateFromPrefilteredData("../../assets/hdris/night_sky2.env", scene);
- scene.environmentTexture=envtex;
- scene.createDefaultSkybox(envtex, true, 100000);
+//const light = new HemisphericLight("HemiLight", new Vector3(0.5, 1, 0.2), scene);
+    // scene.environmentTexture = envtex;
+    // scene.createDefaultSkybox(envtex, true, 100000);
 
   //With the cameras keep in mind right now it is as if the player is the RED PADDLE
   const camera = new ArcRotateCamera( //the camera is created here. it's an arc rotate camera, so it looks towards a target (center of the arena), and spins around it on 2 axes. needs to be rotated after creation based on player id so it starts facing the correct paddle
@@ -236,18 +350,14 @@ export async function createGameScene( //function that makes all the visuals (up
   //     skyboxMaterial.specularColor = new Color3(0, 0, 0);
   //     skybox.material = skyboxMaterial;
 
-  type GameMeshes = {
-    //array of the important meshes (objects/models), obviously will be developed to include all paddles when all their positions are actually being updated
-    ball?: Mesh;
-    arena?: Mesh;
-    paddles?: Mesh[];
-    score_title?: Mesh;
-  };
+
   const meshes: GameMeshes = {};
   meshes.paddles = [];
-//   console.log("Array right after init: ");
-//   console.log(meshes.paddles);
-//   console.log("-------------------------");
+  meshes.score_units = [];
+  meshes.score_counter = [];
+  //   console.log("Array right after init: ");
+  //   console.log(meshes.paddles);
+  //   console.log("-------------------------");
   try {
     const result = await SceneLoader.ImportMeshAsync("", "", model, scene); //imports the arena, paddles and ball
     const mainMesh = result.meshes[0]; //mesh 0 which i name mainMesh here is a root mesh that contains all 3 mentioned above
@@ -336,7 +446,7 @@ export async function createGameScene( //function that makes all the visuals (up
           mat.albedoColor = mat.albedoColor.clone();
           mat.alpha = 0.2;
           mat.transparencyMode = 2;
-          mat.metallic = 1;
+          mat.metallic = 0;
           mat.roughness = 1;
           mat.indexOfRefraction = 1.5;
           mat.clearCoat.isEnabled = true;
@@ -366,25 +476,109 @@ export async function createGameScene( //function that makes all the visuals (up
     if (cityRoot) {
       cityRoot.scaling.addInPlace(new Vector3(5, 5, 5));
       cityRoot.position.addInPlace(new Vector3(-10, -900, 10));
-      // bg.meshes.forEach((mesh) => {
-      // mesh.layerMask= 0x10000000;
-      // });
     }
     const score_sign = await SceneLoader.ImportMeshAsync("", "", score, scene); //importing score sign (i've only modeled the title so far but the score system works i'm just not printing it anywhere)
     const scoreRoot = score_sign.meshes[0]; //root
     if (scoreRoot) {
       meshes.score_title = scoreRoot as Mesh;
       scoreRoot.scaling.addInPlace(new Vector3(60, 60, -60));
-      scoreRoot.position.addInPlace(new Vector3(1500, 900, 800));
+      scoreRoot.position.addInPlace(new Vector3(1500, 900, 900));
       scoreRoot.rotation = new Vector3(0, Math.PI / 2, 0);
     }
+    const score_counter = await SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      counter,
+      scene
+    ); //importing score counter
+    const counterRoot = score_counter.meshes[0]; //root
+    if (counterRoot) {
+      meshes.score_counter[0] = counterRoot as Mesh;
+      counterRoot.scaling.addInPlace(new Vector3(10, 10, -10));
+      counterRoot.position.addInPlace(new Vector3(1600, 100, 1500));
+      counterRoot.rotation = new Vector3(0, Math.PI/4*3, 0);
+	  meshes.score_counter[1] = meshes.score_counter[0].clone("second", null);
+	  meshes.score_counter[1].position.z=-1500;
+	  meshes.score_counter[1].rotation = new Vector3(0, Math.PI/4*5, 0);
+	  meshes.score_counter[1].getChildMeshes().forEach((mesh)=>{
+		if(mesh.name.includes("second.stick.flag.flag_primitive0"))
+		{
+			const flagmat= new StandardMaterial("flagmat");
+			const tex= new Texture(pfp, scene);
+			tex.uScale=3.2;
+			tex.vScale=3.2;
+			tex.wAng=(Math.PI/2);
+			tex.uOffset=0.5;
+			tex.vOffset=0.04;
+			flagmat.diffuseTexture=tex;
+			flagmat.emissiveTexture=tex;
+			mesh.material=flagmat;
+		}
+		if(mesh.name.includes("second.stick.flag.flag_primitive2"))
+		{
+			const id_color= new StandardMaterial("id_color");
+			id_color.emissiveColor=Color3.Blue();
+			mesh.material=id_color;
+		}
+	  });
+	  
+    }
+
+    const scoreunit = await SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      score_unit,
+      scene
+    ); //importing score unit
+    const unitRoot = scoreunit.meshes[0]; //root
+    if (unitRoot) {
+      //unitRoot.scaling.addInPlace(new Vector3(10, 10, -10));
+      //   unitRoot.position.addInPlace(new Vector3(1500, 500, 300));
+      //   unitRoot.rotation = new Vector3(0, Math.PI, 0);
+    }
+
+    scoreunit.meshes.forEach((mesh) => {
+		console.log(mesh.name);
+		if(!mesh.name.includes("root")) return;
+      for (let j = 0; j < 2; j++) {
+        for (let i = 0; i < player_nbr; i++) {
+          const name = "player" + i + "_unit" + j+"_" + mesh.name;
+		  const par= i<3? meshes.score_counter![0] : meshes.score_counter![1];
+          const unit = mesh.clone(name, par) as Mesh;
+		  unit.position.x=-20;
+          unit.position.z = j==0 ? -38 * (i%3): -38*(i%3)-15;
+		  unit.position.z+=45;
+		  unit.position.y=4;
+		unit.getChildMeshes().forEach(element => {
+          let onoff = element.name.includes("on") ? "on" : "off";
+          let curr_stick: stick = {
+            player: i,
+            unit: j,
+            type: onoff,
+            name: element.name,
+            mesh: element as Mesh,
+          };
+		  console.log(curr_stick);
+		  console.log(curr_stick.mesh);
+		  if(onoff=="on")
+			element.isVisible=false;
+          meshes.score_units?.push(curr_stick);
+		  });
+        }
+      }
+    });
+	unitRoot.getChildMeshes().forEach(element => {
+		element.isVisible=false;
+	});
   } catch (error) {
     console.error("Failed to load model:", error);
     throw error;
   }
 
   //   meshes.arena!.renderingGroupId = 0;
-
+// meshes.arena!.material=scene.getMaterialByName("turned_off");
+// meshes.arena!.material!.backFaceCulling=true
+;
   scene.clearColor = new Color4(0.1, 0.1, 0.1, 1);
   const gl = new GlowLayer("glow", scene, {
     //adds glow to the emissive materials
@@ -411,6 +605,26 @@ export async function createGameScene( //function that makes all the visuals (up
   scoremat.emissiveIntensity = 20;
   const em = scoremat.emissiveIntensity;
   scoremat.emissiveColor = new Color3(1, 0.005, 0);
+
+  const countergl = new GlowLayer("counter glow", scene); //counter sign glow w/ different settings
+  countergl.customEmissiveColorSelector = function (
+    mesh,
+    subMesh,
+    material,
+    result
+  ) {
+    if (mesh.isVisible == true && mesh.material!.name.includes("turned on")) {
+      result.set(1, 0.1, 0, 1);
+    } else {
+      result.set(0, 0, 0, 0);
+    }
+  };
+  countergl.intensity = 0.1;
+  countergl.blurKernelSize = 64;
+  const countermat = scene.getMaterialByName("turned on") as PBRMaterial;
+  countermat.emissiveIntensity = 20;
+  const emi = countermat.emissiveIntensity;
+  countermat.emissiveColor = new Color3(1, 0, 0);
 
   const trail = createTrail(meshes.ball, scene, 3);
 
@@ -539,7 +753,7 @@ export async function createGameScene( //function that makes all the visuals (up
   var decalMaterial = new StandardMaterial("decalMat", scene);
   decalMaterial.diffuseTexture = new Texture(hitCircle_tex, scene);
   decalMaterial.diffuseTexture.hasAlpha = true;
-  decalMaterial.useAlphaFromDiffuseTexture = true; 
+  decalMaterial.useAlphaFromDiffuseTexture = true;
   decalMaterial.emissiveColor = Color3.Red();
   decalMaterial.zOffset = -2;
   decalMaterial.backFaceCulling = false;
@@ -563,6 +777,7 @@ export async function createGameScene( //function that makes all the visuals (up
       );
       //console.log(gameMath.getState().ball.velocity);
       if (gameMath.getState().ball.reset) {
+		print_score(gameMath.getState().scores,player_nbr, meshes.score_units!);
         //need to reset the trail before putting the ball back in the center
         if (trail) {
           trail.stop();
@@ -598,9 +813,13 @@ export async function createGameScene( //function that makes all the visuals (up
     });
     if (decal) {
       decal.material!.alpha = decal_alpha;
-      decal_alpha-=0.02;
-	  if(decal.scaling.x>0)
-	  	decal.scaling.set(decal.scaling.x-0.005, decal.scaling.y-0.005, decal.scaling.z-0.005);
+      decal_alpha -= 0.02;
+      if (decal.scaling.x > 0)
+        decal.scaling.set(
+          decal.scaling.x - 0.005,
+          decal.scaling.y - 0.005,
+          decal.scaling.z - 0.005
+        );
     }
     if (gameMath.getState().hit) {
       const hitPoint = new Vector3(
@@ -618,7 +837,7 @@ export async function createGameScene( //function that makes all the visuals (up
         decal = MeshBuilder.CreateDecal("decal", meshes.arena!, {
           position: pickInfo!.pickedPoint!,
           normal: pickInfo!.getNormal(true, true)!,
-          size: simmetrical_vec((gameMath.getState().hitPoint.dist)/2),
+          size: simmetrical_vec(gameMath.getState().hitPoint.dist / 2),
           cullBackFaces: false,
         });
         decal.material = decalMaterial;
@@ -628,7 +847,9 @@ export async function createGameScene( //function that makes all the visuals (up
     input.reset = 0;
   });
   //scene.debugLayer.show();
-  SceneOptimizer.OptimizeAsync(scene);
+  let optimizerOptions = new SceneOptimizerOptions(60, 500);
+  optimizerOptions.optimizations = optimizerOptions.optimizations.filter(opt => !(opt instanceof MergeMeshesOptimization));
+  SceneOptimizer.OptimizeAsync(scene, optimizerOptions);
   await scene.whenReadyAsync();
   return scene;
 }
