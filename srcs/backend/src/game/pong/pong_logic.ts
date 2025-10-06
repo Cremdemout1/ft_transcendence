@@ -49,14 +49,6 @@ export class GameMath {
     velocity: { x: 0, y: 0, z: 0 },
     radius: 3.25,
   };
-  //   private paddle = {
-  //     x: 0,
-  //     y: 0,
-  //     height: 20,
-  //     depth: 2,
-  //     speed: 1,
-  //     distance_from_face: 0,
-  //   };
 
   private paddles: Paddle2D[] = Array.from({ length: 6 }, () => ({
     x: 0,

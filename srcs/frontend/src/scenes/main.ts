@@ -16,8 +16,9 @@ import {
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
 import { BaseTexture, int, PointLight } from "babylonjs";
 import hitCircle_tex from "../../assets/tex/hit_circle.png";
-import { stick, print_score, score_counter } from "../utils/scorePrinting";
+import { stick, score_counter } from "../utils/scorePrinting";
 import { Dispose } from "babylonjs/Misc/dumpTools";
+import { update_ball, update_reset, update_paddles } from "../utils/updates";
 
 export type GameMeshes = {
   //array of the important meshes (objects/models)
@@ -169,6 +170,40 @@ async function import_meshes(
   await score_counter(player_nbr, scene, meshes, player_id);
 }
 
+function arena_orientation(
+  meshes: GameMeshes,
+  scene: BABYLON.Scene,
+  player_id: number
+) {
+  let amount = 0;
+  const y_axis = new BABYLON.Vector3(0, 1, 0);
+  const z_axis = new BABYLON.Vector3(0, 0, 1);
+  let axis = y_axis;
+
+  switch (player_id) {
+    case 1:
+      amount = Math.PI;
+      break;
+    case 3:
+      amount = Math.PI / 2;
+      break;
+    case 4:
+      amount = -Math.PI / 2;
+      break;
+    case 5:
+      axis = z_axis;
+      amount = Math.PI / 2;
+      break;
+	case 6:
+      axis = z_axis;
+      amount = -Math.PI / 2;
+      break;
+  }
+  meshes.arena?.rotateAround(simmetrical_vec(0), axis, amount);
+  if(player_id==5)
+	meshes.arena?.rotateAround(simmetrical_vec(0), new BABYLON.Vector3(1,0,0), Math.PI);
+}
+
 export async function createGameScene( //function that makes all the visuals (updates are at the bottom), it takes the engine, the html canvas and the backend calculations object as parameters
   engine: BABYLON.Engine,
   canvas: HTMLCanvasElement,
@@ -180,7 +215,7 @@ export async function createGameScene( //function that makes all the visuals (up
   //initial call to the API to fetch game information such as how many players there are will go here
 
   let player_nbr = 6;
-  let player_id = 2;
+  let player_id = 1;
 
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",
@@ -224,11 +259,7 @@ export async function createGameScene( //function that makes all the visuals (up
 
   await import_meshes(scene, meshes, player_nbr, player_id);
 
-  //   meshes.arena?.rotateAround(
-  //     simmetrical_vec(0),
-  //     new BABYLON.Vector3(0, 0, 1),
-  //     -Math.PI / 2
-  //   );
+  arena_orientation(meshes, scene, player_id);
   const scoremat = scene.getMeshByName("score")
     ?.material as BABYLON.PBRMaterial;
   const scoregl = glow_score_title(scene, meshes, scoremat);
@@ -277,28 +308,18 @@ export async function createGameScene( //function that makes all the visuals (up
           case "w":
             input.up = 1;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "a":
             input.left = 1;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "s":
             input.down = 1;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "d":
             input.right = 1;
             break;
-        }
-        switch (kbInfo.event.key) {
           case " ":
             input.reset = 1;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "f":
             if (!input.pause) input.pause = 1;
             else input.pause = 0;
@@ -311,28 +332,18 @@ export async function createGameScene( //function that makes all the visuals (up
           case "w":
             input.up = 0;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "a":
             input.left = 0;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "s":
             input.down = 0;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "d":
             input.right = 0;
             break;
-        }
-        switch (kbInfo.event.key) {
           case " ":
             input.reset = 0;
             break;
-        }
-        switch (kbInfo.event.key) {
           case "f":
             input.pause = input.pause;
             break;
@@ -342,22 +353,12 @@ export async function createGameScene( //function that makes all the visuals (up
   });
 
   let reset = 0;
-  //     let decal: BABYLON.Mesh;
-  //   var decalMaterial = new BABYLON.StandardMaterial("decalMat", scene);
-  //   decalMaterial.diffuseTexture = new BABYLON.Texture(hitCircle_tex, scene);
-  //   decalMaterial.diffuseTexture.hasAlpha = true;
-  //   decalMaterial.useAlphaFromDiffuseTexture = true;
-  //   decalMaterial.emissiveColor = BABYLON.Color3.Red();
-  //   decalMaterial.zOffset = -2;
-  //   decalMaterial.backFaceCulling = false;
-  //   let decal_alpha = 1;
-
   let orb: BABYLON.Mesh;
-  let orbmaterial = new BABYLON.StandardMaterial("aaa");
+  let orbmaterial = new BABYLON.StandardMaterial("orbmaterial");
   orbmaterial.diffuseColor = BABYLON.Color3.Red();
 
-  const omfg = new BABYLON.HemisphericLight(
-    "aaaa",
+  const bottom_light = new BABYLON.HemisphericLight(
+    "bottom_light",
     new BABYLON.Vector3(0, -1, 0)
   );
 
@@ -376,69 +377,11 @@ export async function createGameScene( //function that makes all the visuals (up
   scene.registerBeforeRender(function () {
     //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
     sign_flicker(scoregl, scoremat); //this just flickers the score sign
-    //meshes.arena!.updateFacetData();
     if (input.pause) return; //if the game is paused nothing is sent to or returned from update
     gameMath.update(input.up, input.down, input.left, input.right, input.reset); //this is where i send the inputs (only the inputs, no positions of anything, for the aforementioned security reasons). needs to be replaced by an API send. This function is in the pong_logic.ts
-    if (meshes.ball) {
-      //updating the position of the ball with the returned values
-      meshes.ball.position.set(
-        gameMath.getState().ball.pos.x, //getState() returns the updated postion of everything
-        gameMath.getState().ball.pos.y,
-        gameMath.getState().ball.pos.z
-        // 10,
-        // 10,
-        // 10
-      );
-      //console.log(gameMath.getState().ball.velocity);
-      if (gameMath.getState().ball.reset) {
-        print_score(
-          gameMath.getState().scores,
-          player_nbr,
-          meshes.score_units!
-        );
-        //need to reset the trail before putting the ball back in the center
-        if (trail) {
-          trail.stop();
-          console.log("RESET!");
-          reset = 1;
-        }
-      } else if (reset) {
-        if (trail) {
-          trail.reset();
-          trail.start();
-          reset = 0;
-        }
-      }
-    }
-    meshes.paddles!.forEach((paddle, index) => {
-      if (paddle.name == "paddle1" || paddle.name == "paddle5")
-        paddle.position.z = gameMath.getState().paddles[index].x;
-      else if (paddle.name == "paddle2" || paddle.name == "paddle6")
-        paddle.position.z = -gameMath.getState().paddles[index].x;
-      else if (paddle.name == "paddle3")
-        paddle.position.x = -gameMath.getState().paddles[index].x;
-      else paddle.position.x = gameMath.getState().paddles[index].x;
-
-      if (
-        paddle.name == "paddle1" ||
-        paddle.name == "paddle2" ||
-        paddle.name == "paddle3" ||
-        paddle.name == "paddle4"
-      )
-        paddle.position.y = gameMath.getState().paddles[index].y;
-      else if (paddle.name == "paddle5" || paddle.name == "paddle6")
-        paddle.position.x = -gameMath.getState().paddles[index].y;
-    });
-    // if (decal) {
-    //   decal.material!.alpha = decal_alpha;
-    //   decal_alpha -= 0.02;
-    //   if (decal.scaling.x > 0)
-    //     decal.scaling.set(
-    //       decal.scaling.x - 0.005,
-    //       decal.scaling.y - 0.005,
-    //       decal.scaling.z - 0.005
-    //     );
-    // }
+    update_ball(meshes, gameMath);
+    reset = update_reset(meshes, gameMath, trail, reset, player_nbr);
+    update_paddles(meshes, gameMath);
     if (gameMath.getState().hit) {
       const hitPoint = new BABYLON.Vector3(
         gameMath.getState().hitPoint.pos.x,
@@ -476,26 +419,10 @@ export async function createGameScene( //function that makes all the visuals (up
         materialToUse: orbmaterial,
       });
       newMesh.dispose();
-      const origin = new BABYLON.Vector3(0, 0, 0);
-      const rayDirection = origin.subtract(hitPoint).normalize();
-      const ray = new BABYLON.Ray(hitPoint, rayDirection, 10);
-      const pickInfo = scene.pickWithRay(ray);
-      meshes.arena!.isPickable = true;
-      //   if (decal) decal.dispose();
-      //   if (pickInfo) {
-      //     decal = BABYLON.MeshBuilder.CreateDecal("decal", meshes.arena!, {
-      //       position: pickInfo!.pickedPoint!,
-      //       normal: pickInfo!.getNormal(true, true)!,
-      //       size: simmetrical_vec(gameMath.getState().hitPoint.dist / 2),
-      //       cullBackFaces: false,
-      //     });
-      //     decal.material = decalMaterial;
-      //     decal_alpha = 1;
-      //   }
     }
     input.reset = 0;
   });
-  scene.debugLayer.show();
+  //scene.debugLayer.show();
   let optimizerOptions = new BABYLON.SceneOptimizerOptions(60, 500);
   optimizerOptions.optimizations = optimizerOptions.optimizations.filter(
     (opt) => !(opt instanceof BABYLON.MergeMeshesOptimization)
