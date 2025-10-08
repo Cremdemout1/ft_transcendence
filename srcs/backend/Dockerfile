@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
+#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/07/18 12:17:02 by yohan            ###   ########.fr        #
+#    Updated: 2025/10/08 17:47:50 by luiberna         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,8 +17,6 @@ WORKDIR /home/backend
 COPY ./package.json ./package-lock.json ./tsconfig.json ./
 
 COPY ./prisma ./prisma
-
-COPY ./images ./images
 
 RUN apk add --no-cache \
     python3 \
@@ -36,12 +34,15 @@ RUN npm install \
 
 RUN npx prisma generate
 
+
+# Copy source code and environment file
 COPY src ./src
+COPY .env ./
+
 
 RUN npx tsc
 # might have to change port expose to 3000 to match. lets see
 EXPOSE 8080
 
-CMD ["node", "dist/server.js"]
-
-# CMD [ "sh", "-c", "tail -f /dev/null" ]
+# Automatically run migrations and start the server
+CMD node dist/server.js

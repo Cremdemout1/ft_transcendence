@@ -5,7 +5,8 @@ import {
   Engine,
   Scene
 } from "@babylonjs/core";
-import { createGameScene } from "./scenes/main";
+import  {createGameScene } from "./scenes/main";
+import { GameMath } from "../../backend/src/game/pong/pong_logic";
 
 enum State {
   START = 0,
@@ -22,12 +23,53 @@ export async function initBabylon() {
   }
 
   const engine= new BABYLON.Engine(canvas);
-  const game = new Game(canvas, engine);
+  //waitroom, pessoasàespera++, quando pessoasàespera = minimo de jogadores, game class (backend) é criado
+  //api request: chegou um gajo, muda a variavel de pae
+  //const game = new babylonGame(canvas, engine);
+  const game = new Game(canvas, engine);//tirar
+  //receive state and other stuff
   game.changeState(State.GAME);
   window.addEventListener("resize", () => engine.resize());
+  canvas.addEventListener('wheel', evt => evt.preventDefault(), { passive: false });
+  window.onkeydown = function (event) {
+    if (event.keyCode === 32) {
+        event.preventDefault();
+    }
+};
+
 }
 
+// export class Game {
+
+//   private _scene: Scene;
+//   private _canvas: HTMLCanvasElement;
+//   private _engine: Engine;
+
+//   constructor(canvas: HTMLCanvasElement, engine: Engine) {
+
+//     this._canvas = canvas;
+//     this._engine = engine;
+//     this._scene = new Scene(this._engine);
+//   }
+
+//   private async createSceneForState(): Promise<Scene> {
+//     switch (this._currentState) {
+//       case State.START:
+//         //return await createStartScene(this._engine);
+//       case State.GAME:
+//         return await createGameScene(this._engine, this._canvas);
+//       case State.LOSE:
+//         //return await createLoseScene(this._engine);
+//       case State.CUTSCENE:
+//         //return await createCutsceneScene(this._engine);
+//       default:
+//         throw new Error(`Unknown state: ${this._currentState}`);
+//     }
+//   }
+// }
+
 export class Game {
+
   private _id: number;
   private _scene: Scene;
   private _canvas: HTMLCanvasElement;
@@ -60,7 +102,8 @@ export class Game {
       case State.START:
         //return await createStartScene(this._engine);
       case State.GAME:
-        return await createGameScene(this._engine, this._canvas);
+		const gameMath = new GameMath();
+        return await createGameScene(this._engine, this._canvas, gameMath);
       case State.LOSE:
         //return await createLoseScene(this._engine);
       case State.CUTSCENE:
@@ -70,6 +113,30 @@ export class Game {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // const createScene = (engine: BABYLON.Engine) => {
 //   const scene = new BABYLON.Scene(engine);

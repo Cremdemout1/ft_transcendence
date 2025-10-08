@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/05 09:54:01 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/18 12:01:45 by yohan            ###   ########.fr       */
+/*   Updated: 2025/07/15 12:36:05 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ async function createNewToken(fastify: FastifyInstance, user: JWTformat): Promis
         firstname: updatedUser.user_info.firstname,
         lastname: updatedUser.user_info.lastname,
         twoFactorAuth: updatedUser.twoFactorAuth,
-        profile_pic: updatedUser.user_info.profile_pic,
     },
     {
       expiresIn: '1h'

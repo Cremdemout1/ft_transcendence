@@ -44,7 +44,7 @@ services:
   backend:
     container_name: backend
     restart: always
-    env_file: ../.env
+    env_file: ./backend/.env
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -61,6 +61,19 @@ services:
     ports:
       - "8080:8080"
 
+  game_server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: node dist/game_server.js
+    ports:
+      - "8081:8081"
+    volumes:
+      - sqlite-vol:/data
+    networks:
+      - transcendence
+    env_file: ./backend/.env
+
   frontend:
     container_name: frontend
     restart: always
@@ -70,6 +83,8 @@ services:
       dockerfile: Dockerfile
     networks:
       - transcendence
+    ports:
+      - "5174:5174"
     depends_on:
       - backend
 
@@ -88,8 +103,9 @@ volumes:
     name: transcendence_sqlite_db
     driver_opts:
       type: none
-      # device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-      device: /Users/yohan/Desktop/ft_transcendence/sqlite-data
+      #device: /home/phantasiae/Desktop/ft_transcendence/sqlite-data
+      # device: /home/capa/Documents/ft_transcendence/sqlite-data
+      device: /Users/luiberna/Desktop/ft_transcendence/sqlite-data
       o: bind
 
 networks:

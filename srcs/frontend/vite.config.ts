@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig , searchForWorkspaceRoot } from 'vite'
 import path from 'path'
 
 export default defineConfig({
@@ -14,5 +14,14 @@ export default defineConfig({
   },
 	server:{
 		host: '0.0.0.0',
-	}
+		fs: {
+      allow: [
+        // search up for workspace root
+        searchForWorkspaceRoot(process.cwd()),
+        // your custom rules
+        '@babylonjs/havok',
+      ],
+    },
+	},
+	
 })

@@ -984,7 +984,6 @@ export namespace Prisma {
     firstname: string | null
     lastname: string | null
     username: string | null
-    profile_pic: string | null
   }
 
   export type User_infoMaxAggregateOutputType = {
@@ -992,7 +991,6 @@ export namespace Prisma {
     firstname: string | null
     lastname: string | null
     username: string | null
-    profile_pic: string | null
   }
 
   export type User_infoCountAggregateOutputType = {
@@ -1000,7 +998,6 @@ export namespace Prisma {
     firstname: number
     lastname: number
     username: number
-    profile_pic: number
     _all: number
   }
 
@@ -1018,7 +1015,6 @@ export namespace Prisma {
     firstname?: true
     lastname?: true
     username?: true
-    profile_pic?: true
   }
 
   export type User_infoMaxAggregateInputType = {
@@ -1026,7 +1022,6 @@ export namespace Prisma {
     firstname?: true
     lastname?: true
     username?: true
-    profile_pic?: true
   }
 
   export type User_infoCountAggregateInputType = {
@@ -1034,7 +1029,6 @@ export namespace Prisma {
     firstname?: true
     lastname?: true
     username?: true
-    profile_pic?: true
     _all?: true
   }
 
@@ -1129,7 +1123,6 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic: string
     _count: User_infoCountAggregateOutputType | null
     _avg: User_infoAvgAggregateOutputType | null
     _sum: User_infoSumAggregateOutputType | null
@@ -1156,7 +1149,6 @@ export namespace Prisma {
     firstname?: boolean
     lastname?: boolean
     username?: boolean
-    profile_pic?: boolean
     users?: boolean | user_info$usersArgs<ExtArgs>
     _count?: boolean | User_infoCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user_info"]>
@@ -1166,7 +1158,6 @@ export namespace Prisma {
     firstname?: boolean
     lastname?: boolean
     username?: boolean
-    profile_pic?: boolean
   }, ExtArgs["result"]["user_info"]>
 
   export type user_infoSelectScalar = {
@@ -1174,7 +1165,6 @@ export namespace Prisma {
     firstname?: boolean
     lastname?: boolean
     username?: boolean
-    profile_pic?: boolean
   }
 
   export type user_infoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1193,7 +1183,6 @@ export namespace Prisma {
       firstname: string
       lastname: string
       username: string
-      profile_pic: string
     }, ExtArgs["result"]["user_info"]>
     composites: {}
   }
@@ -1592,7 +1581,6 @@ export namespace Prisma {
     readonly firstname: FieldRef<"user_info", 'String'>
     readonly lastname: FieldRef<"user_info", 'String'>
     readonly username: FieldRef<"user_info", 'String'>
-    readonly profile_pic: FieldRef<"user_info", 'String'>
   }
     
 
@@ -2951,8 +2939,7 @@ export namespace Prisma {
     id: 'id',
     firstname: 'firstname',
     lastname: 'lastname',
-    username: 'username',
-    profile_pic: 'profile_pic'
+    username: 'username'
   };
 
   export type User_infoScalarFieldEnum = (typeof User_infoScalarFieldEnum)[keyof typeof User_infoScalarFieldEnum]
@@ -3024,7 +3011,6 @@ export namespace Prisma {
     firstname?: StringFilter<"user_info"> | string
     lastname?: StringFilter<"user_info"> | string
     username?: StringFilter<"user_info"> | string
-    profile_pic?: StringFilter<"user_info"> | string
     users?: UsersListRelationFilter
   }
 
@@ -3033,7 +3019,6 @@ export namespace Prisma {
     firstname?: SortOrder
     lastname?: SortOrder
     username?: SortOrder
-    profile_pic?: SortOrder
     users?: usersOrderByRelationAggregateInput
   }
 
@@ -3045,7 +3030,6 @@ export namespace Prisma {
     NOT?: user_infoWhereInput | user_infoWhereInput[]
     firstname?: StringFilter<"user_info"> | string
     lastname?: StringFilter<"user_info"> | string
-    profile_pic?: StringFilter<"user_info"> | string
     users?: UsersListRelationFilter
   }, "id" | "username">
 
@@ -3054,7 +3038,6 @@ export namespace Prisma {
     firstname?: SortOrder
     lastname?: SortOrder
     username?: SortOrder
-    profile_pic?: SortOrder
     _count?: user_infoCountOrderByAggregateInput
     _avg?: user_infoAvgOrderByAggregateInput
     _max?: user_infoMaxOrderByAggregateInput
@@ -3070,7 +3053,6 @@ export namespace Prisma {
     firstname?: StringWithAggregatesFilter<"user_info"> | string
     lastname?: StringWithAggregatesFilter<"user_info"> | string
     username?: StringWithAggregatesFilter<"user_info"> | string
-    profile_pic?: StringWithAggregatesFilter<"user_info"> | string
   }
 
   export type usersWhereInput = {
@@ -3146,7 +3128,6 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic?: string
     users?: usersCreateNestedManyWithoutUser_infoInput
   }
 
@@ -3155,7 +3136,6 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic?: string
     users?: usersUncheckedCreateNestedManyWithoutUser_infoInput
   }
 
@@ -3163,7 +3143,6 @@ export namespace Prisma {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
     users?: usersUpdateManyWithoutUser_infoNestedInput
   }
 
@@ -3172,7 +3151,6 @@ export namespace Prisma {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
     users?: usersUncheckedUpdateManyWithoutUser_infoNestedInput
   }
 
@@ -3181,14 +3159,12 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic?: string
   }
 
   export type user_infoUpdateManyMutationInput = {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
   }
 
   export type user_infoUncheckedUpdateManyInput = {
@@ -3196,7 +3172,6 @@ export namespace Prisma {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
   }
 
   export type usersCreateInput = {
@@ -3305,7 +3280,6 @@ export namespace Prisma {
     firstname?: SortOrder
     lastname?: SortOrder
     username?: SortOrder
-    profile_pic?: SortOrder
   }
 
   export type user_infoAvgOrderByAggregateInput = {
@@ -3317,7 +3291,6 @@ export namespace Prisma {
     firstname?: SortOrder
     lastname?: SortOrder
     username?: SortOrder
-    profile_pic?: SortOrder
   }
 
   export type user_infoMinOrderByAggregateInput = {
@@ -3325,7 +3298,6 @@ export namespace Prisma {
     firstname?: SortOrder
     lastname?: SortOrder
     username?: SortOrder
-    profile_pic?: SortOrder
   }
 
   export type user_infoSumOrderByAggregateInput = {
@@ -3700,7 +3672,6 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic?: string
   }
 
   export type user_infoUncheckedCreateWithoutUsersInput = {
@@ -3708,7 +3679,6 @@ export namespace Prisma {
     firstname: string
     lastname: string
     username: string
-    profile_pic?: string
   }
 
   export type user_infoCreateOrConnectWithoutUsersInput = {
@@ -3731,7 +3701,6 @@ export namespace Prisma {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
   }
 
   export type user_infoUncheckedUpdateWithoutUsersInput = {
@@ -3739,7 +3708,6 @@ export namespace Prisma {
     firstname?: StringFieldUpdateOperationsInput | string
     lastname?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
-    profile_pic?: StringFieldUpdateOperationsInput | string
   }
 
   export type usersCreateManyUser_infoInput = {

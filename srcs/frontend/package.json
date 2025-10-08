@@ -14,7 +14,8 @@
   "dependencies": {
     "@babylonjs/core": "^8.16.1",
     "@babylonjs/inspector": "^8.16.1",
-    "@babylonjs/loaders": "^8.16.1"
+    "@babylonjs/loaders": "^8.16.1",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "serve": "^14.2.4",
