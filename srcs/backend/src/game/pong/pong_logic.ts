@@ -14,6 +14,7 @@ type Paddle2D = {
   right: number;
   vx: number;
   vy: number;
+  score: number;
 };
 
 type Vec3 = {
@@ -34,11 +35,13 @@ export class GameMath {
     velocity: Vec3;
     radius: number;
     reset: number;
+	last_hit_by: number |null;
   } = {
     pos: { x: 0, y: 0, z: 0 },
     velocity: { x: 0.2, y: 0.4, z: -0.1 },
     radius: 3.25,
     reset: 1, //flag for when the ball has just been reset (to tell client to reset the trail)
+	last_hit_by: null
   };
   private tmp_ball: {
     pos: Vec3;
@@ -49,14 +52,6 @@ export class GameMath {
     velocity: { x: 0, y: 0, z: 0 },
     radius: 3.25,
   };
-  //   private paddle = {
-  //     x: 0,
-  //     y: 0,
-  //     height: 20,
-  //     depth: 2,
-  //     speed: 1,
-  //     distance_from_face: 0,
-  //   };
 
   public paddles: Paddle2D[] = Array.from({ length: 6 }, () => ({
     x: 0,
@@ -74,6 +69,7 @@ export class GameMath {
     right: 0,
     vx: 0,
     vy: 0,
+	score: 0
   }));
 
   private hitPoint: {
@@ -84,18 +80,10 @@ export class GameMath {
     dist: 0,
   };
 
-  private scores = {
-    //will also be replaced, indecisive about lumping it with the other variables in the paddle object or keeping it in a player class from the server
-    player1: 0,
-    player2: 0,
-    player3: 0,
-    player4: 0,
-    player5: 0,
-    player6: 0,
-  };
   private gameArea = { width: 100, height: 100, depth: 100 };
 
   private collision: number = 0;
+  private wall_collision: number = 0;
 
   private add_vec3(a: Vec3, b: Vec3): Vec3 {
     return {
@@ -128,16 +116,18 @@ export class GameMath {
     );
   }
 
-  public update() {
-  // remove the input parameters since inputs are now assigned directly to paddles
+  public async update(
+  ) {
       this.collision = 0;
+	  this.wall_collision = 0;
       this.ball.pos = this.add_vec3(this.ball.pos, this.ball.velocity);
       this.ball.reset = 0;
       this.paddleManager(); //here we check all the paddles(that we need to)
       this.wallCollisions(); //also checks score
       //console.log(this.ball.velocity)
-      //this.checkScoring();
-    if (this.collision || this.ball.reset) this.raycast();
+      this.paddles.map(item => {if(item.score<0) item.score=0});//do i need to add active safeguard?
+	  if(this.collision==1) this.ball.velocity=this.scale_vec3(1.1,this.ball.velocity);
+    if (this.collision || this.ball.reset || this.wall_collision) this.raycast();
   }
 
   private raycast() {
@@ -163,51 +153,58 @@ export class GameMath {
   }
 
   private wallCollisions() {
-    // ADD SCORING IN ALL THE WALLS AFTER COLLISIONS ARE WORKING
     if (
       Math.abs(this.ball.pos.x) >=
-      this.gameArea.width / 2 - this.ball.radius
+      this.gameArea.width / 2-this.ball.radius
     ) {
       this.ball.velocity.x *= -1;
       // Clamp
       this.ball.pos.x =
         Math.sign(this.ball.pos.x) *
         (this.gameArea.width / 2 - this.ball.radius - 0.01);
-      //if each of these players exist
-      if (this.ball.pos.x < 0) this.scores.player1++;
-      else this.scores.player2++;
-      console.log("WALL COLLISION ON X AXIS");
+      if(!this.paddles[0].active && !this.paddles[1].active) {
+		this.wall_collision=1;
+		return;
+	}
+      if (this.ball.pos.x < 0) this.paddles[1].score--;
+      else this.paddles[0].score--;
+      if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
       this.resetBall();
       this.collision = 1;
     }
-
-    if (
+    else if (
       Math.abs(this.ball.pos.y) >=
-      this.gameArea.height / 2 - this.ball.radius
+      this.gameArea.height / 2 -this.ball.radius
     ) {
       this.ball.velocity.y *= -1;
       this.ball.pos.y =
         Math.sign(this.ball.pos.y) *
         (this.gameArea.height / 2 - this.ball.radius - 0.01);
-		//IF THESE PLAYERS EXIST
-      if (this.ball.pos.y < 0) this.scores.player5++;
-      else this.scores.player6++;
+	if(!this.paddles[4].active && !this.paddles[5].active) {
+		this.wall_collision=1;
+		return;
+	}
+      if (this.ball.pos.y < 0) this.paddles[5].score--;
+      else this.paddles[4].score--;
+	  if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
 	  this.resetBall();
       this.collision = 1;
-      console.log("WALL COLLISION ON Y AXIS");
-    }
-
-    if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2) {
+      //console.log("WALL COLLISION ON Y AXIS");
+    } else if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2-this.ball.radius) {
       this.ball.velocity.z *= -1;
       this.ball.pos.z =
         Math.sign(this.ball.pos.z) *
         (this.gameArea.depth / 2 - this.ball.radius - 0.01);
-		//IF THESE PLAYERS EXIST
-      if (this.ball.pos.z < 0) this.scores.player3++;
-      else this.scores.player4++;
+	if(!this.paddles[2].active && !this.paddles[3].active) {
+		this.wall_collision=1;
+		return;
+	}
+      if (this.ball.pos.z < 0) this.paddles[2].score--;
+      else this.paddles[3].score--;
+	  if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
 	  this.resetBall();
       this.collision = 1;
-      console.log("WALL COLLISION ON Z AXIS");
+      //console.log("WALL COLLISION ON Z AXIS");
     }
     //console.log("wall collisions done!");
   }
@@ -282,26 +279,26 @@ export class GameMath {
     const maxAngle = (75 * Math.PI) / 180;
     const deflection = offset * maxAngle;
 
-    console.log("VELOCITY BEFORE (START): ");
-    console.log(this.tmp_ball.velocity);
-    console.log("ball y: " + this.tmp_ball.pos.y);
-    console.log("paddle y: " + paddle.y);
-    console.log("diff y: " + (this.tmp_ball.pos.y - paddle.y));
-    console.log(paddle.height / 2);
-    console.log("offset: " + offset);
-    console.log("deflection: " + deflection);
-    console.log("final angle: " + (180 / Math.PI) * deflection);
+    // console.log("VELOCITY BEFORE (START): ");
+    // console.log(this.tmp_ball.velocity);
+    // console.log("ball y: " + this.tmp_ball.pos.y);
+    // console.log("paddle y: " + paddle.y);
+    // console.log("diff y: " + (this.tmp_ball.pos.y - paddle.y));
+    // console.log(paddle.height / 2);
+    // console.log("offset: " + offset);
+    // console.log("deflection: " + deflection);
+    // console.log("final angle: " + (180 / Math.PI) * deflection);
 
     const offsetX = (this.tmp_ball.pos.x - paddle.x) / (paddle.height / 2);
     const deflectionX = offsetX * maxAngle;
 
-    console.log("ball x: " + this.tmp_ball.pos.x);
-    console.log("paddle x: " + paddle.x);
-    console.log("diff: " + (this.tmp_ball.pos.x - paddle.x));
-    console.log(paddle.height / 2);
-    console.log("offset x: " + offsetX);
-    console.log("deflection x: " + deflectionX);
-    console.log("final angle: " + (180 / Math.PI) * deflectionX);
+    // console.log("ball x: " + this.tmp_ball.pos.x);
+    // console.log("paddle x: " + paddle.x);
+    // console.log("diff: " + (this.tmp_ball.pos.x - paddle.x));
+    // console.log(paddle.height / 2);
+    // console.log("offset x: " + offsetX);
+    // console.log("deflection x: " + deflectionX);
+    // console.log("final angle: " + (180 / Math.PI) * deflectionX);
 
     const vel = this.dot_product(this.tmp_ball.velocity);
 
@@ -315,14 +312,14 @@ export class GameMath {
     console.log(this.tmp_ball.velocity);
 
     const res = this.normalize(this.tmp_ball.velocity, vel_changed);
-    console.log("vel: " + vel);
-    console.log("_changed: " + vel_changed);
-    console.log("res: ");
-    console.log(res);
+    // console.log("vel: " + vel);
+    // console.log("_changed: " + vel_changed);
+    // console.log("res: ");
+    // console.log(res);
     this.tmp_ball.velocity = this.scale_vec3(vel, res);
 
-    console.log("FINAL DIRECTION/VELOCITY: ");
-    console.log(this.tmp_ball.velocity);
+    // console.log("FINAL DIRECTION/VELOCITY: ");
+    // console.log(this.tmp_ball.velocity);
   }
 
   private paddleCollisions(paddle: Paddle2D) {
@@ -362,9 +359,8 @@ export class GameMath {
     //   console.log(
     //     "leftmost bound (x needs to be greater than):" + (paddle.x - height / 2)
     //   );
-      //this.tmp_ball.velocity.z *= -1;
       this.calculateDirection(paddle);
-      console.log("collision with paddle1");
+
       // Clamp
       this.tmp_ball.pos.z =
         Math.sign(this.tmp_ball.pos.z) *
@@ -388,7 +384,7 @@ export class GameMath {
     // console.log("BALL POSITION BEFORE ROTATION: ");
     // console.log(this.ball.pos);
     const m: Mat3 = {
-      //default matrix (only transforms once in the beggining)
+      //default matrix (only transforms once in the beginning)
       col1: { x: 0, y: 0, z: 1 },
       col2: { x: 0, y: 1, z: 0 },
       col3: { x: 1, y: 0, z: 0 },
@@ -470,6 +466,7 @@ export class GameMath {
         if (this.paddleCollisions(paddle)) {
           this.collision = 1;
           console.log("COLLISION WITH PADDLE " + index);
+		  this.ball.last_hit_by=index;
         }
 		}
     }); //so that i don't have to rotate the ball from odd angles, it always checks all 6 paddles so in the end i just have to rotate back from paddle6
@@ -498,24 +495,19 @@ export class GameMath {
         x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
         y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
         z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
-        // x: 0.2,
-        // y: 0,
-        // z: 0,
       },
       radius: this.ball.radius,
       reset: 1,
+	  last_hit_by: null
     };
-    //console.log("Ball reset! Scores:", this.scores);
   }
 
   public getState() {
     return {
       ball: { ...this.ball },
-      scores: { ...this.scores },
       paddles: { ...this.paddles },
       hitPoint: { ...this.hitPoint },
-      hit: this.collision || this.ball.reset,
-      //for each player, send an item of the other_paddles array
+      hit: this.collision || this.ball.reset || this.wall_collision,
     };
   }
 }

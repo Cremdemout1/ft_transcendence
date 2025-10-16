@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/10/08 18:12:20 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/10/15 20:44:26 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,9 @@ function cleanupRoom(roomCode: string): void {
     delete rooms[roomCode];
   }
 }
-
+let i=0;
 //Socket Event Handlers
-function handlePlayerInput(socket: Socket, input: any): void {
+async function handlePlayerInput(socket: Socket, input: any){
   const { roomCode, room } = findPlayerRoom(socket.id);
   
   if (!roomCode || !room) {
@@ -88,10 +88,16 @@ function handlePlayerInput(socket: Socket, input: any): void {
   }
   
   //Update game state
-  room.game.update();
-  
+  await room.game.update();
   //Send game state only to players in this specific room
   io.to(roomCode).emit("gameState", { gameState: room.game.getState() });
+  if(room.game.getState().hit==1)
+  {
+	console.log("SERVER:")
+	console.log(room.game.getState());
+	i++;
+	console.log("i: "+i);
+  }
 }
 
 function handlePlayerCountRequest(socket: Socket): void {
