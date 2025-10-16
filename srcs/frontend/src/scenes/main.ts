@@ -237,8 +237,23 @@ export async function createGameScene( //function that makes all the visuals (up
     setTimeout(() => resolve(6), 2000);
   });
 
+    let player_id = await new Promise<number>((resolve) => {
+    socket.on(
+      "playerIDResponse",
+      ({ playerIdx }: { playerIdx: number }) => {
+        console.log("playerIDResponse event received:", playerIdx);
+        resolve(playerIdx+1);
+      }
+    );
+
+    socket.emit("playerIDRequest", {});
+
+    // Fallback timeout
+    setTimeout(() => resolve(-2), 2000);
+  });
+console.log("PLAYER ID: "+ player_id);
   //   let player_nbr = 2;
-  let player_id = 1;
+//   let player_id = 1;
 
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",
@@ -410,22 +425,7 @@ export async function createGameScene( //function that makes all the visuals (up
 		i++;
 		console.log("i: "+i);
 	}
-  });
-  scene.registerBeforeRender(function () {
-    //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
-    sign_flicker(scoregl, scoremat); //this just flickers the score sign
-    if (input.pause) return; //if the game is paused nothing is sent to or returned from update
-    //gameMath.update(input.up, input.down, input.left, input.right, input.reset); //this is where i send the inputs (only the inputs, no positions of anything, for the aforementioned security reasons). needs to be replaced by an API send. This function is in the pong_logic.ts
-    socket.emit("SendInputsToBackend", {
-      input: {
-        up: input.up,
-        left: input.left,
-        down: input.down,
-        right: input.right,
-        reset: input.reset,
-      },
-    });
-    if (!serverGameState){ 
+	if (!serverGameState){ 
 		console.log("IT'S JOEVER");
 		return;}
     update_ball(meshes, serverGameState);
@@ -484,6 +484,22 @@ export async function createGameScene( //function that makes all the visuals (up
     }
     input.reset = 0;
 	if(serverGameState) serverGameState=null;
+  });
+  scene.registerBeforeRender(function () {
+    //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
+    sign_flicker(scoregl, scoremat); //this just flickers the score sign
+    if (input.pause) return; //if the game is paused nothing is sent to or returned from update
+    //gameMath.update(input.up, input.down, input.left, input.right, input.reset); //this is where i send the inputs (only the inputs, no positions of anything, for the aforementioned security reasons). needs to be replaced by an API send. This function is in the pong_logic.ts
+    socket.emit("SendInputsToBackend", {
+      input: {
+        up: input.up,
+        left: input.left,
+        down: input.down,
+        right: input.right,
+        reset: input.reset,
+      },
+    });
+    
   });
   //scene.debugLayer.show();
   let optimizerOptions = new BABYLON.SceneOptimizerOptions(60, 500);

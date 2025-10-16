@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/10/15 20:44:26 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/10/16 17:42:13 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,16 @@ function handlePlayerCountRequest(socket: Socket): void {
   
   console.log(`Sending playerCountResponse with ${numPlayers} players to ${socket.id}`);
   socket.emit("playerCountResponse", { numPlayers });
+}
+
+
+function handlePlayerIDRequest(socket: Socket): void {
+  const { room } = findPlayerRoom(socket.id);
+  
+	const playerIdx = room? room.players.indexOf(socket.id) : -1;
+  
+  console.log(`Sending playerID with ${playerIdx} players to ${socket.id}`);
+  socket.emit("playerIDResponse", { playerIdx });
 }
 
 function handleCreateRoom(socket: Socket, numPlayers: number): void {
@@ -229,6 +239,10 @@ io.on("connection", (socket: Socket) => {
   // Player count requests
   socket.on("playerCountRequest", () => {
     handlePlayerCountRequest(socket);
+  });
+
+    socket.on("playerIDRequest", () => {
+    handlePlayerIDRequest(socket);
   });
   
   // Room management
