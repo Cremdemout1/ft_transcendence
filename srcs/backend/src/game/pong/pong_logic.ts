@@ -84,6 +84,7 @@ export class GameMath {
 
   private collision: number = 0;
   private wall_collision: number = 0;
+  private winner: number = -1;
 
   private add_vec3(a: Vec3, b: Vec3): Vec3 {
     return {
@@ -125,7 +126,9 @@ export class GameMath {
       this.paddleManager(); //here we check all the paddles(that we need to)
       this.wallCollisions(); //also checks score
       //console.log(this.ball.velocity)
-      this.paddles.map(item => {if(item.score<0) item.score=0});//do i need to add active safeguard?
+      this.paddles.map((item, idx) => {if(item.score<0) item.score=0;
+		if(item.score>9) this.winner=idx;
+	  });//do i need to add active safeguard?
 	  if(this.collision==1) this.ball.velocity=this.scale_vec3(1.1,this.ball.velocity);
     if (this.collision || this.ball.reset || this.wall_collision) this.raycast();
   }
@@ -508,6 +511,7 @@ export class GameMath {
       paddles: { ...this.paddles },
       hitPoint: { ...this.hitPoint },
       hit: this.collision || this.ball.reset || this.wall_collision,
+	  winner: this.winner
     };
   }
 }

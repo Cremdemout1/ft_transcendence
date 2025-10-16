@@ -418,16 +418,17 @@ console.log("PLAYER ID: "+ player_id);
 
   socket.on("gameState", ({ gameState }) => {
     serverGameState = gameState;
-	if(serverGameState.hit==1)
-	{	
-		console.log("CLIENT:")
-		console.log(serverGameState.hitPoint);
-		i++;
-		console.log("i: "+i);
-	}
+	// if(serverGameState.hit==1)
+	// {	
+	// 	console.log("CLIENT:")
+	// 	console.log(serverGameState.hitPoint);
+	// 	i++;
+	// 	console.log("i: "+i);
+	// }
 	if (!serverGameState){ 
 		console.log("IT'S JOEVER");
 		return;}
+		console.log("WINNER: "+ serverGameState.winner);
     update_ball(meshes, serverGameState);
     reset = update_reset(meshes, serverGameState, trail, reset, player_nbr);
     update_paddles(meshes, serverGameState);
