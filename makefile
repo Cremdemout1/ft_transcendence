@@ -3,18 +3,18 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
+#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/10/09 10:51:24 by phantasiae       ###   ########.fr        #
+#    Updated: 2025/10/20 14:18:53 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-DEV_DB_DIR	   = /home/phantasiae/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/home/phantasiae/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /Users/luiberna/Desktop/transcende_new/sqlite-data

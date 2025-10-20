@@ -1,5 +1,5 @@
-import * as BABYLON from "babylonjs";
-import "babylonjs-loaders";
+import * as BABYLON from "@babylonjs/core";
+import "@babylonjs/loaders";
 import { Inspector } from "@babylonjs/inspector";
 import HavokPhysics from "@babylonjs/havok";
 import model from "@/assets/models/arena.glb"; //arena, paddles and ball models
@@ -14,9 +14,9 @@ import {
   save_materials,
 } from "../utils/babylonUtils";
 import { GameMath } from "../../../backend/src/game/pong/pong_logic";
-import { BaseTexture, int, PointLight } from "babylonjs";
+import { BaseTexture, int, PointLight } from "@babylonjs/core";
 import { stick, score_counter } from "../utils/scorePrinting";
-import { Dispose } from "babylonjs/Misc/dumpTools";
+import { Dispose } from "@babylonjs/core/Misc/dumpTools";
 import { update_ball, update_reset, update_paddles } from "../utils/updates";
 import { socket } from "../matchmaking";
 

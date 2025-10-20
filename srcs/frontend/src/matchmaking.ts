@@ -106,4 +106,35 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
   }
 });
 
+// Tournament queue UI updates
+// ver isto melhor
+function renderTournamentQueue(waitingPlayers: string[]) {
+    const app = document.getElementById('app');
+    if (!app) return;
+    let queueDiv = document.getElementById('tournamentQueue');
+    if (!queueDiv) {
+        queueDiv = document.createElement('div');
+        queueDiv.id = 'tournamentQueue';
+        queueDiv.style.border = '1px solid #888';
+        queueDiv.style.padding = '8px';
+        queueDiv.style.marginTop = '8px';
+        app.appendChild(queueDiv);
+    }
+    queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/8)</h3>` +
+        `<ol>${waitingPlayers.map(pid => `<li>${pid}</li>`).join('')}</ol>`;
+}
+
+socket.on("tournamentQueueUpdate", ({ waitingCount, waitingPlayers }: { waitingCount: number, waitingPlayers: string[] }) => {
+    console.log("tournamentQueueUpdate:", waitingCount, waitingPlayers);
+    renderTournamentQueue(waitingPlayers);
+});
+
+socket.on("tournamentStarted", ({ tournamentId, players }: { tournamentId: string, players: string[] }) => {
+    console.log(`Tournament ${tournamentId} started with players:`, players);
+    const app = document.getElementById('app');
+    if (app) {
+        app.innerHTML = `<div><h2>Tournament ${tournamentId} started!</h2><p>Players: ${players.join(', ')}</p><p>Waiting for matches to begin...</p></div>`;
+    }
+});
+
 export { start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };

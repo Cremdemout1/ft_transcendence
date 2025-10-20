@@ -76,12 +76,26 @@ function showMultiplayerMenu(push = true) {
         }
     });
     document.getElementById('tournamentBtn')?.addEventListener('click', () => {
-        // TODO: Tournament logic
+        socket.emit("joinTournament");
     });
     document.getElementById('backBtn')?.addEventListener('click', () => {
         history.back();
     });
 }
+
+// Listen for match results and tournament notifications
+socket.on("matchOver", ({ winner, winnerSocketId }: { winner: number; winnerSocketId: string | null }) => {
+    console.log("matchOver received in play.ts:", winner, winnerSocketId);
+    // store last match winner so tournament manager UI can read it
+    localStorage.setItem('lastMatchWinner', JSON.stringify({ winnerIdx: winner, winnerSocketId }));
+    // You could advance UI or open a small modal here
+    alert(`Match finished. Winner: player ${winner + 1}`);
+});
+
+socket.on("tournamentWinner", ({ tournamentId, champion }: { tournamentId: string; champion: string }) => {
+    console.log(`Tournament ${tournamentId} finished. Champion: ${champion}`);
+    alert(`Tournament ${tournamentId} finished. Champion socket: ${champion}`);
+});
 
 window.addEventListener('popstate', (event) => {
     if (location.hash === '#multiplayer') {

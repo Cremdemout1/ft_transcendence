@@ -1,4 +1,4 @@
-import * as BABYLON from "babylonjs";
+import * as BABYLON from "@babylonjs/core";
 import { GameMeshes } from "../scenes/main";
 
 export function simmetrical_vec(size: number)

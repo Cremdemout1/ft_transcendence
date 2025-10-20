@@ -1,4 +1,4 @@
-import * as BABYLON from "babylonjs";
+import * as BABYLON from "@babylonjs/core";
 import { GameMeshes } from "../scenes/main";
 import score_unit from "@/assets/models/score_unit.glb"; //score digit
 import counter from "@/assets/models/digital_clock_anim.glb"; //score counter
