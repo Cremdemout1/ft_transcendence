@@ -415,26 +415,22 @@ console.log("PLAYER ID: "+ player_id);
   let counter: number = 0;
   let serverGameState: any = null;
   let i=0;
-
-  socket.on("gameState", ({ gameState }) => {
+  const onGameState = ({ gameState }: { gameState: any }) => {
     serverGameState = gameState;
-	// if(serverGameState.hit==1)
-	// {	
-	// 	console.log("CLIENT:")
-	// 	console.log(serverGameState.hitPoint);
-	// 	i++;
-	// 	console.log("i: "+i);
-	// }
-	if (!serverGameState){ 
-		console.log("IT'S JOEVER");
-		return;}
-		console.log("WINNER: "+ serverGameState.winner);
+
+    if (!serverGameState) {
+      // no-op when server sends null/empty state
+      // keeps previous visuals intact until next valid update
+      console.log("IT'S JOEVER");
+      return;
+    }
+    console.log("WINNER: " + serverGameState.winner);
     update_ball(meshes, serverGameState);
     reset = update_reset(meshes, serverGameState, trail, reset, player_nbr);
     update_paddles(meshes, serverGameState);
     if (serverGameState.hit) {
-		console.log("hit!");
-		console.log(serverGameState);
+      console.log("hit!");
+      console.log(serverGameState);
       const hitPoint = new BABYLON.Vector3(
         serverGameState.hitPoint.pos.x,
         serverGameState.hitPoint.pos.y,
@@ -484,8 +480,39 @@ console.log("PLAYER ID: "+ player_id);
       newnewMesh.material!.alpha = 0.8 - counter / opacity;
     }
     input.reset = 0;
-	if(serverGameState) serverGameState=null;
-  });
+    if (serverGameState) serverGameState = null;
+  };
+
+  socket.on("gameState", onGameState);
+
+  //cleanup when leaving the #pong route so rendering and socket handlers stop
+  const onHashChange = () => {
+    if (!location.hash.startsWith("#pong")) {
+      console.log("Leaving #pong — cleaning up scene and handlers");
+      try {
+        socket.off("gameState", onGameState);
+      } catch (e) {
+        /* ignore */
+      }
+      try {
+        engine.stopRenderLoop();
+      } catch (e) {
+        /* ignore */
+      }
+      try {
+        scene.dispose();
+      } catch (e) {
+        /* ignore */
+      }
+      try {
+        document.removeEventListener("pointerlockchange", pointerlockchange, false);
+      } catch (e) {}
+      try {
+        window.removeEventListener("hashchange", onHashChange);
+      } catch (e) {}
+    }
+  };
+  window.addEventListener("hashchange", onHashChange);
   scene.registerBeforeRender(function () {
     //the registerBeforeRender function is what updates the scene every frame so the API fetches for the updating of the positions of everything + the score will be called here
     sign_flicker(scoregl, scoremat); //this just flickers the score sign

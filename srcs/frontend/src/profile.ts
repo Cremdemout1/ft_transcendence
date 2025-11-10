@@ -3,264 +3,242 @@
 /*                                                        :::      ::::::::   */
 /*   profile.ts                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/16 14:54:17 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/10 15:56:22 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { checkLoginState } from './dashboard';
-import { backToDashboard } from './pong';
 
 function decodeJwt(token: string) {
     try {
-      const payloadBase64Url = token.split('.')[1]; // middle part is payload
-      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payloadJson = atob(payloadBase64);
-      return JSON.parse(payloadJson);
+        const payloadBase64Url = token.split('.')[1];
+        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
     } catch (e) {
-      console.error('Invalid JWT token', e);
-      return null;
+        console.error('Invalid JWT token', e);
+        return null;
     }
-}  
+}
 
 async function renderProfile() {
-    await checkLoginState("http://localhost:8080/api/me")
+    await checkLoginState("http://192.168.1.6:8080/api/me");
+
     const app = document.getElementById('app');
-    if (!app)
-        return ;
+    if (!app) return;
+
     const info = localStorage.getItem('jwt');
-    let userInfo;
-    if (info)
-        userInfo = decodeJwt(info);
-    //show stuff about user here
-    //add buttons to change email, name, user, etc
+    const userInfo = info ? decodeJwt(info) : null;
+
     app.innerHTML = `
-    <div>
-        <button id="backToDashboard">back</button>
-        <div id='userInfo'>
-            <div id='usernameDiv'>
-                <p id='username'>Username: ${userInfo?.username}</p>
-                <input type="text" id="newUsernameInput" placeholder="Enter username" />
-                <button type='submit' id="changeUsername">change</button>
-            </div>
-            <div id='firstnameDiv'>
-                <p id='firstname'>Firstname: ${userInfo?.firstname}</p>
-                <input type="text" id="newFirstnameInput" placeholder="Enter firstname" />
-                <button type='submit' id="changeFirstname">change</button>
-            </div>
-            <div id='lastnameDiv'>
-                <p id='lastname'>Lastname: ${userInfo?.lastname}</p>
-                <input type="text" id="newLastnameInput" placeholder="Enter lastname" />
-                <button type='submit' id="changeLastname">change</button>
-            </div>
-            <div id='emailDiv'>
-                <p>email: ${userInfo?.email}</p>
-                <button id='changePassword'>Change password</button>
-            </div>
-            <br>
-            <div id='twoFAToggle'>
-                <input id='twoFA' type='checkbox'></input>
-                <label>Enable Two Factor Authentication</label>
-            </div>
+<div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+    <button class="neon-btn exit-btn" id="backBtn">BACK</button>
+
+    <div id="userInfo" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+
+        <div id="usernameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <p id="username">Username: ${userInfo?.username}</p>
+            <input type="text" id="newUsernameInput" placeholder="Enter username" class="input" />
+            <button type="submit" id="changeUsername" class="neon-subbtn">Change</button>
         </div>
-    </div>`;
-    backToDashboard();
-    changeUsername();
-    changeFirstname();
-    changeLastname();
-    changePassword();
-    const checkbox = document.querySelector('#twoFA') as HTMLInputElement | null;
 
-    if (checkbox) {
-    const stored2FA = localStorage.getItem('twoFA');
+        <div id="firstnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <p id="firstname">Firstname: ${userInfo?.firstname}</p>
+            <input type="text" id="newFirstnameInput" placeholder="Enter firstname" class="input" />
+            <button type="submit" id="changeFirstname" class="neon-subbtn">Change</button>
+        </div>
 
-    // Use stored value if it exists, otherwise fall back to userInfo
-    if (stored2FA !== null) {
-        checkbox.checked = stored2FA === 'true';
-    } else {
-        checkbox.checked = !!userInfo.twoFactorAuth;
-        localStorage.setItem('twoFA', checkbox.checked.toString());
+        <div id="lastnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <p id="lastname">Lastname: ${userInfo?.lastname}</p>
+            <input type="text" id="newLastnameInput" placeholder="Enter lastname" class="input" />
+            <button type="submit" id="changeLastname" class="neon-subbtn">Change</button>
+        </div>
+
+        <div id="emailDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <p>Email: ${userInfo?.email}</p>
+            <button id="changePassword" class="neon-subbtn">Change password</button>
+        </div>
+
+        <div id="twoFAToggle" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input id="twoFA" type="checkbox" />
+            <label for="twoFA">Enable Two Factor Authentication</label>
+        </div>
+
+    </div>
+</div>
+`;
+
+    // BACK button listener
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            location.href = '/#dashboard';
+        });
     }
 
-    checkbox.addEventListener('change', () => {
-        localStorage.setItem('twoFA', checkbox.checked.toString());
-        toggle2FA();
+    // User action buttons
+    attachUsernameChange();
+    attachFirstnameChange();
+    attachLastnameChange();
+    attachPasswordChange();
+
+    // 2FA toggle
+    const checkbox = document.getElementById('twoFA') as HTMLInputElement | null;
+    if (checkbox) {
+        const stored2FA = localStorage.getItem('twoFA');
+        if (stored2FA !== null) {
+            checkbox.checked = stored2FA === 'true';
+        } else {
+            checkbox.checked = !!userInfo?.twoFactorAuth;
+            localStorage.setItem('twoFA', checkbox.checked.toString());
+        }
+        checkbox.addEventListener('change', () => {
+            localStorage.setItem('twoFA', checkbox.checked.toString());
+            toggle2FA();
+        });
+    }
+}
+
+// Navigate to profile
+async function me() {
+    const btn = document.getElementById('profileBtn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            location.href = '/#me';
+        });
+    }
+}
+
+// Attach username change
+function attachUsernameChange() {
+    const btn = document.getElementById('changeUsername');
+    const input = document.getElementById('newUsernameInput') as HTMLInputElement | null;
+    if (!btn || !input) return;
+
+    const handleChange = async () => {
+        const newUsername = input.value.trim();
+        if (!newUsername) return alert("Please enter a new username.");
+        try {
+            const res = await fetch('http://192.168.1.6:8080/api/me/username', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                },
+                body: JSON.stringify({ newUsername }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('jwt', data.token);
+                document.getElementById('username')!.textContent = `Username: ${newUsername}`;
+                input.value = '';
+            }
+        } catch (err) {
+            console.error('Error changing username:', err);
+        }
+    };
+
+    btn.addEventListener('click', handleChange);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleChange(); });
+}
+
+// Attach firstname change
+function attachFirstnameChange() {
+    const btn = document.getElementById('changeFirstname');
+    const input = document.getElementById('newFirstnameInput') as HTMLInputElement | null;
+    if (!btn || !input) return;
+
+    const handleChange = async () => {
+        const newFirstname = input.value.trim();
+        if (!newFirstname) return alert("Please enter a new firstname.");
+        try {
+            const res = await fetch('http://192.168.1.6:8080/api/me/firstname', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                },
+                body: JSON.stringify({ newFirstname }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('jwt', data.token);
+                document.getElementById('firstname')!.textContent = `Firstname: ${newFirstname}`;
+                input.value = '';
+            }
+        } catch (err) {
+            console.error('Error changing firstname:', err);
+        }
+    };
+
+    btn.addEventListener('click', handleChange);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleChange(); });
+}
+
+// Attach lastname change
+function attachLastnameChange() {
+    const btn = document.getElementById('changeLastname');
+    const input = document.getElementById('newLastnameInput') as HTMLInputElement | null;
+    if (!btn || !input) return;
+
+    const handleChange = async () => {
+        const newLastname = input.value.trim();
+        if (!newLastname) return alert("Please enter a new lastname.");
+        try {
+            const res = await fetch('http://192.168.1.6:8080/api/me/lastname', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                },
+                body: JSON.stringify({ newLastname }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('jwt', data.token);
+                document.getElementById('lastname')!.textContent = `Lastname: ${newLastname}`;
+                input.value = '';
+            }
+        } catch (err) {
+            console.error('Error changing lastname:', err);
+        }
+    };
+
+    btn.addEventListener('click', handleChange);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleChange(); });
+}
+
+// Change password navigation
+function attachPasswordChange() {
+    const btn = document.getElementById('changePassword');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        location.href = '/#me?section=change-password';
     });
 }
 
-}
-
-async function me() {
-    const btn = document.getElementById('profileBtn');
-     if (btn) {
-     btn.addEventListener('click', () => {
-         location.href = '/#me';
-         });
-     };
-}
-
-async function changeUsername() {
-    const btn = document.getElementById('changeUsername') 
-    const input = document.querySelector<HTMLInputElement>('#newUsernameInput');
-    if (!btn || !input)
-        return ;
-    const handleChange = async () => 
-    {
-        const newUsername = input?.value.trim();
-        if (!newUsername || newUsername === '') {
-            alert("Please enter a new username.");
-            return;
-        }
-        try {
-            const res = await fetch('http://localhost:8080/api/me/username', 
-            {
-                method: "PATCH",
-                headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem('jwt')}`
-                            },
-                body: JSON.stringify({ newUsername: newUsername })
-            });
-            const data = await res.json() as { message: string; token: string };
-            if (res.ok)
-            {
-                localStorage.removeItem('jwt');
-                localStorage.setItem('jwt', data.token);
-                document.getElementById('username')!.textContent = "Username: " + newUsername;
-                input.value = '';
-            }
-        }
-        catch (error) {
-            console.log("Error changing username:", error);
-        }
-    };
-    btn.addEventListener('click', handleChange);
-    input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        handleChange();
-        }
-    })
-}
-
-async function changeFirstname() {
-    const btn = document.getElementById('changeFirstname') 
-    const input = document.querySelector<HTMLInputElement>('#newFirstnameInput');
-    if (!btn || !input)
-        return ;
-    const handleChange = async () => 
-    {
-        const newFirstname = input?.value.trim();
-        if (!newFirstname || newFirstname === '') {
-            alert("Please enter a new Firstname.");
-            return;
-        }
-        try {
-            const res = await fetch('http://localhost:8080/api/me/firstname', 
-            {
-                method: "PATCH",
-                headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem('jwt')}`
-                            },
-                body: JSON.stringify({ newFirstname: newFirstname }) // replace with actual new username
-            }
-            );
-            const data = await res.json() as { message: string; token: string };
-            if (res.ok)
-            {
-                localStorage.removeItem('jwt');
-                localStorage.setItem('jwt', data.token);
-                document.getElementById('firstname')!.textContent = "Firstname: " + newFirstname;
-                input.value = '';
-            }
-        }
-        catch (error) {
-            console.log("Error changing firstname:", error);
-        }
-    };
-    btn.addEventListener('click', handleChange);
-    input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        handleChange();
-        }
-    })
-}
-
-
-async function changeLastname() {
-    const btn = document.getElementById('changeLastname') 
-    const input = document.querySelector<HTMLInputElement>('#newLastnameInput');
-    if (!btn || !input)
-        return ;
-    const handleChange = async () => 
-    {
-        const newLastname = input?.value.trim();
-        if (!newLastname || newLastname === '') {
-            alert("Please enter a new Lastname.");
-            return;
-        }
-        try {
-            const res = await fetch('http://localhost:8080/api/me/lastname', 
-            {
-                method: "PATCH",
-                headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem('jwt')}`
-                            },
-                body: JSON.stringify({ newLastname: newLastname })
-            }
-            );
-            const data = await res.json() as { message: string; token: string };
-            if (res.ok)
-            {
-                localStorage.removeItem('jwt');
-                localStorage.setItem('jwt', data.token);
-                document.getElementById('lastname')!.textContent = "Lastname: " + newLastname;
-                input.value = '';
-            }
-        }
-        catch (error) {
-            console.log("Error changing lastname:", error);
-        }
-    };
-    btn.addEventListener('click', handleChange);
-    input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        handleChange();
-        }
-    })
-}
-
-async function changePassword() {
-    const btn = document.getElementById('changePassword');
-    if (btn) {
-        btn.addEventListener('click', () => {
-            location.href = '/#me?section=change-password';
-        });
-    }
-}
-
+// Toggle 2FA
 async function toggle2FA() {
-    const checkbox = document.querySelector('#twoFA') as HTMLInputElement | null;
-    const is2FAEnabled = checkbox?.checked ? 1 : 0;
-    let res = null;
+    const checkbox = document.getElementById('twoFA') as HTMLInputElement | null;
+    if (!checkbox) return;
+
+    const is2FAEnabled = checkbox.checked ? 1 : 0;
     try {
-        res = await fetch('http://localhost:8080/api/me/2fa-checkbox', {
-            method: "PATCH",
+        const res = await fetch('http://192.168.1.6:8080/api/me/2fa-checkbox', {
+            method: 'PATCH',
             headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`
-                        },
-            body: JSON.stringify({ twoFAEnabled: is2FAEnabled })
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+            },
+            body: JSON.stringify({ twoFAEnabled: is2FAEnabled }),
         });
-        if (!res.ok) {
-            console.log('Failed to update 2FA setting');
-        }
-    } catch(err) {
-        console.log('Error toggling 2FA:', err);
+        if (!res.ok) console.error('Failed to update 2FA');
+    } catch (err) {
+        console.error('Error toggling 2FA:', err);
     }
 }
 
-export { me, renderProfile, changeUsername, decodeJwt };
+export { me, renderProfile, decodeJwt };

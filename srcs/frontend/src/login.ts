@@ -3,12 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/16 14:55:39 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/10 15:56:22 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
+import {emitPresence} from './presence';
 
 async function backendLogin() {
 
@@ -25,7 +28,7 @@ async function backendLogin() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
     
         try {
-            const res = await fetch("http://localhost:8080/api/login",
+            const res = await fetch("http://192.168.1.6:8080/api/login",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -41,6 +44,7 @@ async function backendLogin() {
                 else
                 {
                     localStorage.setItem('jwt', data.token);
+                    emitPresence();
                     location.href = '/#dashboard';
                 }
             } else {
@@ -97,7 +101,7 @@ async function send2FA() {
             return alert("Please enter a code");
         
         try {
-            const res = await fetch("http://localhost:8080/api/verify-2fa", {
+            const res = await fetch("http://192.168.1.6:8080/api/verify-2fa", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json',
                 },
@@ -112,6 +116,7 @@ async function send2FA() {
             if (errorMsg)
                 errorMsg.textContent = '';
             localStorage.setItem('jwt', data.token);
+            emitPresence();
             localStorage.removeItem('pendingEmail');
             window.location.hash = '#dashboard';
         } catch (err) {

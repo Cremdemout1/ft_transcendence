@@ -3,12 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/07/16 14:53:56 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/10 15:56:22 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+import {emitPresence} from './presence';
 
 async function backendSignup() {
     const form = document.querySelector("#signup-form");
@@ -27,7 +29,7 @@ async function backendSignup() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
         try {
-            const res = await fetch("http://localhost:8080/api/signup",
+            const res = await fetch("http://192.168.1.6:8080/api/signup",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -41,6 +43,7 @@ async function backendSignup() {
                 if (messageDiv) {
                     messageDiv.textContent = "Successful signup!";
                 }
+                emitPresence();
                 location.hash = '#dashboard';
             } else {
                 if (messageDiv) {

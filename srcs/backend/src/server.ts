@@ -6,7 +6,7 @@
 /*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/10/08 17:40:03 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/10 15:53:37 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,9 @@ async function startSwagger(){
             description: 'API documentation',
             version: '1.0.0',
           },
-          host: 'localhost:8080',
-          schemes: ['https'],
+          // host and schemes are left generic; runtime host/port may vary in containers
+          host: process.env.SWAGGER_HOST || undefined,
+          schemes: process.env.SWAGGER_SCHEMES ? process.env.SWAGGER_SCHEMES.split(',') : undefined,
           consumes: ['application/json'],
           produces: ['application/json'],
         }
@@ -90,8 +91,10 @@ async function startServer()
     try
     {
       await startSwagger()
-      await fastify.listen({port : 8080, host : '0.0.0.0'})
-      console.log("server listening on port 8080")
+      const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 8080)
+      const HOST = process.env.HOST || process.env.BACKEND_HOST || '0.0.0.0'
+      await fastify.listen({ port: PORT, host: HOST })
+      console.log(`server listening on ${HOST}:${PORT}`)
     }
     catch (err)
     {   
@@ -109,15 +112,34 @@ async function registerAll(fastify:FastifyInstance)
     reconnectOnError: () => true,
     retryStrategy: times => Math.min(times * 50, 2000),
   })
-  fastify.register(fastifySocketIO); 
-  fastify.register(fastifyFormBody);
+  // Parse multiple allowed origins from env (comma-separated)
+const origins = (process.env.CORS_ORIGIN ?? '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
-    fastify.register(cors, { 
-      origin: process.env.CORS_ORIGIN,
+// CORS for HTTP
+await fastify.register(cors, {
+  origin: (origin, cb) => {
+    // allow same-origin/non-browser requests
+    if (!origin || origins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'), false);
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  });
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+
+// Socket.IO with its own CORS (must mirror HTTP CORS)
+await fastify.register(fastifySocketIO, {
+  cors: {
+    origin: origins.length ? origins : true,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+await fastify.register(fastifyFormBody);
   fastify.register(dashboard);
   fastify.register(login);
   fastify.register(verify2fa);

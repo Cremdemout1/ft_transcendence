@@ -3,22 +3,22 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
+#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/10/20 14:18:53 by gcapa-pe         ###   ########.fr        #
+#    Updated: 2025/11/10 16:03:20 by luiberna         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
-#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
-#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
-#DEV_DB_DIR	   = /Users/luiberna/Desktop/transcende_new/sqlite-data
-#DEV_DB_PATH	   = file:/Users/luiberna/Desktop/transcende_new/sqlite-data/database.sqlite
+# DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 

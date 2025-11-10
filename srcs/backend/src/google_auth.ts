@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   google_auth.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ycantin <ycantin@student.42.fr>            +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 20:45:38 by ycantin           #+#    #+#             */
-/*   Updated: 2025/06/19 15:16:27 by ycantin          ###   ########.fr       */
+/*   Updated: 2025/11/10 15:54:02 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ const googleSecret = process.env.GOOGLE_SECRET || 'ERROR_SECRET';
 function getAuthURL() {
     const params = new URLSearchParams({
         client_id: googleId,
-        redirect_uri: 'http://localhost:8080/auth/google/callback',
+        redirect_uri: 'http://192.168.1.6:8080/auth/google/callback',
         response_type: 'code',
         scope: 'openid email profile',
         access_type: 'offline',
@@ -50,7 +50,7 @@ function exchangeCodeForToken(code:string): Promise<string>{
         code,
         client_id: googleId,
         client_secret: googleSecret,
-        redirect_uri: 'http://localhost:8080/auth/google/callback',
+        redirect_uri: 'http://192.168.1.6:8080/auth/google/callback',
         grant_type: 'authorization_code',
     });
 

@@ -1,116 +1,464 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transcendence</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* --- Base styles --- */
+body {
+    margin: 0;
+    font-family: 'Orbitron', monospace;
+    color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.terminal-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px; /* space between buttons */
+}
+
+#bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    background: #111;
+}
+
+/* --- CRT overlay --- */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border-radius: 200px;
+    clip-path: ellipse(82% 100% at 70% 50%);
+    border: 2px solid rgba(0,255,255,0.25);
+    box-shadow: inset 0 0 40px rgba(0,255,255,0.15), inset 0 0 60px rgba(255,0,255,0.1);
+    transform: perspective(2000px) rotateX(3deg) scale(1.02);
+    z-index: 999;
+    pointer-events: none;
+    background: linear-gradient(115deg,
+        rgba(255,255,255,0.08) 0%,
+        rgba(255,255,255,0.01) 40%,
+        rgba(255,255,255,0.15) 50%,
+        rgba(255,255,255,0.01) 60%,
+        rgba(255,255,255,0.05) 100%
+    );
+    background-size: 200% 200%;
+    animation: glassSweep 10s linear infinite;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border-radius: 200px;
+    clip-path: ellipse(82% 100% at 70% 50%);
+    background: radial-gradient(circle at center, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.8) 100%);
+    pointer-events: none;
+    z-index: 998;
+}
+
+@keyframes glassSweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* --- App container --- */
+main#app {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(17,17,17,0.85);
+    border: 2px solid #ff00ff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(255,0,255,0.5), 0 0 20px rgba(0,255,255,0.5);
+    width: 320px;
+}
+
+/* --- Titles --- */
+#app h1 {
+    margin: 0 0 1rem 0;
+    color: #ff00ff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', monospace;
+}
+
+#cyberPongTitle {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    z-index: 700;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    animation: glitchImage 1s infinite;
+    filter: drop-shadow(0 0 8px #00ffff) drop-shadow(0 0 16px #ff00ff);
+}
+
+#cyberPongTitle.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes glitchImage {
+    0% { transform: translateX(-50%) translate(2px, 0); }
+    20% { transform: translateX(-50%) translate(-2px, -1px); }
+    40% { transform: translateX(-50%) translate(1px, 2px); }
+    60% { transform: translateX(-50%) translate(-1px, 1px); }
+    80% { transform: translateX(-50%) translate(3px, -1px); }
+    100% { transform: translateX(-50%) translate(0, 0); }
+}
+
+/* --- Inputs --- */
+input.input {
+    width: 90%;
+    margin: 0.5rem 0;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #ff00ff;
+    background: #1a1a1a;
+    color: #f0f0f0;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+input.input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+/* --- Buttons --- */
+button, a.btn, .neon-btn, .exit-btn, .neon-subbtn {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Orbitron', monospace;
+}
+
+/* Standard gradient buttons */
+button.btn, a.btn {
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    color: #0d0d0d;
+    background: linear-gradient(90deg, #ff00ff, #00ffff);
+    border: none;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Neon style buttons */
+.neon-btn, .exit-btn, .neon-subbtn {
+    border-radius: 6px;
+    text-transform: uppercase;
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+    box-shadow: 0 0 10px rgba(0,255,255,0.2), inset 0 0 8px rgba(0,255,255,0.1);
+}
+
+.neon-btn {
+    width: 240px;
+    padding: 0.8rem;
+    font-weight: bold;
+    color: #00ffff;
+    background: rgba(10,10,10,0.8);
+    border: 2px solid rgba(0,255,255,0.3);
+}
+
+.exit-btn {
+    width: 240px;
+    padding: 0.8rem;
+    font-weight: bold;
+    color: #ff4444;
+    background: rgba(20,0,0,0.8);
+    border: 2px solid rgba(255,0,0,0.4);
+    text-shadow: 0 0 8px #ff0000;
+}
+
+.neon-subbtn {
+    width: 120px;
+    padding: 0.5rem;
+    font-weight: bold;
+    color: #00ffff;
+    background: rgba(10,10,10,0.8);
+    border: 2px solid rgba(0,255,255,0.3);
+}
+
+/* --- Hover shake effect for all buttons --- */
+@keyframes shake {
+    0% { transform: translate(1px,1px) rotate(0deg); }
+    10% { transform: translate(-1px,-2px) rotate(-1deg); }
+    20% { transform: translate(-3px,0) rotate(1deg); }
+    30% { transform: translate(3px,2px) rotate(0deg); }
+    40% { transform: translate(1px,-1px) rotate(1deg); }
+    50% { transform: translate(-1px,2px) rotate(-1deg); }
+    60% { transform: translate(-3px,1px) rotate(0deg); }
+    70% { transform: translate(3px,1px) rotate(-1deg); }
+    80% { transform: translate(-1px,-1px) rotate(1deg); }
+    90% { transform: translate(1px,2px) rotate(0deg); }
+    100% { transform: translate(1px,-2px) rotate(-1deg); }
+}
+
+button:hover, a.btn:hover, .neon-btn:hover, .exit-btn:hover, .neon-subbtn:hover {
+    animation: shake 0.2s infinite;
+}
+
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    height: 100%;
+}
+</style>
 </head>
-<script type="module" src="./src/login.ts"></script>
 <body>
-    <main id="app"></main>
+<audio id="bgMusic">
+    <source id="musicSource" src="/song1.mp3" type="audio/mp3">
+</audio>
 
-    <script type="module">
-        import { backendLogin, logout, verify2faCode } from './src/login';
-        import { backendSignup } from './src/signup';
-        import { fetchDashboard } from './src/dashboard';
-        import { renderPong, play, backToDashboard } from './src/pong';
-        import { renderProfile, me } from './src/profile';
-        import { renderchangePassword } from './src/changePassword' //continue making this new page
+<script>
+const playlist = ["/song1.mp3", "/song2.mp3"];
+let currentTrack = 0;
 
-        const app = document.getElementById('app');
+const music = document.getElementById('bgMusic');
+const musicSource = document.getElementById('musicSource');
+music.volume = 0.7;
+music.muted = false; // remove the initial muted state
 
-        const routes = {
-            login: renderLogin,
-            signup: renderSignup,
-            dashboard: renderDashboard,
-            pong: renderPong,
-            me: renderProfile,
-            twoFA: verify2faCode,
-        };
+function playMusic() {
+    musicSource.src = playlist[currentTrack];
+    music.load();
 
-        function renderLogin() {
-            app.innerHTML  = `
-            <form id="login-form">
-                <input name="email" type="email" class="input" required/>
-                <input name="password" type="password" class="'input" required/>
-                <button type="submit" class="'btn">Login</button>
-            </form>
-            <a href="#signup" class="'btn">Signup instead</a>
-            <div id="message"></div>`;
-            if (localStorage.getItem('jwt'))
-                location.href = '/#dashboard';
-            backendLogin();
-        };
+    // Try resuming audio context explicitly (helps Chrome)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
 
-        function renderSignup() {
-            app.innerHTML = `
-            <form id="signup-form">
-                <label>Firstname: <input name="firstname" type="text" class="'input" required/>
-                <label>Lastname: <input name="lastname" type="text" class="'input" required/></label><br><br>
-                <label>Username: <input name="username" type="text" class="'input" required/></label><br><br>
-                <label>Email: <input name="email" type="email" class="'input" required/></label>
-                <label>Password: <input name="password" type="password" class="'input" required/>
-                <button type="submit" class="btn">Sign-up</button>
-            </form>
-            <div id="message"></div>`;
+    music.play()
+        .then(() => console.log("Music playing:", playlist[currentTrack]))
+        .catch(e => console.log("Autoplay blocked:", e));
+}
 
-            backendSignup();
-        };
+music.addEventListener('ended', () => {
+    currentTrack = (currentTrack + 1) % playlist.length;
+    playMusic();
+});
 
-        function renderDashboard() {
-            app.innerHTML = `
-            <div name="options">
-                <button id="profileBtn" class="btn">Profile</button>
-                <button id="playBtn" class="btn">Play</button>
-                <button>History</button>
-                <button id="logoutBtn" class="btn">log out</button>
-            </div>`;
+['click', 'keydown', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, function startMusicOnce() {
+        playMusic();
+        document.removeEventListener(evt, startMusicOnce);
+    });
+});
+</script>
 
-            fetchDashboard();
-            logout();
-            play();
-            me();
-        };
+<canvas id="bgCanvas"></canvas>
+<img id="cyberPongTitle" src="/Default_title.png" alt="Cyber Pong Logo">
+<main id="app"></main>
 
-        function router() {
-            const hash = window.location.hash || '#login';
-            const [path, queryString] = hash.slice(1).split('?');  // slice off '#' once here
-            const params = new URLSearchParams(queryString);
+<script type="module">
+import { backendLogin, logout, verify2faCode } from './src/login';
+import { backendSignup } from './src/signup';
+import { fetchDashboard } from './src/dashboard';
+import { renderPong, play } from './src/pong';
+import { renderProfile, me } from './src/profile';
+import { renderchangePassword } from './src/changePassword';
 
-            const firstSegment = path.toLowerCase();
+const app = document.getElementById('app');
 
-            const isValidRoute = firstSegment && routes.hasOwnProperty(firstSegment);
-            if (!isValidRoute)
-            {
-                const defaultRoute = 'login';
-                const baseURL = location.origin + location.pathname;
-                history.replaceState(null, '', baseURL + '#' + defaultRoute);
-                return routes[defaultRoute]();
-            }
+const routes = {
+    login: renderLogin,
+    signup: renderSignup,
+    dashboard: renderDashboard,
+    pong: renderPong,
+    me: renderProfile,
+    twoFA: verify2faCode,
+};
 
-            if (!queryString && window.location.hash.slice(1) !== firstSegment)
-            {
-                const baseURL = location.origin + location.pathname;
-                history.replaceState(null, '', baseURL + '#' + firstSegment);
-            }
+function renderLogin() {
+    app.innerHTML = `
+        <h1>LOGIN</h1>
+        <form id="login-form">
+            <input name="email" type="email" class="input" placeholder="Email" required/>
+            <input name="password" type="password" class="input" placeholder="Password" required/>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <a href="#signup" class="btn">Signup instead</a>
+        <div id="message"></div>
+    `;
+    if (localStorage.getItem('jwt')) location.href = '/#dashboard';
+    backendLogin();
+}
 
-            if (firstSegment === 'me' && params.get('section') === 'change-password')
-                renderchangePassword();
-            else if (firstSegment === 'login' && params.get('section') === '2FA-verification')
-            {
-                if (localStorage.getItem('jwt'))
-                    return location.href = '/#dashboard';
-                verify2faCode();
-            }
-            else
-            {
-                const render = routes[firstSegment] || renderLogin;
-                render();
-            }
-        }
+function renderSignup() {
+    app.innerHTML = `
+        <h1>SIGNUP</h1>
+        <form id="signup-form">
+            <input name="firstname" type="text" class="input" placeholder="Firstname" required/>
+            <input name="lastname" type="text" class="input" placeholder="Lastname" required/>
+            <input name="username" type="text" class="input" placeholder="Username" required/>
+            <input name="email" type="email" class="input" placeholder="Email" required/>
+            <input name="password" type="password" class="input" placeholder="Password" required/>
+            <button type="submit" class="btn">Sign-up</button>
+        </form>
+        <div id="message"></div>
+    `;
+    backendSignup();
+}
 
-        window.addEventListener('hashchange', router);
-        window.addEventListener('DOMContentLoaded', router);
-        </script>
+function renderDashboard() {
+    app.innerHTML = `
+        <div class="menu-container">
+            <button id="profileBtn" class="neon-btn">Profile</button>
+            <button id="playBtn" class="neon-btn">Play</button>
+            <button id="historyBtn" class="neon-btn">History</button>
+            <button id="logoutBtn" class="neon-btn">Log out</button>
+        </div>
+    `;
+    fetchDashboard();
+    logout();
+    play();
+    me();
+    const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click', () => {
+    musicSource.src = playlist[currentTrack];
+    music.load();
+    music.play().catch(e => console.log("Autoplay prevented:", e));
+});
+}
+
+
+function router() {
+    updateCyberPongTitle();
+    const hash = window.location.hash || '#login';
+    const [path, queryString] = hash.slice(1).split('?');
+    const params = new URLSearchParams(queryString);
+    const firstSegment = path.toLowerCase();
+    const render = routes[firstSegment] || renderLogin;
+
+    if (firstSegment === 'me' && params.get('section') === 'change-password') {
+        renderchangePassword();
+    } else if (firstSegment === 'login' && params.get('section') === '2FA-verification') {
+        if (localStorage.getItem('jwt')) location.href = '/#dashboard';
+        verify2faCode();
+    } else {
+        render();
+    }
+}
+
+function updateCyberPongTitle() {
+    const title = document.getElementById('cyberPongTitle');
+    if (!title) return;
+    if (window.location.hash === '#dashboard') {
+        title.classList.remove('hidden');
+    } else {
+        title.classList.add('hidden');
+    }
+}
+
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', router);
+</script>
+
+<script>
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+let frame = 0;
+let glitchCooldown = 0;
+
+function drawCyberPunkBG() {
+    frame++;
+    const baseHue = (Math.sin(frame * 0.002) * 40 + 280) % 360;
+    ctx.fillStyle = `hsl(${baseHue}, 30%, 5%)`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // scanlines
+    ctx.strokeStyle = 'rgba(255,0,255,0.04)';
+    for (let y = frame % 4; y < canvas.height; y += 3) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    // glitch bars
+    if (glitchCooldown <= 0 && Math.random() < 0.01) {
+        glitchCooldown = 30;
+        const barY = Math.random() * canvas.height;
+        const barHeight = Math.random() * 20 + 10;
+        const glitchHue = Math.random() < 0.5 ? 180 : 320;
+        ctx.fillStyle = `hsla(${glitchHue}, 100%, 60%, 0.2)`;
+        ctx.fillRect(0, barY, canvas.width, barHeight);
+    } else glitchCooldown--;
+
+    // subtle static
+    const imageData = ctx.createImageData(canvas.width, 1);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const n = Math.random() * 255;
+        data[i] = n*0.1;
+        data[i+1] = n*0.8;
+        data[i+2] = n;
+        data[i+3] = 12;
+    }
+    for (let y=0; y<canvas.height; y+=4) ctx.putImageData(imageData,0,y);
+
+    // neon overlay
+    const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+    grad.addColorStop(0,'rgba(255,0,255,0.05)');
+    grad.addColorStop(1,'rgba(0,255,255,0.05)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // center pulse
+    const pulse = (Math.sin(frame*0.01)+1)/2;
+    const vignette = ctx.createRadialGradient(
+        canvas.width/2, canvas.height/2, canvas.width/5,
+        canvas.width/2, canvas.height/2, canvas.width/1.1
+    );
+    vignette.addColorStop(0, `rgba(0,255,255,${0.03+pulse*0.05})`);
+    vignette.addColorStop(1,'rgba(0,0,0,0.6)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    requestAnimationFrame(drawCyberPunkBG);
+}
+
+drawCyberPunkBG();
+</script>
 </body>
 </html>

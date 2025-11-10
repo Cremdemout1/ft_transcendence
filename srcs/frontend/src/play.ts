@@ -5,103 +5,114 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/16 20:30:00 by gcapa-pe         #+#    #+#             */
-/*   Updated: 2025/09/16 20:30:00 by gcapa-pe         ###   ########.fr       */
+/*   Created: 2025/09/16 20:30:00 by gcapa-pe          #+#    #+#             */
+/*   Updated: 2025/10/28 18:06:15 by gcapa-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-import { start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket } from './matchmaking';
+import {
+	start2PlayerGame,
+	start4PlayerGame,
+	start6PlayerGame,
+	joinGame,
+	socket,
+} from './matchmaking';
 
 function showMultiplayerMenu(push = true) {
-    const app = document.getElementById('app');
-    if (!app) return;
-    app.innerHTML = `
-        <div id="multiplayerMenu">
-            <button id="quickplayBtn">Quickplay</button>
-            <button id="createGameBtn">Create Game</button>
-            <button id="joinGameBtn">Join Game</button>
-            <button id="tournamentBtn">Tournament</button>
-            <button id="backBtn">Back</button>
+	const app = document.getElementById('app');
+	if (!app) return;
+
+	app.innerHTML = `
+    <h2 class="terminal-title">MULTIPLAYER HUB</h2>
+    <div id="multiplayerMenu" class="terminal-menu">
+        <button class="neon-btn" id="quickplayBtn">QUICKPLAY</button>
+        <button class="neon-btn" id="createGameBtn">CREATE GAME</button>
+        <div id="createGameOptions" class="create-options">
+            <button class="neon-subbtn" data-players="2">2 PLAYERS</button>
+            <button class="neon-subbtn" data-players="4">4 PLAYERS</button>
+            <button class="neon-subbtn" data-players="6">6 PLAYERS</button>
         </div>
-        <div id="createGameOptions" style="display:none;">
-            <button class="createOption" data-players="2">2 players</button>
-            <button class="createOption" data-players="4">4 players</button>
-            <button class="createOption" data-players="6">6 players</button>
-        </div>
-    `;
-    if (push) history.pushState({view: 'multiplayerMenu'}, '', '#multiplayer');
+        <button class="neon-btn" id="joinGameBtn">JOIN GAME</button>
+        <button class="neon-btn" id="tournamentBtn">TOURNAMENT</button>
+        <button class="exit-btn" id="backBtn">BACK</button>
+    </div>
+`;
 
-    document.getElementById('quickplayBtn')?.addEventListener('click', () => {
-        // Quickplay: join any available 6-player room
-        localStorage.setItem('numPlayers', '6');
-        socket.emit("quickplay");
-    });
-    const createGameBtn = document.getElementById('createGameBtn');
-    const createGameOptions = document.getElementById('createGameOptions');
-    let optionsVisible = false;
+	if (push) history.pushState({ view: 'multiplayerMenu' }, '', '#multiplayer');
 
-    function showOptions() {
-        if (createGameOptions) createGameOptions.style.display = 'block';
-        optionsVisible = true;
-    }
-    function hideOptions() {
-        if (createGameOptions) createGameOptions.style.display = 'none';
-        optionsVisible = false;
-    }
+	// Quickplay
+	document.getElementById('quickplayBtn')?.addEventListener('click', () => {
+		localStorage.setItem('numPlayers', '6');
+		socket.emit('quickplay');
+	});
 
-    if (createGameBtn && createGameOptions) {
-        createGameBtn.addEventListener('mouseenter', showOptions);
-        createGameBtn.addEventListener('mouseleave', () => {
-            setTimeout(() => {
-                if (!optionsVisible) hideOptions();
-            }, 100);
-        });
-        createGameOptions.addEventListener('mouseenter', showOptions);
-        createGameOptions.addEventListener('mouseleave', () => {
-            hideOptions();
-        });
-    }
-    document.querySelectorAll('.createOption').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const players = btn.getAttribute('data-players');
-            if (players === '2') start2PlayerGame();
-            else if (players === '4') start4PlayerGame();
-            else if (players === '6') start6PlayerGame();
-        });
-    });
-    document.getElementById('joinGameBtn')?.addEventListener('click', () => {
-        const code = prompt("Enter room code:");
-        if (code) {
-            joinGame(code);
-        }
-    });
-    document.getElementById('tournamentBtn')?.addEventListener('click', () => {
-        socket.emit("joinTournament");
-    });
-    document.getElementById('backBtn')?.addEventListener('click', () => {
-        history.back();
-    });
+	// Create game options
+	const createGameBtn = document.getElementById('createGameBtn');
+	const createGameOptions = document.getElementById('createGameOptions');
+	let optionsVisible = false;
+
+	const showOptions = () => {
+		if (createGameOptions) createGameOptions.style.display = 'flex';
+		optionsVisible = true;
+	};
+	const hideOptions = () => {
+		if (createGameOptions) createGameOptions.style.display = 'none';
+		optionsVisible = false;
+	};
+
+	if (createGameBtn && createGameOptions) {
+		createGameBtn.addEventListener('mouseenter', showOptions);
+		createGameBtn.addEventListener('mouseleave', () =>
+			setTimeout(() => {
+				if (!optionsVisible) hideOptions();
+			}, 100)
+		);
+		createGameOptions.addEventListener('mouseenter', showOptions);
+		createGameOptions.addEventListener('mouseleave', hideOptions);
+	}
+
+	document.querySelectorAll('.neon-subbtn').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const players = btn.getAttribute('data-players');
+			if (players === '2') start2PlayerGame();
+			else if (players === '4') start4PlayerGame();
+			else if (players === '6') start6PlayerGame();
+		});
+	});
+
+	// Join game
+	document.getElementById('joinGameBtn')?.addEventListener('click', () => {
+		const code = prompt('Enter room code:');
+		if (code) joinGame(code);
+	});
+
+	// Tournament
+	document.getElementById('tournamentBtn')?.addEventListener('click', () => {
+		socket.emit('joinTournament');
+	});
+
+	// Back button
+	document.getElementById('backBtn')?.addEventListener('click', () => {
+		history.back();
+	});
 }
 
-// Listen for match results and tournament notifications
-socket.on("matchOver", ({ winner, winnerSocketId }: { winner: number; winnerSocketId: string | null }) => {
-    console.log("matchOver received in play.ts:", winner, winnerSocketId);
-    // store last match winner so tournament manager UI can read it
-    localStorage.setItem('lastMatchWinner', JSON.stringify({ winnerIdx: winner, winnerSocketId }));
-    // You could advance UI or open a small modal here
-    alert(`Match finished. Winner: player ${winner + 1}`);
+// Socket events
+socket.on('matchOver', ({ winner, winnerSocketId }) => {
+	localStorage.setItem(
+		'lastMatchWinner',
+		JSON.stringify({ winnerIdx: winner, winnerSocketId })
+	);
+	alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
 });
 
-socket.on("tournamentWinner", ({ tournamentId, champion }: { tournamentId: string; champion: string }) => {
-    console.log(`Tournament ${tournamentId} finished. Champion: ${champion}`);
-    alert(`Tournament ${tournamentId} finished. Champion socket: ${champion}`);
+socket.on('tournamentWinner', ({ tournamentId, champion }) => {
+	alert(`TOURNAMENT ${tournamentId} FINISHED. CHAMPION SOCKET: ${champion}`);
 });
 
-window.addEventListener('popstate', (event) => {
-    if (location.hash === '#multiplayer') {
-        showMultiplayerMenu(false);
-    }
-    // Add more views here if needed
+// Handle back/forward navigation
+window.addEventListener('popstate', () => {
+	if (location.hash === '#multiplayer') showMultiplayerMenu(false);
 });
 
 export { showMultiplayerMenu };

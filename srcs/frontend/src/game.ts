@@ -31,12 +31,13 @@ export async function initBabylon() {
   game.changeState(State.GAME);
   window.addEventListener("resize", () => engine.resize());
   canvas.addEventListener('wheel', evt => evt.preventDefault(), { passive: false });
-  window.onkeydown = function (event) {
-    if (event.keyCode === 32) {
-        event.preventDefault();
+  window.addEventListener('keydown', (event) => {
+    const active = document.activeElement as HTMLElement | null;
+    const isTyping = !!active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    if(event.key === ' ' && !isTyping) {
+      event.preventDefault();
     }
-};
-
+  });
 }
 
 // export class Game {
