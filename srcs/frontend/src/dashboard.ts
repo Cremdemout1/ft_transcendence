@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/10 15:55:37 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/11 21:17:59 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ async function checkLoginState(path:string) {
 }
 
 async function fetchDashboard() {
-    checkLoginState("http://192.168.1.6:8080/api/dashboard");
+    checkLoginState("http://192.168.0.188:8080/api/dashboard");
 }
 
 export { checkLoginState, fetchDashboard };

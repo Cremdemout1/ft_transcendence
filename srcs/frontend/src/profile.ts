@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   profile.ts                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/10 15:56:22 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/11 21:17:59 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ function decodeJwt(token: string) {
 }
 
 async function renderProfile() {
-    await checkLoginState("http://192.168.1.6:8080/api/me");
+    await checkLoginState("http://192.168.0.188:8080/api/me");
 
     const app = document.getElementById('app');
     if (!app) return;
@@ -122,7 +122,7 @@ function attachUsernameChange() {
         const newUsername = input.value.trim();
         if (!newUsername) return alert("Please enter a new username.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/username', {
+            const res = await fetch('http://192.168.0.188:8080/api/me/username', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ function attachFirstnameChange() {
         const newFirstname = input.value.trim();
         if (!newFirstname) return alert("Please enter a new firstname.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/firstname', {
+            const res = await fetch('http://192.168.0.188:8080/api/me/firstname', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ function attachLastnameChange() {
         const newLastname = input.value.trim();
         if (!newLastname) return alert("Please enter a new lastname.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/lastname', {
+            const res = await fetch('http://192.168.0.188:8080/api/me/lastname', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ async function toggle2FA() {
 
     const is2FAEnabled = checkbox.checked ? 1 : 0;
     try {
-        const res = await fetch('http://192.168.1.6:8080/api/me/2fa-checkbox', {
+        const res = await fetch('http://192.168.0.188:8080/api/me/2fa-checkbox', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

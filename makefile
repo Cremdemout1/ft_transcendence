@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
+#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/11/10 16:03:20 by luiberna         ###   ########.fr        #
+#    Updated: 2025/11/12 14:14:02 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,14 +15,16 @@ YML 		   = ./srcs/docker-compose.yml
 
 # DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 # DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
-#DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
-#DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 
-all: up
+all: upd front
 
 front:
 	@cd srcs/frontend && npm install && npm run dev

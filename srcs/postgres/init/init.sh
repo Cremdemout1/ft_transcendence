@@ -7,7 +7,7 @@ psql -v ON_ERROR_STOP=1 --username "$ADMIN_USERNAME" --dbname "$DB_NAME" <<EOSQL
 	GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $ADMIN_USERNAME;
 EOSQL
 
-# echo "# Allow admin_user to connect to transcendence DB from 192.168.1.6 only
+# echo "# Allow admin_user to connect to transcendence DB from 192.168.0.188 only
 # host    transcendence    $ADMIN_USERNAME    127.0.0.1/32    md5
 # host    transcendence    $ADMIN_USERNAME    ::1/128    md5
 

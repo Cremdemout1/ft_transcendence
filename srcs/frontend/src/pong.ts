@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/10 16:19:54 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/11 21:17:59 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
 
 async function renderPong() {
-	await checkLoginState("http://192.168.1.6:8080/api/pong");
+	await checkLoginState("http://192.168.0.188:8080/api/pong");
 
 	const app = document.getElementById("app");
 	if (!app) return;
