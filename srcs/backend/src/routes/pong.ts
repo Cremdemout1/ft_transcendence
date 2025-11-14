@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:45:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/08/21 08:51:25 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/12 15:53:44 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//import { authenticateJWT } from "./dashboard";
+import { authenticateJWT } from "./dashboard";
 import { FastifyRequest, FastifyInstance } from "fastify";
 
 type myRequest = FastifyRequest;
@@ -19,7 +19,7 @@ async function pong(fastify: FastifyInstance)
 {
     fastify.get('/api/pong', async (request: myRequest, reply: any) =>
     {
-        //await authenticateJWT(request, reply, fastify);
+        await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return ;
         const user = request.user;

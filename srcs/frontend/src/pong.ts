@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/11 21:17:59 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/14 17:31:42 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,10 @@ import { checkLoginState } from "./dashboard";
 import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
+import { startSinglePlayerGame } from "./matchmaking";
 
 async function renderPong() {
-	await checkLoginState("http://192.168.0.188:8080/api/pong");
+	await checkLoginState("http://192.168.1.6:8080/api/pong");
 
 	const app = document.getElementById("app");
 	if (!app) return;
@@ -70,9 +71,26 @@ function showGameModeMenu() {
 
 	history.pushState({ view: "gameModeMenu" }, "", "#gamemode");
 
-	document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
-		location.href = "/#pong";
-	});
+	document.getElementById("singlePlayerBtn")?.addEventListener("click", async () => {
+        const btn = document.getElementById("singlePlayerBtn") as HTMLButtonElement;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = "CONNECTING...";
+        }
+        
+        try {
+            // Import and call startSinglePlayerGame
+            const { startSinglePlayerGame } = await import('./matchmaking');
+            startSinglePlayerGame();
+        } catch (err) {
+            console.error("Failed to start single player:", err);
+            alert("Failed to connect to game server. Please try again.");
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "SINGLE PLAYER";
+            }
+        }
+    });
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {
 		showMultiplayerMenu();

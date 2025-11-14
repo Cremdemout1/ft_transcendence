@@ -38,12 +38,17 @@ socket.on ('connect', () => {
     }
 });
 
-function createGame(numPlayers: number) {
-    ensureConnected().then(() => socket.emit("createRoom", { numPlayers }));
+function createGame(numPlayers: number, isSinglePlayer: boolean = false) {
+    ensureConnected().then(() => socket.emit("createRoom", { numPlayers, isSinglePlayer }));
 }
 
 function joinGame(code: string) {
     ensureConnected().then(() => socket.emit("joinRoom", { code }));
+}
+
+function startSinglePlayerGame() {
+    localStorage.setItem('numPlayers', '1');
+    createGame(2, true);
 }
 
 function start2PlayerGame() {
@@ -67,21 +72,35 @@ socket.on("roomCreated", async ({ code, numPlayers }: { code: string, numPlayers
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to backend
     const app = document.getElementById('app');
     if (app) {
-        app.innerHTML = `
-            <div>
-            <h2>Room created!</h2>
-            <p>Share this code for others to join: <strong>${code}</strong></p>
-            <div id="playerCountInfo"><p>Players connected: <strong>1</strong> / ${numPlayers}</p></div>
-            <p>Waiting for ${numPlayers} players to join...</p>
-            <div id="waitroomChat"></div>
-            </div>
-        `;
-        const chatRoot = document.getElementById('waitroomChat');
-        if (chatRoot) {
-            const mod = await import('./chat');
-            mod.mountChat(chatRoot);
+        if (numPlayers === 1) {
+            app.innerHTML = `
+                <div>
+                <h2>Starting Single Player Game...</h2>
+                <p>Loading AI opponent...</p>
+                </div>
+            `;
+            // Small delay to let socket events settle
+            setTimeout(() => {
+                document.body.classList.add("game-active");
+                location.href = '/#pong';
+            }, 500);
+        } else {
+                app.innerHTML = `
+                    <div>
+                    <h2>Room created!</h2>
+                    <p>Share this code for others to join: <strong>${code}</strong></p>
+                    <div id="playerCountInfo"><p>Players connected: <strong>1</strong> / ${numPlayers}</p></div>
+                    <p>Waiting for ${numPlayers} players to join...</p>
+                    <div id="waitroomChat"></div>
+                    </div>
+                `;
+                const chatRoot = document.getElementById('waitroomChat');
+                if (chatRoot) {
+                    const mod = await import('./chat');
+                    mod.mountChat(chatRoot);
+                }
+            }
         }
-    }
     localStorage.setItem('roomCode', code);
     localStorage.setItem('numPlayers', numPlayers.toString());
 });
@@ -272,4 +291,4 @@ function ensureConnected(timeoutMs: number = 3000): Promise<void> {
     });
 }
 
-export { start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };
+export { startSinglePlayerGame, start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };

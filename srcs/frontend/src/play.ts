@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   play.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 20:30:00 by gcapa-pe          #+#    #+#             */
-/*   Updated: 2025/10/28 18:06:15 by gcapa-pe         ###   ########.fr       */
+/*   Updated: 2025/11/14 16:33:42 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,20 +23,20 @@ function showMultiplayerMenu(push = true) {
 	if (!app) return;
 
 	app.innerHTML = `
-    <h2 class="terminal-title">MULTIPLAYER HUB</h2>
-    <div id="multiplayerMenu" class="terminal-menu">
-        <button class="neon-btn" id="quickplayBtn">QUICKPLAY</button>
-        <button class="neon-btn" id="createGameBtn">CREATE GAME</button>
-        <div id="createGameOptions" class="create-options">
-            <button class="neon-subbtn" data-players="2">2 PLAYERS</button>
-            <button class="neon-subbtn" data-players="4">4 PLAYERS</button>
-            <button class="neon-subbtn" data-players="6">6 PLAYERS</button>
-        </div>
-        <button class="neon-btn" id="joinGameBtn">JOIN GAME</button>
-        <button class="neon-btn" id="tournamentBtn">TOURNAMENT</button>
-        <button class="exit-btn" id="backBtn">BACK</button>
-    </div>
-`;
+		<h2 class="terminal-title">MULTIPLAYER HUB</h2>
+		<div id="multiplayerMenu" class="terminal-menu">
+			<button class="neon-btn" id="quickplayBtn">QUICKPLAY</button>
+			<button class="neon-btn" id="createGameBtn">CREATE GAME</button>
+			<div id="createGameOptions" class="create-options">
+				<button class="neon-subbtn" data-players="2">2 PLAYERS</button>
+				<button class="neon-subbtn" data-players="4">4 PLAYERS</button>
+				<button class="neon-subbtn" data-players="6">6 PLAYERS</button>
+			</div>
+			<button class="neon-btn" id="joinGameBtn">JOIN GAME</button>
+			<button class="neon-btn" id="tournamentBtn">TOURNAMENT</button>
+			<button class="exit-btn" id="backBtn">BACK</button>
+		</div>
+	`;
 
 	if (push) history.pushState({ view: 'multiplayerMenu' }, '', '#multiplayer');
 
@@ -114,5 +114,6 @@ socket.on('tournamentWinner', ({ tournamentId, champion }) => {
 window.addEventListener('popstate', () => {
 	if (location.hash === '#multiplayer') showMultiplayerMenu(false);
 });
+
 
 export { showMultiplayerMenu };

@@ -82,7 +82,7 @@ function ensureDOM(target: HTMLElement) {
   if (headerEl) headerEl.textContent = `ROOM ${code}`;
 }
 
-function appendMessage(msg: { id: string; from: string; text: string; ts: number; system?: boolean }) {
+export function appendMessage(msg: { id: string; from: string; text: string; ts: number; system?: boolean }) {
   if (!listEl) return;
   // Hide messages from blocked users (non-system)
   const senderId = (msg as any).from as string;
@@ -114,15 +114,15 @@ function appendMessage(msg: { id: string; from: string; text: string; ts: number
 function bindSocketOnce() {
   if ((socket as any).__chatBound) return;
   (socket as any).__chatBound = true;
-  socket.on('chat:new', (msg: any) => {
+  socket!.on('chat:new', (msg: any) => {
     appendMessage(msg);
   });
-  socket.on('chat:history', ({ messages }: { messages: any[] }) => {
+  socket!.on('chat:history', ({ messages }: { messages: any[] }) => {
     if (!listEl) return;
     listEl.innerHTML = '';
     messages.forEach(appendMessage);
   });
-  socket.on('chat:roster', ({ players, online }: { players: Array<{id: string; name: string}>, online: Array<{id: string; name: string}> }) => {
+  socket!.on('chat:roster', ({ players, online }: { players: Array<{id: string; name: string}>, online: Array<{id: string; name: string}> }) => {
     // Merge players-in-room and online-not-in-room; mark membership
     const merged = [
       ...players.map(p => ({...p, inRoom: true})),
@@ -140,7 +140,7 @@ function bindSocketOnce() {
     lastRoster = combined as any;
     renderRoster(combined as any);
   });
-  socket.on('chat:dmError', ({ message }: { message: string }) => {
+  socket!.on('chat:dmError', ({ message }: { message: string }) => {
     const txt = /blocked you/i.test(message) ? 'this user has blocked you' : (message || 'DM could not be delivered');
     appendSystem(txt);
   });
@@ -159,9 +159,9 @@ export function mountChat(target: HTMLElement) {
   }
   // Identify user by username from JWT once per mount
   const username = getUsernameFromJwt();
-  if (username) socket.emit('chat:identify', { username });
+  if (username) socket!.emit('chat:identify', { username });
   // request current history for this room
-  socket.emit('chat:history');
+  socket!.emit('chat:history');
   // bind form
   if (formEl && inputEl) {
     formEl.addEventListener('submit', onSubmit);
@@ -195,9 +195,9 @@ function onSubmit(e: Event) {
   const text = inputEl.value.trim();
   if (!text) return;
   if (dmTarget) {
-    socket.emit('chat:dm', { to: dmTarget.id, text });
+    socket!.emit('chat:dm', { to: dmTarget.id, text });
   } else {
-    socket.emit('chat:send', { text });
+    socket!.emit('chat:send', { text });
   }
   inputEl.value = '';
 }
@@ -272,7 +272,7 @@ function onContextAction(e: Event) {
   if (action === 'dm' || action === 'reply') {
     setDMTarget({ id: target.id, name: target.name || target.id.slice(0, 6) });
   } else if (action === 'invite') {
-    socket.emit('chat:invite', { to: target.id });
+    socket!.emit('chat:invite', { to: target.id });
   } else if (action === 'toggleBlock') {
     toggleBlock(target.id);
   } else if (action === 'viewProfile') {
@@ -298,45 +298,17 @@ function toggleBlock(id: string) {
   if (blocked.has(id)) blocked.delete(id); else blocked.add(id);
   try { localStorage.setItem('chatBlocked', JSON.stringify(Array.from(blocked))); } catch {}
   // inform server of block state for enforcement
-  try { socket.emit('chat:block', { target: id, block: blocked.has(id) }); } catch {}
+  try { socket!.emit('chat:block', { target: id, block: blocked.has(id) }); } catch {}
   // roster UI will update on next roster push; no-op here
   const person = lastRoster.find(p => p.id === id);
   const name = person?.name || id.slice(0, 6);
   appendSystem(blocked.has(id) ? `User ${name} has been blocked` : `User ${name} has been unblocked`);
 }
 
-function appendSystem(text: string) {
+export function appendSystem(text: string) {
   appendMessage({ id: String(Date.now()) + Math.random().toString(36).slice(2), from: 'system', text, ts: Date.now(), system: true } as any);
 }
 
 // Invitation banner (receiver)
-let pendingInvite: { code: string } | null = null;
-socket.on('chat:invited', ({ fromName, code, currentCount, numPlayers }: any) => {
-  const banner = document.getElementById('inviteBanner');
-  const text = document.getElementById('inviteText');
-  const accept = document.getElementById('inviteAccept');
-  const decline = document.getElementById('inviteDecline');
-  if (!banner || !text || !accept || !decline) return;
-  pendingInvite = { code };
-  text.textContent = `${fromName} invited you to join room ${code} (${currentCount}/${numPlayers}).`;
-  banner.style.display = 'block';
-  (accept as HTMLButtonElement).onclick = () => {
-    if (pendingInvite) {
-      socket.emit('joinRoom', { code: pendingInvite.code });
-      banner.style.display = 'none';
-      pendingInvite = null;
-    }
-  };
-  (decline as HTMLButtonElement).onclick = () => {
-    banner.style.display = 'none';
-    pendingInvite = null;
-  };
-});
 
-socket.on('chat:inviteError', ({ message }: any) => {
-  appendSystem(`Invite error: ${message}`);
-});
 
-socket.on('chat:inviteSent', ({ toName }: any) => {
-  appendSystem(`Invite sent to ${toName}.`);
-});
