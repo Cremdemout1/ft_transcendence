@@ -35,6 +35,7 @@ type Room = {
   isSinglePlayer?: boolean | false;
   matchId?: string | null;
   ai_bot?: neural_intercept | null;
+  ai_timer?: NodeJS.Timeout | null;
   chat?: {
     messages: ChatMessage[];
   };
@@ -432,27 +433,34 @@ function handleCreateRoom(socket: Socket, numPlayers: number): void {
 async function run_ai(room: Room) {
   const AIidx = room.players.indexOf("AI-" + room.code);
   const AI_Paddle = room.game.paddles[AIidx];
-  while (room.inProgress) {
-    setInterval(() => {
-      const curState = room.game.getState();
-      if (!room.ai_bot)
-        return ;
-      const state: state_intercept = room.ai_bot.getState(curState.ball.pos.x, curState.ball.pos.y, curState.ball.pos.z, 
-                                      curState.ball.velocity.x, curState.ball.velocity.y, curState.ball.velocity.z, 
-                                      curState.paddles[AIidx].x, curState.paddles[AIidx].y, 
-                                      curState.paddles[AIidx].speed,
-                                      curState.paddles[AIidx].height, curState.paddles[AIidx].height, //width and height are the same
-                                      100, 100, 100
-                                      );
-      const action = room.AI_bot.predict(state);
-      if (AIpaddle && AIpaddle.active) {
-        AIpaddle.up = action.includes('up') ? 1 : 0;
-        AIpaddle.down = action.includes('down') ? 1 : 0;
-        AIpaddle.left = action.includes('left') ? 1 : 0;
-        AIpaddle.right = action.includes('right') ? 1 : 0;
-      }
-      }, 1000);
-  }
+  
+  room.ai_timer = setInterval(() => {
+
+    if(!room.inProgress) {
+      if (room.ai_timer)
+        clearInterval(room.ai_timer);
+      room.ai_timer = null;
+      return ;
+    }
+    const curState = room.game.getState();
+    if (!room.ai_bot)
+      return ;
+    const state: state_intercept = room.ai_bot.getState(curState.ball.pos.x, curState.ball.pos.y, curState.ball.pos.z, 
+                                    curState.ball.velocity.x, curState.ball.velocity.y, curState.ball.velocity.z, 
+                                    curState.paddles[AIidx].x, curState.paddles[AIidx].y, 
+                                    curState.paddles[AIidx].speed,
+                                    curState.paddles[AIidx].height, curState.paddles[AIidx].height, //width and height are the same
+                                    100, 100, 100
+                                    );
+    const action = room.ai_bot.predict(state);
+    if (AI_Paddle && AI_Paddle.active) {
+      AI_Paddle.up = action.includes('up') ? 1 : 0;
+      AI_Paddle.down = action.includes('down') ? 1 : 0;
+      AI_Paddle.left = action.includes('left') ? 1 : 0;
+      AI_Paddle.right = action.includes('right') ? 1 : 0;
+    }
+    console.log("paddle AI update", action);
+    }, 1000);
 }
 
 function handleSinglePlayerRoom(socket: Socket): void {
@@ -466,14 +474,16 @@ function handleSinglePlayerRoom(socket: Socket): void {
     game: new GameMath(),
   };
 
-  rooms[code].players.push("AI-" + code.toString());
+  rooms[code].players.push("AI-" + code);
   rooms[code].numPlayers = 2;
-  
+  rooms[code].inProgress = true; //might not be necessary
+  if(rooms[code].ai_bot)
+    run_ai(rooms[code]);
   activateRoomPaddles(rooms[code]);
   
   rooms[code].ai_bot = new neural_intercept(0.1);
-  rooms[code].ai_bot.loadFromFile('./AI/best_ai_weights_wall_bounces.json');
-
+  rooms[code].ai_bot.loadFromFile('/home/backend/src/AI/best_ai_weights_wall_bounces.json');
+  
   socket.join(code);
   // handleJoinRoom(socket, code);
   socket.emit("singlePlayerRoomCreated", { code });
