@@ -28,7 +28,7 @@ async function backendLogin() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
     
         try {
-            const res = await fetch("http://192.168.1.6:8080/api/login",
+            const res = await fetch("http://localhost:8080/api/login",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ async function send2FA() {
             return alert("Please enter a code");
         
         try {
-            const res = await fetch("http://192.168.1.6:8080/api/verify-2fa", {
+            const res = await fetch("http://localhost:8080/api/verify-2fa", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json',
                 },

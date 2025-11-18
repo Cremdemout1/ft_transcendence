@@ -14,14 +14,30 @@ import { checkLoginState } from "./dashboard";
 import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
+import { startSinglePlayerGame } from "./matchmaking";
 
 async function renderPong() {
-	await checkLoginState("http://192.168.1.6:8080/api/pong");
+	await checkLoginState("http://localhost:8080/api/pong");
 
 	const app = document.getElementById("app");
 	if (!app) return;
+	const isSinglePlayer = Boolean(localStorage.getItem("isSinglePlayer"));
+	app.innerHTML = isSinglePlayer ? `
+		<div id="pongMenu" class="terminal-menu">
+			<h2 class="terminal-title">PONG SIMULATION</h2>
+			<button class="neon-subbtn" id="backToDashboard">BACK</button>
+		</div>
 
-	app.innerHTML = `
+		<div id="pongGameWrapper">
+			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
+
+			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
+				<button class="neon-btn" id="pauseBtn">PAUSE</button>
+				<button class="neon-btn" id="restartBtn">RESTART</button>
+				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
+			</div>
+		</div>
+	` : `
 		<div id="pongMenu" class="terminal-menu">
 			<h2 class="terminal-title">PONG SIMULATION</h2>
 			<button class="neon-subbtn" id="backToDashboard">BACK</button>
@@ -41,8 +57,10 @@ async function renderPong() {
 
 	initBabylon();
 	const chatMount= document.getElementById('chatContainer');
-	if (chatMount)
-		mountChat(chatMount);
+	if (chatMount) {
+		console.log("urmom");
+		mountChat(chatMount); 
+	}
 	backToDashboard();
 }
 
@@ -70,9 +88,12 @@ function showGameModeMenu() {
 
 	history.pushState({ view: "gameModeMenu" }, "", "#gamemode");
 
+	// document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
+	// 	location.href = "/#pong";
+	// });
 	document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
-		location.href = "/#pong";
-	});
+		startSinglePlayerGame();
+	})
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {
 		showMultiplayerMenu();

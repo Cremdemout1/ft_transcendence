@@ -25,7 +25,7 @@ function decodeJwt(token: string) {
 }
 
 async function renderProfile() {
-    await checkLoginState("http://192.168.1.6:8080/api/me");
+    await checkLoginState("http://localhost:8080/api/me");
 
     const app = document.getElementById('app');
     if (!app) return;
@@ -34,41 +34,40 @@ async function renderProfile() {
     const userInfo = info ? decodeJwt(info) : null;
 
     app.innerHTML = `
-<div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
-    <button class="neon-btn exit-btn" id="backBtn">BACK</button>
+        <div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+            <button class="neon-btn exit-btn" id="backBtn">BACK</button>
 
-    <div id="userInfo" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+            <div id="userInfo" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
 
-        <div id="usernameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <p id="username">Username: ${userInfo?.username}</p>
-            <input type="text" id="newUsernameInput" placeholder="Enter username" class="input" />
-            <button type="submit" id="changeUsername" class="neon-subbtn">Change</button>
+                <div id="usernameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <p id="username">Username: ${userInfo?.username}</p>
+                    <input type="text" id="newUsernameInput" placeholder="Enter username" class="input" />
+                    <button type="submit" id="changeUsername" class="neon-subbtn">Change</button>
+                </div>
+
+                <div id="firstnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <p id="firstname">Firstname: ${userInfo?.firstname}</p>
+                    <input type="text" id="newFirstnameInput" placeholder="Enter firstname" class="input" />
+                    <button type="submit" id="changeFirstname" class="neon-subbtn">Change</button>
+                </div>
+
+                <div id="lastnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <p id="lastname">Lastname: ${userInfo?.lastname}</p>
+                    <input type="text" id="newLastnameInput" placeholder="Enter lastname" class="input" />
+                    <button type="submit" id="changeLastname" class="neon-subbtn">Change</button>
+                </div>
+
+                <div id="emailDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <p>Email: ${userInfo?.email}</p>
+                    <button id="changePassword" class="neon-subbtn">Change password</button>
+                </div>
+
+                <div id="twoFAToggle" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input id="twoFA" type="checkbox" />
+                    <label for="twoFA">Enable Two Factor Authentication</label>
+                </div>
+            </div>
         </div>
-
-        <div id="firstnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <p id="firstname">Firstname: ${userInfo?.firstname}</p>
-            <input type="text" id="newFirstnameInput" placeholder="Enter firstname" class="input" />
-            <button type="submit" id="changeFirstname" class="neon-subbtn">Change</button>
-        </div>
-
-        <div id="lastnameDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <p id="lastname">Lastname: ${userInfo?.lastname}</p>
-            <input type="text" id="newLastnameInput" placeholder="Enter lastname" class="input" />
-            <button type="submit" id="changeLastname" class="neon-subbtn">Change</button>
-        </div>
-
-        <div id="emailDiv" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <p>Email: ${userInfo?.email}</p>
-            <button id="changePassword" class="neon-subbtn">Change password</button>
-        </div>
-
-        <div id="twoFAToggle" style="display: flex; align-items: center; gap: 0.5rem;">
-            <input id="twoFA" type="checkbox" />
-            <label for="twoFA">Enable Two Factor Authentication</label>
-        </div>
-
-    </div>
-</div>
 `;
 
     // BACK button listener
@@ -122,7 +121,7 @@ function attachUsernameChange() {
         const newUsername = input.value.trim();
         if (!newUsername) return alert("Please enter a new username.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/username', {
+            const res = await fetch('http://localhost:8080/api/me/username', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,7 +154,7 @@ function attachFirstnameChange() {
         const newFirstname = input.value.trim();
         if (!newFirstname) return alert("Please enter a new firstname.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/firstname', {
+            const res = await fetch('http://localhost:8080/api/me/firstname', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,7 +187,7 @@ function attachLastnameChange() {
         const newLastname = input.value.trim();
         if (!newLastname) return alert("Please enter a new lastname.");
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/lastname', {
+            const res = await fetch('http://localhost:8080/api/me/lastname', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +226,7 @@ async function toggle2FA() {
 
     const is2FAEnabled = checkbox.checked ? 1 : 0;
     try {
-        const res = await fetch('http://192.168.1.6:8080/api/me/2fa-checkbox', {
+        const res = await fetch('http://localhost:8080/api/me/2fa-checkbox', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',

@@ -129,7 +129,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/luiberna/Desktop/ft_transcendence/srcs/backend/generated/prisma",
+      "value": "/home/transcendence/Desktop/ft_transcendence/srcs/backend/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -143,7 +143,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/luiberna/Desktop/ft_transcendence/srcs/backend/prisma/schema.prisma",
+    "sourceFilePath": "/home/transcendence/Desktop/ft_transcendence/srcs/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

@@ -29,7 +29,7 @@ async function backendSignup() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
         try {
-            const res = await fetch("http://192.168.1.6:8080/api/signup",
+            const res = await fetch("http://localhost:8080/api/signup",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

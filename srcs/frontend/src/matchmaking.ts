@@ -12,6 +12,7 @@
 
 
 import { connect, io } from "socket.io-client";
+import { renderPong } from "./pong";
 //change this to host pc IP
 //const socket = io("YOUR PC IP", {
 const HOST = window.location.hostname;
@@ -42,8 +43,18 @@ function createGame(numPlayers: number) {
     ensureConnected().then(() => socket.emit("createRoom", { numPlayers }));
 }
 
+function createSinglePlayerGame() {
+    ensureConnected().then(() => socket.emit("createSinglePlayerRoom"));
+}
+
 function joinGame(code: string) {
     ensureConnected().then(() => socket.emit("joinRoom", { code }));
+}
+
+function startSinglePlayerGame() {
+    // renderPong();
+    localStorage.setItem('numPlayers', '1');
+    createSinglePlayerGame();
 }
 
 function start2PlayerGame() {
@@ -86,6 +97,13 @@ socket.on("roomCreated", async ({ code, numPlayers }: { code: string, numPlayers
     localStorage.setItem('numPlayers', numPlayers.toString());
 });
 
+socket.on("singlePlayerRoomCreated", async ({ code }: { code: string }) => {
+    console.log("single player room created event received:", code, 1);
+    //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to backend
+
+    localStorage.setItem('roomCode', code);
+    localStorage.setItem('numPlayers', "1");
+});
 
 socket.on("roomJoined", async ({ code, numPlayers }: { code: string, numPlayers: number }) => {
     console.log("roomJoined event received:", code, numPlayers);
@@ -115,10 +133,11 @@ socket.on("error", ({ message }: { message: string }) => {
     alert(message); // Show error to user
 });
 
-socket.on("gameStart", ({ code, numPlayers }: { code: string, numPlayers: number }) => {
+socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = false }: { code: string, numPlayers: number, isSinglePlayer: boolean }) => {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
       document.body.classList.add("game-active");
+    localStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
     location.href = '/#pong';
 });
 
@@ -272,4 +291,4 @@ function ensureConnected(timeoutMs: number = 3000): Promise<void> {
     });
 }
 
-export { start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };
+export { startSinglePlayerGame, start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };

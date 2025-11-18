@@ -35,7 +35,7 @@ const googleSecret = process.env.GOOGLE_SECRET || 'ERROR_SECRET';
 function getAuthURL() {
     const params = new URLSearchParams({
         client_id: googleId,
-        redirect_uri: 'http://192.168.1.6:8080/auth/google/callback',
+        redirect_uri: 'http://localhost:8080/auth/google/callback',
         response_type: 'code',
         scope: 'openid email profile',
         access_type: 'offline',
@@ -50,7 +50,7 @@ function exchangeCodeForToken(code:string): Promise<string>{
         code,
         client_id: googleId,
         client_secret: googleSecret,
-        redirect_uri: 'http://192.168.1.6:8080/auth/google/callback',
+        redirect_uri: 'http://localhost:8080/auth/google/callback',
         grant_type: 'authorization_code',
     });
 

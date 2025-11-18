@@ -13,6 +13,7 @@
 import { Server, Socket } from "socket.io";
 import { GameMath } from "./game/pong/pong_logic";
 import * as dotenv from "dotenv";
+import { neural_intercept, state_intercept } from "./AI/yohai";
 
 dotenv.config();
 
@@ -31,7 +32,9 @@ type Room = {
   game: GameMath;
   inProgress?: boolean;
   tournamentId?: string | null;
+  isSinglePlayer?: boolean | false;
   matchId?: string | null;
+  ai_bot?: neural_intercept | null;
   chat?: {
     messages: ChatMessage[];
   };
@@ -340,7 +343,7 @@ async function handlePlayerInput(socket: Socket, input: any){
   const { roomCode, room } = findPlayerRoom(socket.id);
   
   if (!roomCode || !room) {
-    console.log(`Player ${socket.id} not found in any room`);
+    // console.log(`Player ${socket.id} not found in any room`);
     return;
   }
   
@@ -378,10 +381,10 @@ async function handlePlayerInput(socket: Socket, input: any){
   }
   if(room.game.getState().hit==1)
   {
-	console.log("SERVER:")
-	console.log(room.game.getState());
+	// console.log("SERVER:")
+	// console.log(room.game.getState());
 	i++;
-	console.log("i: "+i);
+	// console.log("i: "+i);
   }
 }
 
@@ -405,7 +408,7 @@ function handlePlayerIDRequest(socket: Socket): void {
 
 function handleCreateRoom(socket: Socket, numPlayers: number): void {
   const code = generateRoomCode();
-  
+
   rooms[code] = {
     code,
     numPlayers,
@@ -424,6 +427,63 @@ function handleCreateRoom(socket: Socket, numPlayers: number): void {
   broadcastRoster(code);
   
   console.log(`Room ${code} created for ${numPlayers} players by ${socket.id}`);
+}
+
+async function run_ai(room: Room) {
+  const AIidx = room.players.indexOf("AI-" + room.code);
+  const AI_Paddle = room.game.paddles[AIidx];
+  while (room.inProgress) {
+    setInterval(() => {
+      const curState = room.game.getState();
+      if (!room.ai_bot)
+        return ;
+      const state: state_intercept = room.ai_bot.getState(curState.ball.pos.x, curState.ball.pos.y, curState.ball.pos.z, 
+                                      curState.ball.velocity.x, curState.ball.velocity.y, curState.ball.velocity.z, 
+                                      curState.paddles[AIidx].x, curState.paddles[AIidx].y, 
+                                      curState.paddles[AIidx].speed,
+                                      curState.paddles[AIidx].height, curState.paddles[AIidx].height, //width and height are the same
+                                      100, 100, 100
+                                      );
+      const action = room.AI_bot.predict(state);
+      if (AIpaddle && AIpaddle.active) {
+        AIpaddle.up = action.includes('up') ? 1 : 0;
+        AIpaddle.down = action.includes('down') ? 1 : 0;
+        AIpaddle.left = action.includes('left') ? 1 : 0;
+        AIpaddle.right = action.includes('right') ? 1 : 0;
+      }
+      }, 1000);
+  }
+}
+
+function handleSinglePlayerRoom(socket: Socket): void {
+  const code = generateRoomCode();
+
+  rooms[code] = {
+    code,
+    numPlayers: 1,
+    players: [socket.id],
+    isSinglePlayer: true,
+    game: new GameMath(),
+  };
+
+  rooms[code].players.push("AI-" + code.toString());
+  rooms[code].numPlayers = 2;
+  
+  activateRoomPaddles(rooms[code]);
+  
+  rooms[code].ai_bot = new neural_intercept(0.1);
+  rooms[code].ai_bot.loadFromFile('./AI/best_ai_weights_wall_bounces.json');
+
+  socket.join(code);
+  // handleJoinRoom(socket, code);
+  socket.emit("singlePlayerRoomCreated", { code });
+
+  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: true });
+  // chat: system join message
+  // Defer readable join/create announcements until identify provides username.
+  // broadcastRoster(code);
+  
+  console.log(`Room ${code} created for ${1} players by ${socket.id}`);
 }
 
 function handleJoinRoom(socket: Socket, code: string): void {
@@ -707,6 +767,10 @@ io.on("connection", (socket: Socket) => {
   // Room management
   socket.on("createRoom", ({ numPlayers }: { numPlayers: number }) => {
     handleCreateRoom(socket, numPlayers);
+  });
+
+  socket.on("createSinglePlayerRoom", () => {
+    handleSinglePlayerRoom(socket);
   });
   
   socket.on("joinRoom", ({ code }: { code: string }) => {

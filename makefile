@@ -15,14 +15,16 @@ YML 		   = ./srcs/docker-compose.yml
 
 # DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 # DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
-#DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
-#DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
-DEV_DB_DIR	   = /Users/luiberna/Desktop/ft_transcendence/sqlite-data
-DEV_DB_PATH	   = file:/Users/luiberna/Desktop/ft_transcendence/sqlite-data/database.sqlite
+#DEV_DB_DIR	   = /home/transcendence/Desktop/ft_transcendence/sqlite-data
+#DEV_DB_PATH	   = file:/home/transcendence/Desktop/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_DIR	   = /home/transcendence/Desktop/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/home/transcendence/Desktop/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/transcendence/data/sqlite-data
+DEV_DB_PATH	   = file:/home/transcendence/data/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
 
 
-all: up
+all: upd front
 
 front:
 	@cd srcs/frontend && npm install && npm run dev

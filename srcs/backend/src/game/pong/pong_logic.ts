@@ -311,8 +311,8 @@ export class GameMath {
 
     const vel_changed = this.dot_product(this.tmp_ball.velocity);
 
-    console.log("tmp_vel: ");
-    console.log(this.tmp_ball.velocity);
+    // console.log("tmp_vel: ");
+    // console.log(this.tmp_ball.velocity);
 
     const res = this.normalize(this.tmp_ball.velocity, vel_changed);
     // console.log("vel: " + vel);
@@ -468,7 +468,7 @@ export class GameMath {
 		{
         if (this.paddleCollisions(paddle)) {
           this.collision = 1;
-          console.log("COLLISION WITH PADDLE " + index);
+          //console.log("COLLISION WITH PADDLE " + index);
 		  this.ball.last_hit_by=index;
         }
 		}

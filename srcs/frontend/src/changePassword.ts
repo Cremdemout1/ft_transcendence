@@ -14,7 +14,7 @@ import { checkLoginState } from "./dashboard";
 import {decodeJwt } from './profile'
 
 async function renderchangePassword() {
-    checkLoginState("http://192.168.1.6:8080/api/change-password")
+    checkLoginState("http://localhost:8080/api/change-password")
     const app = document.getElementById('app');
     if (!app)
         return ;
@@ -60,7 +60,7 @@ async function changePassword() {
             return messageDiv.textContent = 'Error changing password: Passwords don\'t match';
 
         try {
-            const res = await fetch('http://192.168.1.6:8080/api/me/change-password', 
+            const res = await fetch('http://localhost:8080/api/me/change-password', 
             {
                 method: "PATCH",
                 headers: {

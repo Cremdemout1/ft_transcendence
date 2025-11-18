@@ -31,7 +31,7 @@ async function checkLoginState(path:string) {
 }
 
 async function fetchDashboard() {
-    checkLoginState("http://192.168.1.6:8080/api/dashboard");
+    checkLoginState("http://localhost:8080/api/dashboard");
 }
 
 export { checkLoginState, fetchDashboard };
