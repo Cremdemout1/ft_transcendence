@@ -14,6 +14,9 @@ import { Server, Socket } from "socket.io";
 import { GameMath } from "./game/pong/pong_logic";
 import * as dotenv from "dotenv";
 import { neural_intercept, state_intercept } from "./AI/yohai";
+import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet } from "./AI/phantai";
+
+export let urmom: state_intercept;
 
 dotenv.config();
 
@@ -35,6 +38,7 @@ type Room = {
   isSinglePlayer?: boolean | false;
   matchId?: string | null;
   ai_bot?: neural_intercept | null;
+  phantai?: number | null;
   ai_timer?: NodeJS.Timeout | null;
   chat?: {
     messages: ChatMessage[];
@@ -430,10 +434,10 @@ function handleCreateRoom(socket: Socket, numPlayers: number): void {
   console.log(`Room ${code} created for ${numPlayers} players by ${socket.id}`);
 }
 
-async function run_ai(room: Room) {
+export async function run_ai(room: Room) {
   const AIidx = room.players.indexOf("AI-" + room.code);
   const AI_Paddle = room.game.paddles[AIidx];
-  
+  console.log("here");
   room.ai_timer = setInterval(() => {
 
     if(!room.inProgress) {
@@ -443,10 +447,10 @@ async function run_ai(room: Room) {
       return ;
     }
     const curState = room.game.getState();
-    if (!room.ai_bot)
+    if (!room.ai_bot || typeof room.ai_bot === "number")
       return ;
-    const state: state_intercept = room.ai_bot.getState(curState.ball.pos.x, curState.ball.pos.y, curState.ball.pos.z, 
-                                    curState.ball.velocity.x, curState.ball.velocity.y, curState.ball.velocity.z, 
+    const state: state_intercept = room.ai_bot.getState(-curState.ball.pos.z, curState.ball.pos.y, -curState.ball.pos.x, 
+                                    -curState.ball.velocity.z, curState.ball.velocity.y, -curState.ball.velocity.x, 
                                     curState.paddles[AIidx].x, curState.paddles[AIidx].y, 
                                     curState.paddles[AIidx].speed,
                                     curState.paddles[AIidx].height, curState.paddles[AIidx].height, //width and height are the same
@@ -460,7 +464,55 @@ async function run_ai(room: Room) {
       AI_Paddle.right = action.includes('right') ? 1 : 0;
     }
     console.log("paddle AI update", action);
-    }, 1000);
+    }, 500);
+}
+
+export async function run_phantai(room: Room) {
+  const AIidx = room.players.indexOf("phantai-" + room.code);
+  const AI_Paddle = room.game.paddles[AIidx];
+  room.ai_timer = setInterval(() => {
+
+    if(!room.inProgress) {
+      if (room.ai_timer)
+        clearInterval(room.ai_timer);
+      room.ai_timer = null;
+      return ;
+    }
+    const curState = room.game.getState();
+    if (!room.ai_bot)
+      return ;
+   
+    let samples = sample_data(0, curState);
+    let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+	  if(idx<3 || idx > 5) return nbr/50;
+	  else return nbr/0.5;
+    }));
+    let layer1 = new Layer_Dense(8, 64, relu);
+    let layer2 = new Layer_Dense(64, 32, relu);
+    let layer3 = new Layer_Dense(32, 9, softmax);
+    LoadWeights(layer1, layer2, layer3);
+    layer1.forward(fixed);
+	  layer2.forward(layer1.output);
+	  layer3.forward(layer2.output);
+    let action= oheToDiscreet(layer3.output);
+    console.log("AI result :D");
+    console.log(action);
+    let move:number=8;
+	  action.map((item, idx) => {
+		if(item==1)
+      move=idx;
+	  });
+    const actions = ["up", "up-left", "left", "left-down", "down", "right-down", "right", "up-right", "none"];
+    //const actions = ["up", "up-right", "right", "right-down", "down", "left-down", "left", "up-left", "none"];
+    
+    if (AI_Paddle && AI_Paddle.active) {
+      AI_Paddle.up = actions[move].includes('up') ? 1 : 0;
+      AI_Paddle.down = actions[move].includes('down') ? 1 : 0;
+      AI_Paddle.left = actions[move].includes('left') ? 1 : 0;
+      AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
+    }
+    console.log("paddle AI update", action);
+    }, 10);
 }
 
 function handleSinglePlayerRoom(socket: Socket): void {
@@ -477,24 +529,23 @@ function handleSinglePlayerRoom(socket: Socket): void {
   rooms[code].players.push("AI-" + code);
   rooms[code].numPlayers = 2;
   rooms[code].inProgress = true; //might not be necessary
-  if(rooms[code].ai_bot)
-    run_ai(rooms[code]);
+
   activateRoomPaddles(rooms[code]);
   
   rooms[code].ai_bot = new neural_intercept(0.1);
   rooms[code].ai_bot.loadFromFile('/home/backend/src/AI/best_ai_weights_wall_bounces.json');
-  
+  // rooms[code].ai_bot = 1;
+  if(rooms[code].ai_bot) {
+    run_ai(rooms[code]);
+    // run_phantai(rooms[code]);
+  }
   socket.join(code);
-  // handleJoinRoom(socket, code);
   socket.emit("singlePlayerRoomCreated", { code });
 
   io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: true });
-  // chat: system join message
-  // Defer readable join/create announcements until identify provides username.
-  // broadcastRoster(code);
-  
   console.log(`Room ${code} created for ${1} players by ${socket.id}`);
 }
+
 
 function handleJoinRoom(socket: Socket, code: string): void {
   const room = rooms[code];

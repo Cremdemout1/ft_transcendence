@@ -34,7 +34,7 @@ up:
 	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
-	@rm .env.bak
+	@sudo rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build
 
@@ -42,7 +42,7 @@ upd:
 	@cd srcs/backend && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
-	@rm .env.bak
+	@sudo rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build -d
 
@@ -68,8 +68,8 @@ stop: #stops containers
 	
 down: #removes containers
 	$(DOCKER_COMPOSE) -f $(YML) down -v
-	@rm -rf srcs/backend/dist
-	@rm -rf srcs/backend/node_modules
+	@sudo rm -rf srcs/backend/dist
+	@sudo rm -rf srcs/backend/node_modules
 	
 fclean: down
 	docker system prune -a -f --volumes

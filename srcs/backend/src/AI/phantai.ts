@@ -8,11 +8,11 @@ type Vec3 = {
   z: number;
 };
 
-function relu(x: number[]): number[] {
+export function relu(x: number[]): number[] {
   return x.map((nbr) => Math.max(0, nbr));
 }
 
-function softmax(x: number[]): number[] {
+export function softmax(x: number[]): number[] {
   const highest = Math.max(...x);
   const fix = x.map((n) => n - highest);
   const exp = fix.map((n) => Math.exp(n));
@@ -28,7 +28,7 @@ export function tanh(x: number[]): number[] {
   return x.map((nbr) =>Math.tanh(nbr));
 }
 
-function dotProduct(weights: number[][], inputs: number[]) {
+export function dotProduct(weights: number[][], inputs: number[]) {
   let outputs: Array<number> = [];
   for (let i = 0; i < weights.length; i++) {
 	let output: number = 0;
@@ -38,20 +38,20 @@ function dotProduct(weights: number[][], inputs: number[]) {
   return outputs;
 }
 
-function matrixDotProduct(inputs: number[][], weights: number[][]) {
+export function matrixDotProduct(inputs: number[][], weights: number[][]) {
   let outputs: Array<Array<number>> = [];
   for (let i = 0; i < inputs.length; i++)
 	outputs[i] = dotProduct(weights, inputs[i]);
   return outputs;
 }
 
-function addVec(vector1: number[], vector2: number[]) {
+export function addVec(vector1: number[], vector2: number[]) {
   let output: Array<number> = [];
   for (let i = 0; i < vector1.length; i++) output[i] = vector1[i] + vector2[i];
   return output;
 }
 
-function addMatrixVec(matrix: number[][], vector: number[]) {
+export function addMatrixVec(matrix: number[][], vector: number[]) {
   let outputs: Array<Array<number>> = [];
 
   for (let i = 0; i < matrix.length; i++)
@@ -59,9 +59,12 @@ function addMatrixVec(matrix: number[][], vector: number[]) {
   return outputs;
 }
 
-function sample_data(amount: number) {
+export function sample_data(amount: number, state: any | undefined) {
   let y: number[][] = [];
-  let x = Array.from({ length: amount }, () => {
+let x: number[][] = [];
+  if(!state)
+  {
+  x = Array.from({ length: amount }, () => {
 	const part1 = Array.from({ length: 3 }, () => Math.random() * 100 - 50);//ball pos
 	const part2 = Array.from(
 	  { length: 3 },
@@ -70,6 +73,22 @@ function sample_data(amount: number) {
 	const part3 = Array.from({ length: 2 }, () => Math.random() * 100 - 50);//paddle pos
 	return [...part1, ...part2, ...part3];
   });
+  }
+  else
+  {
+	console.log("state");
+	console.log(state);
+	x[0] = [];
+	x[0].push(-(state.ball.pos.z));
+	x[0].push(state.ball.pos.y);
+	x[0].push(-(state.ball.pos.x));
+	x[0].push(-(state.ball.velocity.z));
+	x[0].push(state.ball.velocity.y);
+	x[0].push(-(state.ball.velocity.x));
+	x[0].push(state.paddles[1].x);
+	x[0].push(state.paddles[1].y);
+  }
+
 
   for (const row of x) {
 	const [px, py, pz, vx, vy, vz, a, b] = row;
@@ -138,7 +157,7 @@ function sample_data(amount: number) {
   return [x, y];
 }
 
-function transposeMatrix(m: number[][])
+export function transposeMatrix(m: number[][])
 {
 	let new_m: Array<Array<number>> = [];
 	for(let i=0; i<m.length; i++)
@@ -152,7 +171,7 @@ function transposeMatrix(m: number[][])
 	return new_m;
 }
 
-function loss_categoricalCrossEntropy(ohe_target: number [][], curr_output: number[][]){//one hot encoded target output, current output
+export function loss_categoricalCrossEntropy(ohe_target: number [][], curr_output: number[][]){//one hot encoded target output, current output
 	let losses: number[]=[];
 	let indexes: number[]=[];
 	ohe_target.map(item =>{
@@ -173,21 +192,21 @@ function loss_categoricalCrossEntropy(ohe_target: number [][], curr_output: numb
 	return losses.reduce((prev, current) => prev + current) / losses.length;
 }
 
-function outputLayer_backward(dvalues: number[][], y_true: number[][])//combined derivative of cross entropy loss function and softmax function
+export function outputLayer_backward(dvalues: number[][], y_true: number[][])//combined derivative of cross entropy loss function and softmax function
 {
 	let samples= dvalues.length;
-	// let labels= dvalues[0].length;
-
+	let labels= dvalues[0].length;
+	void(labels);
 	let discrete_labels: number []= [];
 	y_true.map((item, idx) =>{
-        void(idx);
+		void(idx);
 		discrete_labels.push(item.indexOf(Math.max(...item)));
 	});
-    
+
 	let res: number [][]=[];
 	res= dvalues.map(row => [...row]);
 	res.map((item, idx)=>{
-        void(item);
+		void(item)
 		res[idx][discrete_labels[idx]]-=1;
 	});
 	for (let i = 0; i < samples; i++) {
@@ -198,7 +217,7 @@ function outputLayer_backward(dvalues: number[][], y_true: number[][])//combined
 	return res;
 }
 
-class Layer_Dense {
+export class Layer_Dense {
   weights: Array<Array<number>> = [];
   biases: Array<number> = [];
   output: Array<Array<number>> = [];
@@ -238,7 +257,7 @@ class Layer_Dense {
 	{
 		this.drelu.map((item, idx) => {
 		item.map((nbr, pos) => {
-            void(nbr);
+			void(nbr);
 			if(this.output[idx][pos]<=0) this.drelu[idx][pos]=0;//actually should be only ==0
 		})
 		});
@@ -256,7 +275,7 @@ class Layer_Dense {
 
 }
 
-class Optimizer_SGD {
+export class Optimizer_SGD {
 	learning_rate=1;
 	decay=0.0000001;
 	weights_upd:number [][]=[];
@@ -309,7 +328,7 @@ class Optimizer_SGD {
 
 export function LoadWeights(layer1: Layer_Dense, layer2: Layer_Dense, layer3: Layer_Dense)
 {
-	const raw = fs.readFileSync("model.json", "utf8");
+	const raw = fs.readFileSync("/home/backend/src/AI/momentum.json", "utf8");
 const saved = JSON.parse(raw);
 
 layer1.weights = saved.layer1.weights;
@@ -324,68 +343,90 @@ layer3.biases  = saved.layer3.biases;
 console.log("Model loaded!");
 }
 
-let layer1 = new Layer_Dense(8, 64, relu);
-let layer2 = new Layer_Dense(64, 32, relu);
-let layer3 = new Layer_Dense(32, 9, softmax);
-let samples = sample_data(2000);
-let fixed= samples[0].map((input) => input.map((nbr, idx) => {
-	if(idx<3 || idx > 5) return nbr/50;
-	else return nbr/0.5;
-}));
-let optimizer = new Optimizer_SGD();
+export function oheToDiscreet(output: number[][]){
+	console.log("ohe output:");
+	console.log(output);
+	let indexes: number[]=[];
+	let choice:number;
+	output.map((item, idx) =>{
+		void(idx)
+		choice = item.indexOf(Math.max(...item));
+	});
+	output.map(item =>{
+		item.map((nbr, idx) =>{ 
+			void(nbr);
+			if(idx==choice)
+				indexes.push(1);
+			else
+				indexes.push(0);
+		});
+	});
+
+	return indexes;
+}
+
+// let layer1 = new Layer_Dense(8, 64, relu);
+// let layer2 = new Layer_Dense(64, 32, relu);
+// let layer3 = new Layer_Dense(32, 9, softmax);
+// let samples = sample_data(2000, null);
+// let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+// 	if(idx<3 || idx > 5) return nbr/50;
+// 	else return nbr/0.5;
+// }));
+// let optimizer = new Optimizer_SGD();
 
 //LoadWeights(layer1, layer2, layer3);
 
-let epochs=10000;
-for (let epoch = 0; epoch < epochs; epoch++) {
-	samples = sample_data(2000);
-	fixed= samples[0].map((input) => input.map((nbr, idx) => {
-	if(idx<3 || idx > 5) return nbr/50;
-	else return nbr/0.5;
-}));
-	layer1.forward(fixed);
-	layer2.forward(layer1.output);
-	layer3.forward(layer2.output);
-	if(epoch % 100==0)
-		console.log("epoch: "+epoch+", loss: "+loss_categoricalCrossEntropy(samples[1], layer3.output));
-	let doutputs = outputLayer_backward(layer3.output, samples[1]);
-	layer3.backward(doutputs);
-	layer2.backward(layer3.dinputs);
-	layer1.backward(layer2.dinputs);
-	optimizer.update_params(layer1, epoch);
-	optimizer.update_params(layer2, epoch);
-	optimizer.update_params(layer3, epoch);
-	optimizer.update_lr(epoch);
-}
+// let epochs=10000;
+// for (let epoch = 0; epoch < epochs; epoch++) {
+// 	samples = sample_data(2000, null);
+// 	fixed= samples[0].map((input) => input.map((nbr, idx) => {
+// 	if(idx<3 || idx > 5) return nbr/50;
+// 	else return nbr/0.5;
+// }));
+// 	layer1.forward(fixed);
+// 	layer2.forward(layer1.output);
+// 	layer3.forward(layer2.output);
+// 	if(epoch % 100==0)
+// 		console.log("epoch: "+epoch+", loss: "+loss_categoricalCrossEntropy(samples[1], layer3.output));
+// 	let doutputs = outputLayer_backward(layer3.output, samples[1]);
+// 	layer3.backward(doutputs);
+// 	layer2.backward(layer3.dinputs);
+// 	layer1.backward(layer2.dinputs);
+// 	optimizer.update_params(layer1, epoch);
+// 	optimizer.update_params(layer2, epoch);
+// 	optimizer.update_params(layer3, epoch);
+// 	optimizer.update_lr(epoch);
+// }
 
-console.log("-------------------------");
-samples = sample_data(2000);
-fixed= samples[0].map((input) => input.map((nbr, idx) => {
-	if(idx<3 || idx > 5) return nbr/50;
-	else return nbr/0.5;
-}));
+// console.log("-------------------------");
+// samples = sample_data(2000, null);
+// fixed= samples[0].map((input) => input.map((nbr, idx) => {
+// 	if(idx<3 || idx > 5) return nbr/50;
+// 	else return nbr/0.5;
+// }));
 
 
-	layer1.forward(fixed);
-	layer2.forward(layer1.output);
-	layer3.forward(layer2.output);
-	let loss= loss_categoricalCrossEntropy(samples[1], layer3.output);
-	console.log("loss: "+loss);
+// 	layer1.forward(fixed);
+// 	layer2.forward(layer1.output);
+// 	layer3.forward(layer2.output);
+// 	let loss= loss_categoricalCrossEntropy(samples[1], layer3.output);
+// 	console.log("loss: "+loss);
 
-	const modelData = {
-    layer1: { 
-        weights: layer1.weights,
-        biases: layer1.biases 
-    },
-    layer2: { 
-        weights: layer2.weights,
-        biases: layer2.biases 
-    },
-    layer3: { 
-        weights: layer3.weights,
-        biases: layer3.biases 
-    }
-};
+// 	const modelData = {
+//     layer1: { 
+//         weights: layer1.weights,
+//         biases: layer1.biases 
+//     },
+//     layer2: { 
+//         weights: layer2.weights,
+//         biases: layer2.biases 
+//     },
+//     layer3: { 
+//         weights: layer3.weights,
+//         biases: layer3.biases 
+//     }
+// };
 
-fs.writeFileSync("momentum.json", JSON.stringify(modelData));
-console.log("Model saved!");
+// fs.writeFileSync("momentum.json", JSON.stringify(modelData));
+// console.log("Model saved!");
