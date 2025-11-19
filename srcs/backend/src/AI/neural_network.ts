@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 06:59:30 by yohan             #+#    #+#             */
-/*   Updated: 2025/09/07 10:10:38 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:55:46 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -391,6 +391,7 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
         // After training, restore best weights
         this.loadBestWeights();
     }
+  
     //______________________________________________________________________________//
                                 // mathematical helpers //
     //______________________________________________________________________________//
@@ -540,12 +541,17 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
         }
     }
     
-    public fit(states: state_intercept[], correctActions: action[], epochs = this.n_iter) {
+    public fit(state: state_intercept, correctAction: action, epochs = this.n_iter) {
         
         for (let epoch = 0; epoch < epochs; epoch++) {
-            for (let i = 0; i < states.length; i++) {
-                this.single_fit(states[i], correctActions[i]);
-            }
+                this.single_fit(state, correctAction);
+        }        
+    };
+    public batch_fit(state: state_intercept[], correctAction: action[], epochs = this.n_iter) {
+        
+        for (let epoch = 0; epoch < epochs; epoch++) {
+            for(let i = 0; i < state.length; i++)
+                this.single_fit(state[i], correctAction[i]);
         }        
     };
 
