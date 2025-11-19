@@ -59,9 +59,12 @@ function addMatrixVec(matrix: number[][], vector: number[]) {
   return outputs;
 }
 
-function sample_data(amount: number) {
+function sample_data(amount: number, state: any |undefined) {
   let y: number[][] = [];
-  let x = Array.from({ length: amount }, () => {
+let x: number[][] = [];
+  if(!state)
+  {
+  x = Array.from({ length: amount }, () => {
 	const part1 = Array.from({ length: 3 }, () => Math.random() * 100 - 50);//ball pos
 	const part2 = Array.from(
 	  { length: 3 },
@@ -70,6 +73,19 @@ function sample_data(amount: number) {
 	const part3 = Array.from({ length: 2 }, () => Math.random() * 100 - 50);//paddle pos
 	return [...part1, ...part2, ...part3];
   });
+  }
+  else
+  {
+	x[0].push(state.ball.pos.x);
+	x[0].push(state.ball.pos.y);
+	x[0].push(state.ball.pos.z);
+	x[0].push(state.ball.velocity.x);
+	x[0].push(state.ball.velocity.y);
+	x[0].push(state.ball.velocity.z);
+	x[0].push(state.paddles[1].x);
+	x[0].push(state.paddles[1].y);
+  }
+
 
   for (const row of x) {
 	const [px, py, pz, vx, vy, vz, a, b] = row;
@@ -321,10 +337,22 @@ layer3.biases  = saved.layer3.biases;
 console.log("Model loaded!");
 }
 
+function oheToDiscreet(output: [][]){
+	let indexes: number[]=[];
+	output.map(item =>{
+		item.map((nbr, idx) =>{ 
+			if(nbr==1)
+				indexes.push(idx);
+		});
+	});
+
+	return indexes;
+}
+
 let layer1 = new Layer_Dense(8, 64, relu);
 let layer2 = new Layer_Dense(64, 32, relu);
 let layer3 = new Layer_Dense(32, 9, softmax);
-let samples = sample_data(2000);
+let samples = sample_data(2000, null);
 let fixed= samples[0].map((input) => input.map((nbr, idx) => {
 	if(idx<3 || idx > 5) return nbr/50;
 	else return nbr/0.5;
@@ -335,7 +363,7 @@ let optimizer = new Optimizer_SGD();
 
 let epochs=10000;
 for (let epoch = 0; epoch < epochs; epoch++) {
-	samples = sample_data(2000);
+	samples = sample_data(2000, null);
 	fixed= samples[0].map((input) => input.map((nbr, idx) => {
 	if(idx<3 || idx > 5) return nbr/50;
 	else return nbr/0.5;
@@ -356,7 +384,7 @@ for (let epoch = 0; epoch < epochs; epoch++) {
 }
 
 console.log("-------------------------");
-samples = sample_data(2000);
+samples = sample_data(2000, null);
 fixed= samples[0].map((input) => input.map((nbr, idx) => {
 	if(idx<3 || idx > 5) return nbr/50;
 	else return nbr/0.5;
