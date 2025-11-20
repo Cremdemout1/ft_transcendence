@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 06:59:30 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/12 17:55:32 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/19 22:55:46 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,6 @@ export type state_intercept = {
     paddle_speed: number,
     paddle_width: number,
     paddle_height: number,
-    time_to_wall_x: number,
-    time_to_wall_y: number,
     x_dist_to_paddle: number,
     y_dist_to_paddle: number
 };
@@ -69,10 +67,10 @@ export const actions: action[] = [
 
 
 
-class neural_ai { // plays similarly to a human (can lose)
+export class neural_ai { // plays similarly to a human (can lose)
     public num_inputs = 10;
     public num_of_hidden_neurons = 12;
-    public num_outputs = 9 //possible outcomes
+    public num_outputs = 8 //possible outcomes
     public learning_rate: number;
     public n_iter: number; // number of epochs
 
@@ -154,6 +152,7 @@ class neural_ai { // plays similarly to a human (can lose)
     //______________________________________________________________________________//
     
     public dotProduct(a: number[], b: number[]): number {
+        console.log(a.length, b.length, a, b);
         if (a.length !== b.length) {
             throw new Error("Vectors must have the same length for dot product");
         }
@@ -312,8 +311,8 @@ class neural_ai { // plays similarly to a human (can lose)
 
 
 class neural_intercept { // is acc OP, like it's not even funny. I'll need to add a shit ton of noise or reduce paddle speed to allow losses
-    public num_inputs = 14;
-    public num_of_hidden_neurons = 12;
+    public num_inputs = 12;
+    public num_of_hidden_neurons = 25;
     public num_outputs = 9 //possible outcomes
     public learning_rate: number;
     public n_iter: number; // number of epochs
@@ -323,6 +322,10 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
     public best_bias_hidden_layer: number[] = [];
     public best_bias_output_layer: number[] = [];
     public bestScore: number = -Infinity;
+
+    public loss: number = 0;
+    public outputs: number[] = [];
+    public target: number[] = [];
 
     //weights:
     public W_hidden_input: number[][] = []; // hidden_neurons * num_inputs
@@ -391,6 +394,7 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
         // After training, restore best weights
         this.loadBestWeights();
     }
+  
     //______________________________________________________________________________//
                                 // mathematical helpers //
     //______________________________________________________________________________//
@@ -408,12 +412,12 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
     
     private state_to_vector (state: state_intercept): number[] {
         return [ 
-            state.X_pos, state.Y_pos, state.Z_pos,
-            state.Vx, state.Vy, state.Vz,
-            state.X_paddle, state.Y_paddle,
-            state.paddle_speed, state.paddle_height, 
-            state.time_to_wall_x, state.time_to_wall_y,
-            state.x_dist_to_paddle, state.y_dist_to_paddle
+            state.X_pos / 50, state.Y_pos / 50, state.Z_pos / 50,
+            state.Vx / 0.5, state.Vy / 0.5, state.Vz / 0.5,
+            state.X_paddle / 50, state.Y_paddle / 50,
+            state.paddle_speed, state.paddle_height / 20, 
+            // state.time_to_wall_x, state.time_to_wall_y,
+            state.x_dist_to_paddle / 50, state.y_dist_to_paddle/ 50
         ];
     }
 
@@ -489,7 +493,9 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
         return bestAction;
     };
 
-    public single_fit(state: state_intercept, correctAction: action) {
+    public single_fit(state: state_intercept, correctAction: action): number {
+        let accuracy = 0;
+
         const input = this.state_to_vector(state);
         
         const hidden: number[] = [];
@@ -502,18 +508,25 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
             logits[i] = this.dotProduct(hidden, this.W_hidden_output[i]) + this.bias_output_layer[i];
         }
         const outputs = this.softmax(logits);
-        
+        this.outputs = outputs;
     // stochastic gradient descent: (is stochastic because I update after every pass)
         let target = [];
         for (let i = 0; i < this.num_outputs; i++) {
             target[i] = actions[i] === correctAction ? 1 : 0;
         }
+        this.target = target;
 
-            //back propagation:
+        //back propagation:
         const delta_output: number[] = [];
         for (let k = 0; k < this.num_outputs; k++) {
             delta_output[k] = target[k] - outputs[k];
+            this.loss = -Math.log(outputs[k]);
         }
+
+        const highestPred = outputs.indexOf(Math.max(...outputs));
+        if (target[highestPred] === 1)
+            accuracy = 1;
+
 
         const delta_hidden: number[] = [];
         for (let j = 0; j < this.num_of_hidden_neurons; j++) {
@@ -538,18 +551,41 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
             }
             this.bias_hidden_layer[j] += this.learning_rate * delta_hidden[j];
         }
+        return accuracy;
     }
     
-    public fit(states: state_intercept[], correctActions: action[], epochs = this.n_iter) {
-        
+    public fit(state: state_intercept, correctAction: action, epochs = this.n_iter): number {
+        let accuracy = 0;
         for (let epoch = 0; epoch < epochs; epoch++) {
-            for (let i = 0; i < states.length; i++) {
-                this.single_fit(states[i], correctActions[i]);
-            }
+                accuracy = this.single_fit(state, correctAction);
         }        
+        return accuracy;
     };
 
-    public predictIntercept(X_pos: number, Y_pos: number, Z_pos: number, Vx: number, Vy: number, Vz: number, paddleV: number, gameW: number, gameH: number, gameD: number) {
+    private shuffleBatch(states: state_intercept[], actions: action[]) {
+    for (let i = states.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        // swap states
+        [states[i], states[j]] = [states[j], states[i]];
+
+        // swap matching actions
+        [actions[i], actions[j]] = [actions[j], actions[i]];
+    }
+}
+
+
+    public batch_fit(state: state_intercept[], correctAction: action[], epochs = this.n_iter): number {
+        let accuracy = 0;
+        for (let epoch = 0; epoch < epochs; epoch++) {
+            this.shuffleBatch(state, correctAction);
+            for(let i = 0; i < state.length; i++)
+                accuracy += this.single_fit(state[i], correctAction[i]);
+        }
+        return accuracy / (state.length * epochs);
+    };
+
+     public predictIntercept(X_pos: number, Y_pos: number, Z_pos: number, Vx: number, Vy: number, Vz: number, paddleV: number, gameW: number, gameH: number, gameD: number) {
         const gameAreaSize = { width: gameW, height: gameH, depth: gameD };
         let x = X_pos, y = Y_pos, z = Z_pos;
         let vx = Vx, vy = Vy, vz = Vz;
@@ -623,8 +659,8 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
                                             paddle_speed: paddleSpeed,
                                             paddle_height: paddleH,
                                             paddle_width: paddleW,
-                                            time_to_wall_x: time_to_wall_x,
-                                            time_to_wall_y: time_to_wall_y,
+                                            // time_to_wall_x: time_to_wall_x,
+                                            // time_to_wall_y: time_to_wall_y,
                                             x_dist_to_paddle: x_dist_to_paddle,
                                             y_dist_to_paddle: y_dist_to_paddle
                                         };
@@ -634,4 +670,5 @@ class neural_intercept { // is acc OP, like it's not even funny. I'll need to ad
     public partial_fit(){}; // to do 
 }
 
-export {neural_intercept, neural_ai};
+export default neural_ai;
+export {neural_intercept};

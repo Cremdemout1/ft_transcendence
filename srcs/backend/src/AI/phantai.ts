@@ -59,6 +59,35 @@ export function addMatrixVec(matrix: number[][], vector: number[]) {
   return outputs;
 }
 
+function calculateHitpoint(p_: Vec3, v_: Vec3) {
+
+    let p = { ...p_ };
+    let v = { ...v_ };
+
+    while (1) {
+ 
+        p.x += v.x;
+        p.y += v.y;
+        p.z += v.z;
+        if (p.z <= -50 || p.z >= 50) {
+            return { ...p };
+        }
+
+
+        if (p.y <= -50 || p.y >= 50) {
+            p.y = Math.sign(p.y) * (50 - 3.25 - 0.01);
+            v.y = -v.y;
+			//console.log("hitpoint not x: "+ p.x+", "+p.y+ ", "+p.z);
+        }
+
+        if (p.x <= -50 || p.x >= 50) {
+            p.x = Math.sign(p.x) * (50 - 3.25 - 0.01);
+            v.x = -v.x;
+			//console.log("hitpoint not x: "+ p.x+", "+p.y+ ", "+p.z);
+        }
+    }
+}
+
 export function sample_data(amount: number, state: any | undefined) {
   let y: number[][] = [];
 let x: number[][] = [];
@@ -96,33 +125,17 @@ let x: number[][] = [];
 	const p_: Vec3 = { x:px, y:py, z:pz };
 	const v_: Vec3 = { x: vx, y: vy, z: vz };
 
-	while (
-	  p_.x < 50 &&
-	  p_.x > -50 &&
-	  p_.y < 50 &&
-	  p_.y > -50 &&
-	  p_.z < 50 &&
-	  p_.z > -50
-	) {
-	  p_.x += v_.x;
-	  p_.y += v_.y;
-	  p_.z += v_.z;
-	}
-	const hitPoint = { ...p_ };
-	// console.log("row: ");
-	// console.log(row);
-	// console.log("hitpoint: ");
-	// console.log(hitPoint);
+  	let hitPoint =calculateHitpoint(p_, v_);
 	let up=0;
 	let right=0;
 	let correct=0;
-	if(a<hitPoint.x)
+	if(a<hitPoint!.x)
 		right++;
-	else if(a>hitPoint.x)
+	else if(a>hitPoint!.x)
 		right--;
-	if(b<hitPoint.y)
+	if(b<hitPoint!.y)
 		up++;
-	else if(b>hitPoint.y)
+	else if(b>hitPoint!.y)
 		up--;
 
 	//console.log("up: "+up);
