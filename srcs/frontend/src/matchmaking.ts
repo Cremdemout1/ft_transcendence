@@ -47,6 +47,10 @@ function createSinglePlayerGame() {
     ensureConnected().then(() => socket.emit("createSinglePlayerRoom"));
 }
 
+function createLocalGame() {
+    ensureConnected().then(() => socket.emit("createLocalRoom"));
+}
+
 function joinGame(code: string) {
     ensureConnected().then(() => socket.emit("joinRoom", { code }));
 }
@@ -55,6 +59,12 @@ function startSinglePlayerGame() {
     // renderPong();
     localStorage.setItem('numPlayers', '1');
     createSinglePlayerGame();
+}
+
+export function startLocalGame() {
+    // renderPong();
+    localStorage.setItem('numPlayers', '1');
+    createLocalGame();
 }
 
 function start2PlayerGame() {
@@ -133,11 +143,12 @@ socket.on("error", ({ message }: { message: string }) => {
     alert(message); // Show error to user
 });
 
-socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = false }: { code: string, numPlayers: number, isSinglePlayer: boolean }) => {
+socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = false, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: boolean, vanilla: number }) => {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
       document.body.classList.add("game-active");
     localStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
+	localStorage.setItem("vanilla", String(vanilla)); 
     location.href = '/#pong';
 });
 

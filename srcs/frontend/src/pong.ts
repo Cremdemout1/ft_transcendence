@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/10 16:19:54 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/21 00:00:51 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@ import { checkLoginState } from "./dashboard";
 import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
-import { startSinglePlayerGame } from "./matchmaking";
+import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
 
 async function renderPong() {
 	await checkLoginState("http://localhost:8080/api/pong");
@@ -80,6 +80,7 @@ function showGameModeMenu() {
 	app.innerHTML = `
 		<div id="gameModeMenu" class="terminal-menu">
 			<h2 class="terminal-title">SELECT MODE</h2>
+			<button class="neon-btn" id="singlePlayerBtn">LOCAL GAME</button>
 			<button class="neon-btn" id="singlePlayerBtn">SINGLE PLAYER</button>
 			<button class="neon-btn" id="multiPlayerBtn">MULTIPLAYER</button>
 			<button class="exit-btn" id="backBtn">BACK</button>
@@ -93,6 +94,10 @@ function showGameModeMenu() {
 	// });
 	document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
 		startSinglePlayerGame();
+	})
+
+	document.getElementById("localGameBtn")?.addEventListener("click", () => {
+		startLocalGame();
 	})
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {

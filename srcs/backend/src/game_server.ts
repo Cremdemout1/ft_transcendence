@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/10 15:51:56 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/20 23:55:38 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ type Room = {
   phantai?: number | null;
   ai_timer?: NodeJS.Timeout | null;
   actionTimer?: NodeJS.Timeout | null;
+  vanilla?: number | null;
   chat?: {
     messages: ChatMessage[];
   };
@@ -350,7 +351,7 @@ function broadcastRosterAllRooms() {
 
 let i=0;
 //Socket Event Handlers
-async function handlePlayerInput(socket: Socket, input: any){
+async function handlePlayerInput(socket: Socket, input: any, input2: any){
   const { roomCode, room } = findPlayerRoom(socket.id);
   
   if (!roomCode || !room) {
@@ -365,12 +366,23 @@ async function handlePlayerInput(socket: Socket, input: any){
   }
   
   //Assign input to the correct paddle
-  const paddle = room.game.paddles[playerIdx];
+  let paddle = room.game.paddles[playerIdx];
   if (paddle && paddle.active) {
     paddle.up = input.up;
     paddle.down = input.down;
     paddle.left = input.left;
     paddle.right = input.right;
+  }
+
+if(room.vanilla==1)
+  {
+	paddle = room.game.paddles[1];
+  if (paddle && paddle.active) {
+    paddle.up = input2.up;
+    paddle.down = input2.down;
+    paddle.left = input2.left;
+    paddle.right = input2.right;
+  }
   }
   
   //Update game state
@@ -423,6 +435,16 @@ function handlePlayerIDRequest(socket: Socket): void {
   
   console.log(`Sending playerID with ${playerIdx} players to ${socket.id}`);
   socket.emit("playerIDResponse", { playerIdx });
+}
+
+
+function handleVanillaRequest(socket: Socket): void {
+  const { room } = findPlayerRoom(socket.id);
+  
+	const vanilla = room? room.vanilla : -1;
+  
+  console.log(`Sending vanilla :${vanilla} to ${socket.id}`);
+  socket.emit("vanillaResponse", { vanilla });
 }
 
 function handleCreateRoom(socket: Socket, numPlayers: number): void {
@@ -606,6 +628,30 @@ function handleSinglePlayerRoom(socket: Socket): void {
   console.log(`Room ${code} created for ${1} players by ${socket.id}`);
 }
 
+function handleLocalRoom(socket: Socket): void {
+  const code = generateRoomCode();
+
+  rooms[code] = {
+    code,
+    numPlayers: 1,
+    players: [socket.id],
+    isSinglePlayer: true,
+    game: new GameMath(),
+	vanilla: 1
+  };
+
+  rooms[code].players.push("local player 2");
+  rooms[code].numPlayers = 2;
+  rooms[code].inProgress = true; //might not be necessary
+
+  activateRoomPaddles(rooms[code]);
+
+  socket.join(code);
+  socket.emit("LocalRoomCreated", { code });
+
+  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: true, vanilla: 1 });
+  console.log(`Room ${code} created for ${1} players by ${socket.id}`);
+}
 
 function handleJoinRoom(socket: Socket, code: string): void {
   const room = rooms[code];
@@ -872,8 +918,8 @@ io.on("connection", (socket: Socket) => {
   console.log(`Socket connected: ${socket.id}`);
   
   // Input handling
-  socket.on("SendInputsToBackend", ({ input }: { input: any }) => {
-    handlePlayerInput(socket, input);
+  socket.on("SendInputsToBackend", ({ input, input2 }: { input: any, input2: any }) => {
+    handlePlayerInput(socket, input, input2);
   });
   
   // Player count requests
@@ -884,6 +930,10 @@ io.on("connection", (socket: Socket) => {
     socket.on("playerIDRequest", () => {
     handlePlayerIDRequest(socket);
   });
+
+      socket.on("vanillaRequest", () => {
+    handleVanillaRequest(socket);
+  });
   
   // Room management
   socket.on("createRoom", ({ numPlayers }: { numPlayers: number }) => {
@@ -892,6 +942,10 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("createSinglePlayerRoom", () => {
     handleSinglePlayerRoom(socket);
+  });
+
+	socket.on("createLocalRoom", () => {
+    handleLocalRoom(socket);
   });
   
   socket.on("joinRoom", ({ code }: { code: string }) => {

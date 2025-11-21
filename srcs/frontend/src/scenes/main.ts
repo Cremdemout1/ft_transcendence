@@ -43,7 +43,8 @@ export type Input = {
 function camera_setup(
   scene: BABYLON.Scene,
   player_id: number,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
+  vanilla: number
 ) {
   const camera = new BABYLON.ArcRotateCamera( //the camera is created here. it's an arc rotate camera, so it looks towards a target (center of the arena), and spins around it on 2 axes.
     "Camera",
@@ -57,6 +58,10 @@ function camera_setup(
   camera.upperRadiusLimit = 200; //and how far
   camera.attachControl(canvas, true); //makes controlling the camera with the mouse possible
   camera.fov = 1.5;
+  if(vanilla==1){
+	camera.inputs.remove(camera.inputs.attached.keyboard);
+	camera.fov=0.7;
+  }
 
   const ratio = canvas.height / canvas.width;
   let camera2 = new BABYLON.ArcRotateCamera( //this is the first extra view (top view). needs to be rotated depending on the player id so the respective paddle shows on the bottom
@@ -178,7 +183,8 @@ async function import_meshes(
 function arena_orientation(
   meshes: GameMeshes,
   scene: BABYLON.Scene,
-  player_id: number
+  player_id: number,
+  vanilla: number
 ) {
   let amount = 0;
   const y_axis = new BABYLON.Vector3(0, 1, 0);
@@ -204,6 +210,7 @@ function arena_orientation(
       amount = -Math.PI / 2;
       break;
   }
+  if(vanilla==1) amount=Math.PI / 2;
   meshes.arena?.rotateAround(simmetrical_vec(0), axis, amount);
   if (player_id == 5)
     meshes.arena?.rotateAround(
@@ -255,6 +262,21 @@ console.log("PLAYER ID: "+ player_id);
   //   let player_nbr = 2;
 //   let player_id = 1;
 
+    let vanilla = await new Promise<number>((resolve) => {
+    socket.on(
+      "vanillaResponse",
+      ({ vanilla }: { vanilla: number }) => {
+        console.log("vanillaResponse event received:", vanilla);
+        resolve(vanilla);
+      }
+    );
+
+    socket.emit("vanillaRequest", {});
+
+    // Fallback timeout
+    setTimeout(() => resolve(0), 2000);
+  });
+
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",
     scene
@@ -276,7 +298,7 @@ console.log("PLAYER ID: "+ player_id);
   //   scene.environmentTexture = desert;
   //   scene.createDefaultSkybox(sky, true, 100000);
 
-  camera_setup(scene, player_id, canvas); //creates the main camera + the 2 little views in the corner
+  camera_setup(scene, player_id, canvas, vanilla); //creates the main camera + the 2 little views in the corner
 
   const groundMat = new BABYLON.StandardMaterial("StandardMaterial", scene); //ground under the city (here i'm creating the material for it first for some reason)
   groundMat.diffuseColor = BABYLON.Color3.Black();
@@ -297,7 +319,7 @@ console.log("PLAYER ID: "+ player_id);
 
   await import_meshes(scene, meshes, player_nbr, player_id);
 
-  arena_orientation(meshes, scene, player_id);
+  arena_orientation(meshes, scene, player_id, vanilla);
   const scoremat = scene.getMeshByName("score")
     ?.material as BABYLON.PBRMaterial;
   const scoregl = glow_score_title(scene, meshes, scoremat);
@@ -311,6 +333,15 @@ console.log("PLAYER ID: "+ player_id);
 
   const input: Input = {
     //these variables are all just flags, they need one per key so we can click several keys at the same time, let them go etc and it all keeps moving smoothly, and for security reasons to prevent hacking attempts + pause and reset ball flags
+    up: 0,
+    left: 0,
+    down: 0,
+    right: 0,
+    reset: 1,
+    pause: 0,
+  };
+
+      let input2: Input = {
     up: 0,
     left: 0,
     down: 0,
@@ -389,6 +420,48 @@ console.log("PLAYER ID: "+ player_id);
         break;
     }
   });
+
+  if(vanilla==1)
+  {
+	scene.onKeyboardObservable.add((kbInfo) => {
+    //keyboard event to change the flags and yes i've tried to make it shorter like 1 switch and for some reason it does not work
+    switch (kbInfo.type) {
+      case BABYLON.KeyboardEventTypes.KEYDOWN:
+        switch (kbInfo.event.key) {
+          case "ArrowUp":
+            input2.up = 1;
+            break;
+          case "ArrowLeft":
+            input2.left = 1;
+            break;
+          case "ArrowDown":
+            input2.down = 1;
+            break;
+          case "ArrowRight":
+            input2.right = 1;
+            break;
+        }
+        break;
+
+      case BABYLON.KeyboardEventTypes.KEYUP: //this is the keyboard event of releasing the key, the above was pressing it
+        switch (kbInfo.event.key) {
+          case "ArrowUp":
+            input2.up = 0;
+            break;
+          case "ArrowLeft":
+            input2.left = 0;
+            break;
+          case "ArrowDown":
+            input2.down = 0;
+            break;
+          case "ArrowRight":
+            input2.right = 0;
+            break;
+        }
+        break;
+    }
+  });
+  }
 
   let reset = 0;
   let orb: BABYLON.Mesh;
@@ -526,6 +599,13 @@ console.log("PLAYER ID: "+ player_id);
         right: input.right,
         reset: input.reset,
       },
+	  input2: {
+        up: input2.up,
+        left: input2.left,
+        down: input2.down,
+        right: input2.right,
+        reset: input2.reset,
+      }
     });
     
   });
