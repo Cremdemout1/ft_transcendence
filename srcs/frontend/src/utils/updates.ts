@@ -20,7 +20,7 @@ export function update_reset(
   player_nbr: number
 ) {
   if (state.ball.reset) {
-	console.log(state);
+	// console.log(state);
     print_score(state.paddles, player_nbr, meshes.score_units!);
     //need to reset the trail before putting the ball back in the center
     if (trail) {

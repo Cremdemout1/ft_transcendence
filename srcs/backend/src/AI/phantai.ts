@@ -105,8 +105,8 @@ let x: number[][] = [];
   }
   else
   {
-	console.log("state");
-	console.log(state);
+	// console.log("state");
+	// console.log(state);
 	x[0] = [];
 	x[0].push(-(state.ball.pos.z));
 	x[0].push(state.ball.pos.y);
@@ -357,8 +357,8 @@ console.log("Model loaded!");
 }
 
 export function oheToDiscreet(output: number[][]){
-	console.log("ohe output:");
-	console.log(output);
+	// console.log("ohe output:");
+	// console.log(output);
 	let indexes: number[]=[];
 	let choice:number;
 	output.map((item, idx) =>{
