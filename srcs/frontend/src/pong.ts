@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/21 00:00:51 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/21 10:05:20 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ function showGameModeMenu() {
 	app.innerHTML = `
 		<div id="gameModeMenu" class="terminal-menu">
 			<h2 class="terminal-title">SELECT MODE</h2>
-			<button class="neon-btn" id="singlePlayerBtn">LOCAL GAME</button>
+			<button class="neon-btn" id="localGameBtn">LOCAL GAME</button>
 			<button class="neon-btn" id="singlePlayerBtn">SINGLE PLAYER</button>
 			<button class="neon-btn" id="multiPlayerBtn">MULTIPLAYER</button>
 			<button class="exit-btn" id="backBtn">BACK</button>
