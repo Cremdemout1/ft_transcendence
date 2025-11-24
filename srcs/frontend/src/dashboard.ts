@@ -32,6 +32,11 @@ async function checkLoginState(path:string) {
 
 async function fetchDashboard() {
     checkLoginState("http://localhost:8080/api/dashboard");
+        localStorage.removeItem("isSinglePlayer");
+        localStorage.removeItem("roomCode");
+        localStorage.removeItem("numPlayers");
+        localStorage.removeItem("lastMatchWinner");
+        localStorage.removeItem("vanilla");
 }
 
 export { checkLoginState, fetchDashboard };

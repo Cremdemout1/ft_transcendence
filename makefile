@@ -68,13 +68,13 @@ stop: #stops containers
 	
 down: #removes containers
 	$(DOCKER_COMPOSE) -f $(YML) down -v
-	@sudo rm -rf srcs/backend/dist
-	@sudo rm -rf srcs/backend/node_modules
+	@rm -rf srcs/backend/dist
+	@rm -rf srcs/backend/node_modules
 	
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	@ sudo rm -rf ${DEV_DB_DIR}
-	@ sudo rm -rf ${PROD_DB_DIR}
+	@rm -rf ${DEV_DB_DIR}
+	@rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 

@@ -41,7 +41,6 @@ async function dashboard(fastify: FastifyInstance)
         if (reply.sent)
             return ;
         const user = request.user;
-        console.log(user);
         return reply.send({message:'User dashboard', user});
     })
 }
