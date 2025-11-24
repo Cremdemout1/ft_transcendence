@@ -75,8 +75,7 @@ volumes:
     name: transcendence_sqlite_db
     driver_opts:
       type: none
-      device: /home/transcendence/data/sqlite-data
-
+      device: /home/capa/Documents/ft_transcendence/sqlite-data
       o: bind
 
 networks:
