@@ -131,7 +131,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/capa/Documents/ft_transcendence/srcs/backend/generated/prisma",
+      "value": "/home/transcendence/Desktop/ft_transcendence/srcs/backend/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -145,12 +145,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/capa/Documents/ft_transcendence/srcs/backend/prisma/schema.prisma",
+    "sourceFilePath": "/home/transcendence/Desktop/ft_transcendence/srcs/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../prisma",
   "clientVersion": "5.22.0",

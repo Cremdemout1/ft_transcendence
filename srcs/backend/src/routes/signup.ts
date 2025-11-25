@@ -84,7 +84,11 @@ async function SignUp(fastify: FastifyInstance) {
     fastify.post('/api/signup', localSignUpOps, async (request: ReqBody<signupBody>, reply: any) =>
     {
         const { email, password, username, firstname, lastname }: signupBody = request.body;
-        
+        const invalidChars = ['\'', '\"', '`'];
+
+        const invalid = invalidChars.some(char => email.includes(char)) || invalidChars.some(char => password.includes(char)) || invalidChars.some(char => username.includes(char)) || invalidChars.some(char => firstname.includes(char)) || invalidChars.some(char => lastname.includes(char));
+        if (invalid)
+            return reply.code(422).send({ error:"Invalid", message: 'Error: invalid characters' });
         const existingUser = await prisma.users.findMany({ where: { email } });
         for (const user of existingUser)
             if (user.login_type === login_type)

@@ -26,7 +26,6 @@ async function backendLogin() {
 
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
-    
         try {
             const res = await fetch("http://localhost:8080/api/login",
                 {

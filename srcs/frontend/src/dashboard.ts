@@ -36,7 +36,7 @@ async function fetchDashboard() {
         localStorage.removeItem("roomCode");
         localStorage.removeItem("numPlayers");
         localStorage.removeItem("lastMatchWinner");
-        localStorage.removeItem("vanilla");
+        localStorage.removeItem("vanilla"); //for now
 }
 
 export { checkLoginState, fetchDashboard };

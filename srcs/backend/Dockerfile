@@ -37,7 +37,7 @@ RUN npx prisma generate
 
 # Copy source code and environment file
 COPY src ./src
-COPY .env ./
+# COPY ../../.env ./
 
 
 RUN npx tsc

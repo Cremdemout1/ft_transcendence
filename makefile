@@ -49,7 +49,7 @@ upd:
 start:
 	$(DOCKER_COMPOSE) -f $(YML) start
 
-re: down all
+re: fclean all
 
 logs:
 	$(DOCKER_COMPOSE) -f $(YML) logs -f

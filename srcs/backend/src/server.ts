@@ -57,8 +57,9 @@ async function startSwagger(){
           deepLinking: false,
         },
       });
-      
-      fastify.get('/ping', {
+}
+
+fastify.get('/ping', {
         schema: {
           description: 'Ping the server',
           tags: ['Health'],
@@ -77,7 +78,6 @@ async function startSwagger(){
         void request, reply;
         return { pong: 'it worked!' };
       });
-}
 
 fastify.get('/', async (request: myRequest, reply: any) =>
 {

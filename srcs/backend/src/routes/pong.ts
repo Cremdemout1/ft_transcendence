@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-//import { authenticateJWT } from "./dashboard";
+import { authenticateJWT } from "./dashboard";
 import { FastifyRequest, FastifyInstance } from "fastify";
 
 type myRequest = FastifyRequest;
@@ -19,7 +19,7 @@ async function pong(fastify: FastifyInstance)
 {
     fastify.get('/api/pong', async (request: myRequest, reply: any) =>
     {
-        //await authenticateJWT(request, reply, fastify);
+        await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return ;
         const user = request.user;

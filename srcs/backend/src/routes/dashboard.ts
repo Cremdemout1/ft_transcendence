@@ -37,7 +37,7 @@ async function dashboard(fastify: FastifyInstance)
 {
     fastify.get('/api/dashboard', async (request: myRequest, reply: any) =>
     {
-        //await authenticateJWT(request, reply, fastify);
+        await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return ;
         const user = request.user;
