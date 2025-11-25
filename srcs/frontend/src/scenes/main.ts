@@ -5,8 +5,8 @@ import HavokPhysics from "@babylonjs/havok";
 import model from "@/assets/models/arena.glb"; //arena, paddles and ball models
 import city from "@/assets/models/mid_city_separate.glb"; //city model
 import score from "@/assets/models/score.glb"; //score sign model
-import phanta from "@/assets/models/phanta.obj"; //PhantAI
-import yohai from "@/assets/models/yohan.obj"; //yohAI
+import phanta from "@/assets/models/phanta.glb"; //PhantAI
+import yohai from "@/assets/models/yohan.glb"; //yohAI
 import {
   simmetrical_vec,
   createLight,
