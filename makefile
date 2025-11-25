@@ -31,7 +31,8 @@ front:
 build:
 	@cd srcs/frontend && npm install && npm run build && npx serve -s -l 3000 dist
 up:
-	@cd srcs/backend && npm install && cd ../..
+# 	@cd srcs/backend && npm install && cd ../..
+# 	@cd srcs/game_server && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
 	@sudo rm .env.bak
@@ -39,7 +40,8 @@ up:
 	$(DOCKER_COMPOSE) -f $(YML) up --build
 
 upd:
-	@cd srcs/backend && npm install && cd ../..
+# 	@cd srcs/backend && npm install && cd ../..
+# 	@cd srcs/game_server && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
 	@sudo rm .env.bak

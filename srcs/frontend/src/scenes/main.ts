@@ -13,7 +13,7 @@ import {
   glow_score_title,
   save_materials,
 } from "../utils/babylonUtils";
-import { GameMath } from "../../../backend/src/game/pong/pong_logic";
+import { GameMath } from "../../../game_server/src/game/pong/pong_logic";
 import { BaseTexture, int, PointLight } from "@babylonjs/core";
 import { stick, score_counter } from "../utils/scorePrinting";
 import { Dispose } from "@babylonjs/core/Misc/dumpTools";

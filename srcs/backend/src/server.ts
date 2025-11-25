@@ -23,7 +23,7 @@ import fastifyRedis from '@fastify/redis';
 
 import { dashboard } from './routes/dashboard';
 import SignUp from './routes/signup';
-import { login, googleAuth, verify2fa } from './routes/login';
+import { login, verify2fa } from './routes/login';
 import { pong } from './routes/pong';
 import { profile, changeUsername, changeFirstname, changeLastname, toggle2FA } from './routes/profile';
 import { changePassword, changePasswordLogic } from './routes/changePassword';
@@ -126,7 +126,7 @@ await fastify.register(cors, {
     return cb(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 });
 
@@ -143,7 +143,7 @@ await fastify.register(fastifyFormBody);
   fastify.register(dashboard);
   fastify.register(login);
   fastify.register(verify2fa);
-  fastify.register(googleAuth);
+  // fastify.register(googleAuth);
   fastify.register(SignUp);
   fastify.register(pong);
   fastify.register(profile);

@@ -39,7 +39,7 @@ type Room = {
   game: GameMath;
   inProgress?: boolean;
   tournamentId?: string | null;
-  isSinglePlayer?: boolean | false;
+  isSinglePlayer?: number | false;
   matchId?: string | null;
   ai_bot?: reactive_model;
   phantai?: number | null;
@@ -264,6 +264,8 @@ class TournamentManager {
     }
   }
 
+
+
   handleDisconnect(socketId: string) {
     // remove from waiting queue if present
     const idx = this.waitingPlayers.indexOf(socketId);
@@ -458,6 +460,8 @@ function handleCreateRoom(socket: Socket, numPlayers: number): void {
     game: new GameMath(),
     chat: { messages: [] },
     announced: {},
+    isSinglePlayer: 0,
+    vanilla: 0
   };
   
   activateRoomPaddles(rooms[code]);
@@ -468,7 +472,7 @@ function handleCreateRoom(socket: Socket, numPlayers: number): void {
   // Defer readable join/create announcements until identify provides username.
   broadcastRoster(code);
   
-  console.log(`Room ${code} created for ${numPlayers} players by ${socket.id}`);
+  console.log(`Multiplayer Room ${code} created for ${numPlayers} players by ${socket.id}`);
 }
 
 async function setTimer(room: Room, paddle: any) {
@@ -635,8 +639,9 @@ function handleSinglePlayerRoom(socket: Socket): void {
     code,
     numPlayers: 1,
     players: [socket.id],
-    isSinglePlayer: true,
+    isSinglePlayer: 1,
     game: new GameMath(),
+    vanilla: 0
   };
 
   rooms[code].players.push("AI-" + code);
@@ -682,7 +687,7 @@ function handleLocalRoom(socket: Socket): void {
     code,
     numPlayers: 1,
     players: [socket.id],
-    isSinglePlayer: true,
+    isSinglePlayer: 0,
     game: new GameMath(),
 	vanilla: 1
   };
@@ -696,8 +701,8 @@ function handleLocalRoom(socket: Socket): void {
   socket.join(code);
   socket.emit("LocalRoomCreated", { code });
 
-  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: true, vanilla: 1 });
-  console.log(`Room ${code} created for ${1} players by ${socket.id}`);
+  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: 1, vanilla: 1 });
+  console.log(`Vanilla Room ${code} created for ${1} players by ${socket.id}`);
 }
 
 function handleJoinRoom(socket: Socket, code: string): void {
@@ -967,6 +972,23 @@ io.on("connection", (socket: Socket) => {
   // Input handling
   socket.on("SendInputsToBackend", ({ input, input2 }: { input: any, input2: any }) => {
     handlePlayerInput(socket, input, input2);
+  });
+
+  socket.on("leaveGame", () => {
+    const { roomCode, room } = findPlayerRoom(socket.id);
+    if (!room)
+        console.log("urmom");
+    console.log("inside socket on leaveGame", roomCode);
+    console.log(room?.isSinglePlayer);
+    if (room?.isSinglePlayer) {
+    console.log("inside socket on is single player check", roomCode);
+      clearInterval(room.actionTimer!);
+      clearInterval(room.ai_timer!);
+      // delete room.ai_bot;
+    }
+    if (room?.vanilla || room?.isSinglePlayer)
+      delete rooms[roomCode!];
+    socket.disconnect();
   });
   
   // Player count requests

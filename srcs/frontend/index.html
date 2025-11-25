@@ -61,6 +61,7 @@ import { fetchDashboard } from './src/dashboard';
 import { renderPong, play } from './src/pong';
 import { renderProfile, me } from './src/profile';
 import { renderchangePassword } from './src/changePassword';
+import {renderWinScreen } from './src/winScreen';
 
 const app = document.getElementById('app');
 
@@ -71,6 +72,7 @@ const routes = {
     pong: renderPong,
     me: renderProfile,
     twoFA: verify2faCode,
+    endGame: renderWinScreen
 };
 
 function renderLogin() {
@@ -110,7 +112,6 @@ function renderDashboard() {
         <div class="menu-container">
             <button id="profileBtn" class="neon-btn">Profile</button>
             <button id="playBtn" class="neon-btn">Play</button>
-            <button id="historyBtn" class="neon-btn">History</button>
             <button id="logoutBtn" class="neon-btn">Log out</button>
         </div>
     `;
@@ -119,13 +120,12 @@ function renderDashboard() {
     play();
     me();
     const playBtn = document.getElementById('playBtn');
-playBtn.addEventListener('click', () => {
-    musicSource.src = playlist[currentTrack];
-    music.load();
-    music.play().catch(e => console.log("Autoplay prevented:", e));
-});
+    playBtn.addEventListener('click', () => {
+        musicSource.src = playlist[currentTrack];
+        music.load();
+        music.play().catch(e => console.log("Autoplay prevented:", e));
+    });
 }
-
 
 function router() {
     updateCyberPongTitle();
@@ -142,6 +142,7 @@ function router() {
         verify2faCode();
     } else {
         render();
+        console.log(firstSegment);
     }
 }
 

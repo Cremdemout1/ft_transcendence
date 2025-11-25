@@ -143,7 +143,7 @@ socket.on("error", ({ message }: { message: string }) => {
     alert(message); // Show error to user
 });
 
-socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = false, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: boolean, vanilla: number }) => {
+socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: boolean, vanilla: number }) => {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
       document.body.classList.add("game-active");

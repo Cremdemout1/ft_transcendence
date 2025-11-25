@@ -58,8 +58,8 @@ export class GameMath {
     y: 0,
     height: 20,
     depth: 2,
-    speed: 0.15,
-    max_speed: 3,
+    speed: 0.3,
+    max_speed: 4,
     overshoot: 0.8,
     distance_from_face: 0,
     active: 0, //should be zero, this is just for testing
@@ -495,9 +495,9 @@ export class GameMath {
         z: 0,
       },
       velocity: {
-        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
-        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
-        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.5),
+        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
+        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
+        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
       },
       radius: this.ball.radius,
       reset: 1,

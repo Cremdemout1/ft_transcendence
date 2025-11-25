@@ -6,7 +6,7 @@ import {
   Scene
 } from "@babylonjs/core";
 import  {createGameScene } from "./scenes/main";
-import { GameMath } from "../../backend/src/game/pong/pong_logic";
+import { GameMath } from "../../game_server/src/game/pong/pong_logic";
 
 enum State {
   START = 0,

@@ -4,7 +4,7 @@ import score_unit from "@/assets/models/score_unit.glb"; //score digit
 import counter from "@/assets/models/digital_clock_anim.glb"; //score counter
 import pfp from "../../assets/tex/profile_pic.jpg";
 import { glow_score_digits } from "./babylonUtils";
-import { GameMath } from "../../../backend/src/game/pong/pong_logic";
+import { GameMath } from "../../../game_server/src/game/pong/pong_logic";
 
 export type stick = {
   player: number;

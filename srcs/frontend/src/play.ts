@@ -103,7 +103,8 @@ socket.on('matchOver', ({ winner, winnerSocketId }) => {
 		'lastMatchWinner',
 		JSON.stringify({ winnerIdx: winner, winnerSocketId })
 	);
-	alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
+	// alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
+	window.location.hash = '#endGame';
 });
 
 socket.on('tournamentWinner', ({ tournamentId, champion }) => {

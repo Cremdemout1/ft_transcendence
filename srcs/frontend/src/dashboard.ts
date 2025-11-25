@@ -10,6 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+import { socket } from "./matchmaking";
+
 async function checkLoginState(path:string) {
     const token = localStorage.getItem('jwt');
     if (!token) {
@@ -32,11 +34,18 @@ async function checkLoginState(path:string) {
 
 async function fetchDashboard() {
     checkLoginState("http://localhost:8080/api/dashboard");
-        localStorage.removeItem("isSinglePlayer");
-        localStorage.removeItem("roomCode");
-        localStorage.removeItem("numPlayers");
-        localStorage.removeItem("lastMatchWinner");
-        localStorage.removeItem("vanilla"); //for now
+    localStorage.removeItem("isSinglePlayer");
+    localStorage.removeItem("roomCode");
+    localStorage.removeItem("numPlayers");
+    localStorage.removeItem("lastMatchWinner");
+    localStorage.removeItem("vanilla"); //for now
+    window.addEventListener("popstate", () => {
+        if (window.location.hash !== "#pong") {
+            console.log("found someone going away from game")
+            console.log(window.location.hash)
+            socket.emit("leaveGame");
+        }
+    });
 }
 
 export { checkLoginState, fetchDashboard };

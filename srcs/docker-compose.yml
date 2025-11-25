@@ -21,7 +21,6 @@ services:
   backend:
     container_name: backend
     restart: always
-    # env_file: ./backend/.env
     env_file: ../.env
     build:
       context: ./backend
@@ -40,13 +39,10 @@ services:
 
   game_server:
     build:
-      context: ./backend
+      context: ./game_server
       dockerfile: Dockerfile
-    command: node dist/game_server.js
     ports:
       - "8081:8081"
-    volumes:
-      - sqlite-vol:/data
     networks:
       - transcendence
     depends_on:
@@ -54,17 +50,17 @@ services:
         condition: service_started
     env_file: ../.env
 
-  frontend:
-    container_name: frontend
-    restart: always
-    env_file: ../.env
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    networks:
-      - transcendence
-    depends_on:
-      - backend
+  # frontend:
+  #   container_name: frontend
+  #   restart: always
+  #   env_file: ../.env
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   networks:
+  #     - transcendence
+  #   depends_on:
+  #     - backend
 
   redis:
     container_name: redis

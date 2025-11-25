@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { GameMeshes } from "../scenes/main";
-import { GameMath } from "../../../backend/src/game/pong/pong_logic";
+import { GameMath } from "../../../game_server/src/game/pong/pong_logic";
 import { print_score } from "./scorePrinting";
 
 export function update_ball(meshes: GameMeshes, state: any) {
