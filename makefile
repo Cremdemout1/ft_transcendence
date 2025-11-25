@@ -72,6 +72,8 @@ down: #removes containers
 	$(DOCKER_COMPOSE) -f $(YML) down -v
 	@rm -rf srcs/backend/dist
 	@rm -rf srcs/backend/node_modules
+	@rm -rf srcs/game_server/dist
+	@rm -rf srcs/game_server/node_modules
 	
 fclean: down
 	docker system prune -a -f --volumes

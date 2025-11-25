@@ -186,7 +186,7 @@ async function import_meshes(
 
 	let AImodel= AI==1 ? phanta : yohai;
 	let AI_meshes: BABYLON.ISceneLoaderAsyncResult;
-
+    console.log(AImodel);
 	try {
     AI_meshes = await BABYLON.SceneLoader.ImportMeshAsync(
       "",
@@ -195,7 +195,7 @@ async function import_meshes(
       scene
     );
     const AIMesh = AI_meshes.meshes[0];
-    if (AIMesh) AIMesh.position = new BABYLON.Vector3(1, 1, 700);//need to check the axes
+    if (AIMesh) AIMesh.scaling = new BABYLON.Vector3(100, 100, 100);//need to check the axes
   } catch (error) {
     console.error("Failed to load AI model:", error);
     throw error;
@@ -253,38 +253,38 @@ export async function createGameScene( //function that makes all the visuals (up
 
   //initial call to the API to fetch game information such as how many players there are will go here
 
-  const room = await new Promise<any>((resolve) => {
+  // const room = await new Promise<any>((resolve) => {
+  //   socket.on(
+  //     "roomResponse",
+  //     ({ room }: { room: any }) => {
+  //       console.log("roomResponse event received:", room);
+  //       resolve(room);
+  //     }
+  //   );
+
+  //   socket.emit("roomRequest", {});
+
+  //   // Fallback timeout
+  //   setTimeout(() => resolve(6), 2000);
+  // });
+  
+  // const player_nbr= room.numPlayers;
+  // const vanilla= room.vanilla;
+  // const AI= room.isSinglePlayer;
+  const player_nbr = await new Promise<number>((resolve) => {
     socket.on(
-      "roomResponse",
-      ({ room }: { room: any }) => {
-        console.log("roomResponse event received:", room);
-        resolve(room);
+      "playerCountResponse",
+      ({ numPlayers }: { numPlayers: number }) => {
+        console.log("playerCountResponse event received:", numPlayers);
+        resolve(numPlayers);
       }
     );
 
-    socket.emit("roomRequest", {});
+    socket.emit("playerCountRequest", {});
 
     // Fallback timeout
     setTimeout(() => resolve(6), 2000);
   });
-  
-  const player_nbr= room.numPlayers;
-  const vanilla= room.vanilla;
-  const AI= room.isSinglePlayer;
-//   const player_nbr = await new Promise<number>((resolve) => {
-//     socket.on(
-//       "playerCountResponse",
-//       ({ numPlayers }: { numPlayers: number }) => {
-//         console.log("playerCountResponse event received:", numPlayers);
-//         resolve(numPlayers);
-//       }
-//     );
-
-//     socket.emit("playerCountRequest", {});
-
-//     // Fallback timeout
-//     setTimeout(() => resolve(6), 2000);
-//   });
 
     let player_id = await new Promise<number>((resolve) => {
     socket.on(
@@ -302,35 +302,35 @@ export async function createGameScene( //function that makes all the visuals (up
   });
 // console.log("PLAYER ID: "+ player_id);
 
-//     let vanilla = await new Promise<number>((resolve) => {
-//     socket.on(
-//       "vanillaResponse",
-//       ({ vanilla }: { vanilla: number }) => {
-//         console.log("vanillaResponse event received:", vanilla);
-//         resolve(vanilla);
-//       }
-//     );
+    let vanilla = await new Promise<number>((resolve) => {
+    socket.on(
+      "vanillaResponse",
+      ({ vanilla }: { vanilla: number }) => {
+        console.log("vanillaResponse event received:", vanilla);
+        resolve(vanilla);
+      }
+    );
 
-//     socket.emit("vanillaRequest", {});
+    socket.emit("vanillaRequest", {});
 
-//     // Fallback timeout
-//     setTimeout(() => resolve(0), 2000);
-//   });
+    // Fallback timeout
+    setTimeout(() => resolve(0), 2000);
+  });
 
-//       let AI = await new Promise<number>((resolve) => {
-//     socket.on(
-//       "AIResponse",
-//       ({ AI }: { AI: number }) => {
-//         console.log("AIResponse event received:", AI);
-//         resolve(AI);
-//       }
-//     );
+      let AI = await new Promise<number>((resolve) => {
+    socket.on(
+      "AIResponse",
+      ({ AI }: { AI: number }) => {
+        console.log("AIResponse event received:", AI);
+        resolve(AI);
+      }
+    );
 
-//     socket.emit("AIRequest", {});
+    socket.emit("AIRequest", {});
 
-//     // Fallback timeout
-//     setTimeout(() => resolve(0), 2000);
-//   });
+    // Fallback timeout
+    setTimeout(() => resolve(0), 2000);
+  });
 
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",

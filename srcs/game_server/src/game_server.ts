@@ -422,13 +422,13 @@ if(room.vanilla==1)
   }
 }
 
-// function handlePlayerCountRequest(socket: Socket): void {
-//   const { room } = findPlayerRoom(socket.id);
-//   const numPlayers = room ? room.numPlayers : 6; //default fallback
+function handlePlayerCountRequest(socket: Socket): void {
+  const { room } = findPlayerRoom(socket.id);
+  const numPlayers = room ? room.numPlayers : 6; //default fallback
   
-//   console.log(`Sending playerCountResponse with ${numPlayers} players to ${socket.id}`);
-//   socket.emit("playerCountResponse", { numPlayers });
-// }
+  console.log(`Sending playerCountResponse with ${numPlayers} players to ${socket.id}`);
+  socket.emit("playerCountResponse", { numPlayers });
+}
 
 
 function handlePlayerIDRequest(socket: Socket): void {
@@ -441,30 +441,30 @@ function handlePlayerIDRequest(socket: Socket): void {
 }
 
 
-// function handleVanillaRequest(socket: Socket): void {
-//   const { room } = findPlayerRoom(socket.id);
-  
-// 	const vanilla = room? room.vanilla : -1;
-  
-//   console.log(`Sending vanilla :${vanilla} to ${socket.id}`);
-//   socket.emit("vanillaResponse", { vanilla });
-// }
-
-// function handleAIRequest(socket: Socket): void {
-//   const { room } = findPlayerRoom(socket.id);
-  
-// 	const AI = room? room.isSinglePlayer : -1;
-  
-//   console.log(`Sending AI :${AI} to ${socket.id}`);
-//   socket.emit("AIResponse", { AI });
-// }
-
-function handleRoomRequest(socket: Socket): void {
+function handleVanillaRequest(socket: Socket): void {
   const { room } = findPlayerRoom(socket.id);
   
-  console.log(`Sending room :${room} to ${socket.id}`);
-  socket.emit("roomResponse", { room });
+	const vanilla = room? room.vanilla : -1;
+  
+  console.log(`Sending vanilla :${vanilla} to ${socket.id}`);
+  socket.emit("vanillaResponse", { vanilla });
 }
+
+function handleAIRequest(socket: Socket): void {
+  const { room } = findPlayerRoom(socket.id);
+  
+	const AI = room? room.isSinglePlayer : -1;
+  
+  console.log(`Sending AI :${AI} to ${socket.id}`);
+  socket.emit("AIResponse", { AI });
+}
+
+// function handleRoomRequest(socket: Socket): void {
+//   const { room } = findPlayerRoom(socket.id);
+  
+//   console.log(`Sending room :${room} to ${socket.id}`);
+//   socket.emit("roomResponse", { room });
+// }
 
 function handleCreateRoom(socket: Socket, numPlayers: number): void {
   const code = generateRoomCode();
@@ -1007,26 +1007,26 @@ io.on("connection", (socket: Socket) => {
     socket.disconnect();
   });
   
-//   // Player count requests
-//   socket.on("playerCountRequest", () => {
-//     handlePlayerCountRequest(socket);
-//   });
+  // Player count requests
+  socket.on("playerCountRequest", () => {
+    handlePlayerCountRequest(socket);
+  });
 
     socket.on("playerIDRequest", () => {
     handlePlayerIDRequest(socket);
   });
 
-//       socket.on("vanillaRequest", () => {
-//     handleVanillaRequest(socket);
-//   });
-
-//   socket.on("AIRequest", () => {
-//     handleAIRequest(socket);
-//   });
-
-   socket.on("roomRequest", () => {
-    handleRoomRequest(socket);
+      socket.on("vanillaRequest", () => {
+    handleVanillaRequest(socket);
   });
+
+  socket.on("AIRequest", () => {
+    handleAIRequest(socket);
+  });
+
+  //  socket.on("roomRequest", () => {
+  //   handleRoomRequest(socket);
+  // });
   
   // Room management
   socket.on("createRoom", ({ numPlayers }: { numPlayers: number }) => {
