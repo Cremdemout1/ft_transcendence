@@ -28,6 +28,7 @@ async function checkLoginState(path:string) {
         console.log(data);
     } else {
         console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
+        localStorage.removeItem("jwt");
         return location.hash = '/#login';
     }
 }
@@ -41,8 +42,8 @@ async function fetchDashboard() {
     localStorage.removeItem("vanilla"); //for now
     window.addEventListener("popstate", () => {
         if (window.location.hash !== "#pong") {
-            console.log("found someone going away from game")
-            console.log(window.location.hash)
+            // console.log("found someone going away from game")
+            // console.log(window.location.hash)
             socket.emit("leaveGame");
         }
     });
