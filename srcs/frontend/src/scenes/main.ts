@@ -5,6 +5,8 @@ import HavokPhysics from "@babylonjs/havok";
 import model from "@/assets/models/arena.glb"; //arena, paddles and ball models
 import city from "@/assets/models/mid_city_separate.glb"; //city model
 import score from "@/assets/models/score.glb"; //score sign model
+import phanta from "@/assets/models/phanta.obj"; //PhantAI
+import yohai from "@/assets/models/yohan.obj"; //yohAI
 import {
   simmetrical_vec,
   createLight,
@@ -107,7 +109,8 @@ async function import_meshes(
   scene: BABYLON.Scene,
   meshes: GameMeshes,
   player_nbr: number,
-  player_id: number
+  player_id: number,
+  AI: number
 ) {
   let arena_meshes: BABYLON.ISceneLoaderAsyncResult;
   try {
@@ -178,6 +181,26 @@ async function import_meshes(
   }
 
   await score_counter(player_nbr, scene, meshes, player_id);
+
+  if(AI){
+
+	let AImodel= AI==1 ? phanta : yohai;
+	let AI_meshes: BABYLON.ISceneLoaderAsyncResult;
+
+	try {
+    AI_meshes = await BABYLON.SceneLoader.ImportMeshAsync(
+      "",
+      "",
+      AImodel,
+      scene
+    );
+    const AIMesh = AI_meshes.meshes[0];
+    if (AIMesh) AIMesh.position = new BABYLON.Vector3(1, 1, 700);//need to check the axes
+  } catch (error) {
+    console.error("Failed to load AI model:", error);
+    throw error;
+  }
+  }
 }
 
 function arena_orientation(
@@ -229,20 +252,39 @@ export async function createGameScene( //function that makes all the visuals (up
   const scene = new BABYLON.Scene(engine);
 
   //initial call to the API to fetch game information such as how many players there are will go here
-  const player_nbr = await new Promise<number>((resolve) => {
+
+  const room = await new Promise<any>((resolve) => {
     socket.on(
-      "playerCountResponse",
-      ({ numPlayers }: { numPlayers: number }) => {
-        console.log("playerCountResponse event received:", numPlayers);
-        resolve(numPlayers);
+      "roomResponse",
+      ({ room }: { room: any }) => {
+        console.log("roomResponse event received:", room);
+        resolve(room);
       }
     );
 
-    socket.emit("playerCountRequest", {});
+    socket.emit("roomRequest", {});
 
     // Fallback timeout
     setTimeout(() => resolve(6), 2000);
   });
+  
+  const player_nbr= room.numPlayers;
+  const vanilla= room.vanilla;
+  const AI= room.isSinglePlayer;
+//   const player_nbr = await new Promise<number>((resolve) => {
+//     socket.on(
+//       "playerCountResponse",
+//       ({ numPlayers }: { numPlayers: number }) => {
+//         console.log("playerCountResponse event received:", numPlayers);
+//         resolve(numPlayers);
+//       }
+//     );
+
+//     socket.emit("playerCountRequest", {});
+
+//     // Fallback timeout
+//     setTimeout(() => resolve(6), 2000);
+//   });
 
     let player_id = await new Promise<number>((resolve) => {
     socket.on(
@@ -258,24 +300,37 @@ export async function createGameScene( //function that makes all the visuals (up
     // Fallback timeout
     setTimeout(() => resolve(-2), 2000);
   });
-console.log("PLAYER ID: "+ player_id);
-  //   let player_nbr = 2;
-//   let player_id = 1;
+// console.log("PLAYER ID: "+ player_id);
 
-    let vanilla = await new Promise<number>((resolve) => {
-    socket.on(
-      "vanillaResponse",
-      ({ vanilla }: { vanilla: number }) => {
-        console.log("vanillaResponse event received:", vanilla);
-        resolve(vanilla);
-      }
-    );
+//     let vanilla = await new Promise<number>((resolve) => {
+//     socket.on(
+//       "vanillaResponse",
+//       ({ vanilla }: { vanilla: number }) => {
+//         console.log("vanillaResponse event received:", vanilla);
+//         resolve(vanilla);
+//       }
+//     );
 
-    socket.emit("vanillaRequest", {});
+//     socket.emit("vanillaRequest", {});
 
-    // Fallback timeout
-    setTimeout(() => resolve(0), 2000);
-  });
+//     // Fallback timeout
+//     setTimeout(() => resolve(0), 2000);
+//   });
+
+//       let AI = await new Promise<number>((resolve) => {
+//     socket.on(
+//       "AIResponse",
+//       ({ AI }: { AI: number }) => {
+//         console.log("AIResponse event received:", AI);
+//         resolve(AI);
+//       }
+//     );
+
+//     socket.emit("AIRequest", {});
+
+//     // Fallback timeout
+//     setTimeout(() => resolve(0), 2000);
+//   });
 
   let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
     "../../assets/hdris/night_sky2.env",
@@ -317,7 +372,7 @@ console.log("PLAYER ID: "+ player_id);
   meshes.score_units = [];
   meshes.score_counter = [];
 
-  await import_meshes(scene, meshes, player_nbr, player_id);
+  await import_meshes(scene, meshes, player_nbr, player_id, AI);
 
   arena_orientation(meshes, scene, player_id, vanilla);
   const scoremat = scene.getMeshByName("score")
@@ -421,6 +476,8 @@ console.log("PLAYER ID: "+ player_id);
     }
   });
 
+  let spltScrn = 0;
+
   if(vanilla==1)
   {
 	scene.onKeyboardObservable.add((kbInfo) => {
@@ -440,6 +497,10 @@ console.log("PLAYER ID: "+ player_id);
           case "ArrowRight":
             input2.right = 1;
             break;
+		  case ".":
+            if (!spltScrn) spltScrn = 1;
+            else spltScrn = 0;
+            break;
         }
         break;
 
@@ -456,6 +517,9 @@ console.log("PLAYER ID: "+ player_id);
             break;
           case "ArrowRight":
             input2.right = 0;
+            break;
+		  case ".":
+            spltScrn = spltScrn;
             break;
         }
         break;
