@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/10 15:56:22 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/26 17:06:35 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ async function backendSignup() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
         try {
-            const res = await fetch("http://localhost:8080/api/signup",
+            const res = await fetch("http://10.101.172.74:8080/api/signup",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

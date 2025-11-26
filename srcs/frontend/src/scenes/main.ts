@@ -63,6 +63,8 @@ function camera_setup(
   if(vanilla==1){
 	camera.inputs.remove(camera.inputs.attached.keyboard);
 	camera.fov=0.7;
+	  camera.lowerRadiusLimit = 100; //how close to the target the camera can get
+  	camera.upperRadiusLimit = 300; //and how far
   }
 
   const ratio = canvas.height / canvas.width;
