@@ -75,6 +75,16 @@ const routes = {
     endgame: renderWinScreen
 };
 
+const routeStr = [
+    "login",
+    "signup",
+    "dashboard",
+    "pong",
+    "me",
+    "twoFA",
+    "endgame"
+]
+
 function renderLogin() {
     app.innerHTML = `
         <h1>LOGIN</h1>
@@ -132,11 +142,31 @@ function renderDashboard() {
 
 function router() {
     updateCyberPongTitle();
-    const hash = window.location.hash || '#login';
+    const hash = window.location.hash || 'login';
     const [path, queryString] = hash.slice(1).split('?');
     const params = new URLSearchParams(queryString);
-    const firstSegment = path.toLowerCase();
+    let firstSegment = path.toLowerCase();
+
+    let paths = firstSegment.split("/#"); // to fix issues such as /#/#login
+    if (paths.length !== 1) {
+        let rightPath = "login";
+        for (let idx of paths) {
+            if (!routeStr.includes(idx))
+                continue ;
+            else
+                rightPath = idx;
+            firstSegment = idx;
+        }
+        location.hash = rightPath;
+    }
     const render = routes[firstSegment] || renderLogin;
+
+    // console.log("hash: ", hash);
+    // console.log("path: ", path);
+    // console.log("querystring: ", queryString);
+    // console.log("params: ", params);
+    // console.log("firstSegment: ", firstSegment);
+    // console.log("render: ", render);
 
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
