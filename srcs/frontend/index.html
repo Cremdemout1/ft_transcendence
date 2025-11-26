@@ -72,7 +72,7 @@ const routes = {
     pong: renderPong,
     me: renderProfile,
     twoFA: verify2faCode,
-    endGame: renderWinScreen
+    endgame: renderWinScreen
 };
 
 function renderLogin() {
@@ -119,7 +119,10 @@ function renderDashboard() {
     logout();
     play();
     me();
+    // endGame();
     const playBtn = document.getElementById('playBtn');
+    if (!playBtn)
+        return ;
     playBtn.addEventListener('click', () => {
         musicSource.src = playlist[currentTrack];
         music.load();

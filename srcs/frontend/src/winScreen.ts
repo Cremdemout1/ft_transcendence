@@ -1,10 +1,11 @@
 import { checkLoginState } from "./dashboard";
 
 async function renderWinScreen(playerIdx: string) {
-    // await checkLoginState("http://localhost:8080/api/gameEnd");
+    const storage = localStorage.getItem("lastMatchWinner");
+    if (!storage)
+        location.href = "#dashboard";
     const app = document.getElementById("app");
     if (!app) return;
-    const storage = localStorage.getItem("lastMatchWinner");
     const winner = storage ? JSON.parse(storage) : null;
     // { winnerIdx: winner, winnerSocketId }
     let congratulations: string;
@@ -16,7 +17,7 @@ async function renderWinScreen(playerIdx: string) {
     app.innerHTML = `
         <div class="menu-container">
             <h1>${congratulations}</h1>
-            <a href="#dashboard" class="btn">Signup instead</a>
+            <a href="#dashboard" class="btn">Back to Dashboard</a>
         </div>
     `;
 }
