@@ -63,6 +63,8 @@ function camera_setup(
   if(vanilla==1){
 	camera.inputs.remove(camera.inputs.attached.keyboard);
 	camera.fov=0.7;
+	  camera.lowerRadiusLimit = 100; //how close to the target the camera can get
+  	camera.upperRadiusLimit = 300; //and how far
   }
 
   const ratio = canvas.height / canvas.width;
@@ -196,9 +198,9 @@ async function import_meshes(
     );
     const AIMesh = AI_meshes.meshes[0];
     if (AIMesh) {
-		AIMesh.position = new BABYLON.Vector3(200, -150, 0);
 		AIMesh.scaling = new BABYLON.Vector3(150, 150, 150);
-		AIMesh.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+		AIMesh.rotation = new BABYLON.Vector3(0, Math.PI/2, 0);
+		AIMesh.position = new BABYLON.Vector3(200, -150, 0);
 	}
   } catch (error) {
     console.error("Failed to load AI model:", error);

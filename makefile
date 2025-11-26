@@ -3,22 +3,22 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
+#    By: yohan <yohan@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/11/20 14:16:46 by gcapa-pe         ###   ########.fr        #
+#    Updated: 2025/11/26 13:38:42 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
- DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
- DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /Users/yohan/Desktop/ft_transcendence/sqlite-data
+DEV_DB_PATH	   = file:/Users/yohan/Desktop/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
-# DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
-# DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
+# DEV_DB_DIR	   = /home/yohan/ft_transcendence/sqlite-data
+# DEV_DB_PATH	   = file:/home/yohan/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/transcendence/data/sqlite-data
 #DEV_DB_PATH	   = file:/home/transcendence/data/sqlite-data/database.sqlite
 PROD_DB_PATH   = file:/data/database.sqlite
@@ -35,7 +35,7 @@ up:
 # 	@cd srcs/game_server && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
-	@sudo rm .env.bak
+	@rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build
 
@@ -44,7 +44,7 @@ upd:
 # 	@cd srcs/game_server && npm install && cd ../..
 	@mkdir -p ${DEV_DB_DIR}
 	@sed -i.bak -E 's|^(DATABASE_URL=).*$$|\1$(PROD_DB_PATH)|' .env
-	@sudo rm .env.bak
+	@rm .env.bak
 	@echo "DATABASE_URL changed to $(PROD_DB_PATH) in .env"
 	$(DOCKER_COMPOSE) -f $(YML) up --build -d
 
@@ -78,7 +78,7 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	@rm -rf ${DEV_DB_DIR}
+	# @rm -rf ${DEV_DB_DIR}
 	@rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 
