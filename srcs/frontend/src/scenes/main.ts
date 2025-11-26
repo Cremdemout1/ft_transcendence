@@ -195,7 +195,11 @@ async function import_meshes(
       scene
     );
     const AIMesh = AI_meshes.meshes[0];
-    if (AIMesh) AIMesh.scaling = new BABYLON.Vector3(100, 100, 100);//need to check the axes
+    if (AIMesh) {
+		AIMesh.scaling = new BABYLON.Vector3(150, 150, 150);
+		AIMesh.rotation = new BABYLON.Vector3(0, Math.PI/2, 0);
+		AIMesh.position = new BABYLON.Vector3(200, -150, 0);
+	}
   } catch (error) {
     console.error("Failed to load AI model:", error);
     throw error;
