@@ -73,6 +73,12 @@
     z-index: 998;
   }
 
+  body.no-crt::before,
+body.no-crt::after {
+    content: none !important;
+    display: none !important;
+}
+
   @keyframes glassSweep {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/10 15:53:37 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/11/26 16:51:57 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ async function startServer()
     {
       await startSwagger()
       const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 8080)
-      const HOST = process.env.HOST || process.env.BACKEND_HOST || '0.0.0.0'
+      const HOST = '0.0.0.0'
       await fastify.listen({ port: PORT, host: HOST })
       console.log(`server listening on ${HOST}:${PORT}`)
     }
