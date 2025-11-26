@@ -127,7 +127,7 @@ export class GameMath {
       this.wallCollisions(); //also checks score
       //console.log(this.ball.velocity)
       this.paddles.map((item, idx) => {if(item.score<0) item.score=0;
-		if(item.score>9) this.winner=idx;
+		if(item.score>4) this.winner=idx;
 	  });//do i need to add active safeguard?
 	  if(this.collision==1) this.ball.velocity=this.scale_vec3(1.1,this.ball.velocity);
     if (this.collision || this.ball.reset || this.wall_collision) this.raycast();
@@ -495,9 +495,9 @@ export class GameMath {
         z: 0,
       },
       velocity: {
-        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
-        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
-        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 1.5),
+        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
+        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
+        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
       },
       radius: this.ball.radius,
       reset: 1,

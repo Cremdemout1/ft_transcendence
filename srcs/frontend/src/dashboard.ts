@@ -34,7 +34,7 @@ async function checkLoginState(path:string) {
 }
 
 async function fetchDashboard() {
-    checkLoginState("http://10.101.172.74:8080/api/dashboard");
+    checkLoginState("http://10.12.242.238:8080/api/dashboard");
     localStorage.removeItem("isSinglePlayer");
     localStorage.removeItem("roomCode");
     localStorage.removeItem("numPlayers");

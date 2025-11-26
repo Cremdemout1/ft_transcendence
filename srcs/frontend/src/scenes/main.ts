@@ -616,6 +616,8 @@ export async function createGameScene( //function that makes all the visuals (up
         serverGameState.ball.velocity.y,
         serverGameState.ball.velocity.z
       ).length();
+      console.log("speed: ", speed);
+      console.log("ball vel: ", serverGameState.ball.velocity);
       counter = 0.5;
     }
     if (newnewMesh) {

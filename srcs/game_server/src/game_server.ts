@@ -453,8 +453,9 @@ function handleVanillaRequest(socket: Socket): void {
 function handleAIRequest(socket: Socket): void {
   const { room } = findPlayerRoom(socket.id);
   let AI: number = -1;
-  if (room && room.isSinglePlayer)
-    AI = room.isSinglePlayer
+
+  if (room && room.isSinglePlayer! >= 0 && room.isSinglePlayer! < 3)
+    AI = room.isSinglePlayer!;
   console.log(room);
   
   console.log(`Sending AI :${AI} to ${socket.id}`);
@@ -566,12 +567,12 @@ function getTimeToHold(room: Room, ai_type: number) {
   let MAX_TIME = 0;
   let k = 0;
   if (ai_type === 2) { //yohai
-    MAX_TIME = 800;
-    k = 0.005; // curve strength
-  }
-  else { //phantai
     MAX_TIME = 750;
     k = 0.01; // curve strength
+  }
+  else { //phantai
+    MAX_TIME = 800;
+    k = 0.001; // curve strength
   }
   timeToHold = MAX_TIME * (1 - Math.exp(-k * norm_dist));
   room.interval = timeToHold;

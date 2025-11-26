@@ -29,7 +29,7 @@ async function backendSignup() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
         try {
-            const res = await fetch("http://10.101.172.74:8080/api/signup",
+            const res = await fetch("http://10.12.242.238:8080/api/signup",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
