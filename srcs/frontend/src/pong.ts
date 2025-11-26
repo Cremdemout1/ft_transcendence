@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/21 10:05:20 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/26 14:49:09 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,19 +82,52 @@ function showGameModeMenu() {
 			<h2 class="terminal-title">SELECT MODE</h2>
 			<button class="neon-btn" id="localGameBtn">LOCAL GAME</button>
 			<button class="neon-btn" id="singlePlayerBtn">SINGLE PLAYER</button>
+			<div id="singlePlayerOptions" class="create-options">
+				<button class="neon-subbtn" ai-type="1">PhantAI</button>
+				<button class="neon-subbtn" ai-type="2">YohAI</button>
+       		</div>
 			<button class="neon-btn" id="multiPlayerBtn">MULTIPLAYER</button>
 			<button class="exit-btn" id="backBtn">BACK</button>
 		</div>
 	`;
 
 	history.pushState({ view: "gameModeMenu" }, "", "#gamemode");
+	const singlePlayerBtn = document.getElementById('singlePlayerBtn');
+	const singlePlayerOptions = document.getElementById('singlePlayerOptions');
+	let optionsVisible = false;
 
+	const showOptions = () => {
+		if (singlePlayerOptions) singlePlayerOptions.style.display = 'flex';
+		optionsVisible = true;
+	};
+	const hideOptions = () => {
+		if (singlePlayerOptions) singlePlayerOptions.style.display = 'none';
+		optionsVisible = false;
+	};
+
+	if (singlePlayerBtn && singlePlayerOptions) {
+		singlePlayerBtn.addEventListener('mouseenter', showOptions);
+		singlePlayerBtn.addEventListener('mouseleave', () =>
+			setTimeout(() => {
+				if (!optionsVisible) hideOptions();
+			}, 100)
+		);
+		singlePlayerOptions.addEventListener('mouseenter', showOptions);
+		singlePlayerOptions.addEventListener('mouseleave', hideOptions);
+	}
+
+	document.querySelectorAll('.neon-subbtn').forEach((btn) => {
+		btn.addEventListener('click', () => {
+			const AI = btn.getAttribute('ai-type');
+			if (!AI)
+				return ;
+			console.log(AI);
+			startSinglePlayerGame(Number(AI));
+		});
+	});
 	// document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
-	// 	location.href = "/#pong";
-	// });
-	document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
-		startSinglePlayerGame();
-	})
+	// 	startSinglePlayerGame();
+	// })
 
 	document.getElementById("localGameBtn")?.addEventListener("click", () => {
 		startLocalGame();

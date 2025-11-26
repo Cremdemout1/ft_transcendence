@@ -43,8 +43,8 @@ function createGame(numPlayers: number) {
     ensureConnected().then(() => socket.emit("createRoom", { numPlayers }));
 }
 
-function createSinglePlayerGame() {
-    ensureConnected().then(() => socket.emit("createSinglePlayerRoom"));
+function createSinglePlayerGame(ai_type: number = 1) {
+    ensureConnected().then(() => socket.emit("createSinglePlayerRoom", { ai_type }));
 }
 
 function createLocalGame() {
@@ -55,10 +55,10 @@ function joinGame(code: string) {
     ensureConnected().then(() => socket.emit("joinRoom", { code }));
 }
 
-function startSinglePlayerGame() {
+function startSinglePlayerGame(ai_type: number = 1) {
     // renderPong();
     localStorage.setItem('numPlayers', '1');
-    createSinglePlayerGame();
+    createSinglePlayerGame(ai_type);
 }
 
 export function startLocalGame() {
@@ -143,7 +143,7 @@ socket.on("error", ({ message }: { message: string }) => {
     alert(message); // Show error to user
 });
 
-socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: boolean, vanilla: number }) => {
+socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: number, vanilla: number }) => {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
       document.body.classList.add("game-active");

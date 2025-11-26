@@ -341,7 +341,7 @@ export class Optimizer_SGD {
 
 export function LoadWeights(layer1: Layer_Dense, layer2: Layer_Dense, layer3: Layer_Dense)
 {
-	const raw = fs.readFileSync("/home/backend/src/AI/momentum.json", "utf8");
+	const raw = fs.readFileSync("/home/game_server/src/AI/momentum.json", "utf8");
 const saved = JSON.parse(raw);
 
 layer1.weights = saved.layer1.weights;
