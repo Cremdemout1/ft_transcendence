@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/26 17:06:35 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/27 13:23:52 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ async function backendLogin() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
         try {
-            const res = await fetch("http://10.12.242.238:8080/api/login",
+            const res = await fetch("http://10.101.172.74:8080/api/login",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -100,7 +100,7 @@ async function send2FA() {
             return alert("Please enter a code");
         
         try {
-            const res = await fetch("http://10.12.242.238:8080/api/verify-2fa", {
+            const res = await fetch("http://10.101.172.74:8080/api/verify-2fa", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json',
                 },

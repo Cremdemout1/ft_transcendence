@@ -38,7 +38,7 @@ export class GameMath {
 	last_hit_by: number |null;
   } = {
     pos: { x: 0, y: 0, z: 0 },
-    velocity: { x: 0.2, y: 0.4, z: -0.1 },
+    velocity: { x: 20, y: 40, z: -10 },
     radius: 3.25,
     reset: 1, //flag for when the ball has just been reset (to tell client to reset the trail)
 	last_hit_by: null
@@ -58,8 +58,8 @@ export class GameMath {
     y: 0,
     height: 20,
     depth: 2,
-    speed: 0.3,
-    max_speed: 4,
+    speed: 9,
+    max_speed: 100,
     overshoot: 0.8,
     distance_from_face: 0,
     active: 0, //should be zero, this is just for testing
@@ -85,6 +85,8 @@ export class GameMath {
   private collision: number = 0;
   private wall_collision: number = 0;
   private winner: number = -1;
+  private lastTime: number = -1;
+  private dt: number=1;
 
   private add_vec3(a: Vec3, b: Vec3): Vec3 {
     return {
@@ -119,9 +121,19 @@ export class GameMath {
 
   public async update(
   ) {
+	const now = Date.now();
+	if(this.lastTime==-1)
+		this.lastTime=now;
+	this.dt = (now - this.lastTime) / 1000;
+	this.lastTime = now;
       this.collision = 0;
 	  this.wall_collision = 0;
-      this.ball.pos = this.add_vec3(this.ball.pos, this.ball.velocity);
+	  let fixed_vel: Vec3={
+		x:this.ball.velocity.x*this.dt,
+		y:this.ball.velocity.y*this.dt,
+		z:this.ball.velocity.z*this.dt
+	  }
+      this.ball.pos = this.add_vec3(this.ball.pos, fixed_vel);
       this.ball.reset = 0;
       this.paddleManager(); //here we check all the paddles(that we need to)
       this.wallCollisions(); //also checks score
@@ -241,8 +253,8 @@ export class GameMath {
       Math.min(paddle.vy, paddle.max_speed)
     );
 
-    paddle.x += paddle.vx;
-    paddle.y += paddle.vy;
+    paddle.x += paddle.vx*this.dt;
+    paddle.y += paddle.vy*this.dt;
 
     if (
       Math.abs(paddle.x) >
@@ -495,9 +507,9 @@ export class GameMath {
         z: 0,
       },
       velocity: {
-        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
-        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
-        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
+        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
+        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
+        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
       },
       radius: this.ball.radius,
       reset: 1,

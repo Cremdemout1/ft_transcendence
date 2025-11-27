@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 17:31:19 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/27 13:23:52 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ import { mountChat } from "./chat";
 import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
 
 async function renderPong() {
-	await checkLoginState("http://10.12.242.238:8080/api/pong");
+	await checkLoginState("http://10.101.172.74:8080/api/pong");
 
 	const app = document.getElementById("app");
 	if (!app) return;
