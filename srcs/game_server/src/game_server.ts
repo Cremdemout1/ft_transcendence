@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 16:51:44 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/27 17:29:38 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ class TournamentManager {
     // notify the players that their tournament is starting
     playerIds.forEach((pid) => {
       const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
-      s?.emit("tournamentStarted", { tournamentId: tid, players: playerIds });
+      s?.emit("tournamentStarted", { tournamentId: tid, players: playersUsernames });
     });
 
   // Create first round matches (1v1): pairs [0,1],[2,3],[4,5],[6,7]
@@ -183,8 +183,10 @@ class TournamentManager {
     if (matchMeta.winner) return; // already handled
 
     const winnerSocketId = room.players[winnerIdx];
+    // const winnerUsername = room.playersUsr[winnerIdx];
+    const winnerUsername = room.playersUsr.find(p => p.socket === winnerSocketId)?.alias;
     matchMeta.winner = winnerSocketId;
-    console.log(`Tournament ${tid} match ${roomCode} finished. Winner: ${winnerSocketId}`);
+    console.log(`Tournament ${tid} match ${roomCode} finished. Winner: ${winnerUsername}`);
 
     // remove both players from the room
     room.players.forEach((pid) => {
@@ -203,15 +205,25 @@ class TournamentManager {
     // if round complete
     if (roundWinners.length === Object.keys(tournament.activeMatches).length) {
       const winnerIds: string[] = Object.values(tournament.activeMatches).map((m: any) => m.winner);
+      const winnerUsernames: string[] = [];
+      for (let winner of winnerIds) {
+        const room = findPlayerRoom(winner).room;
+        const player = room?.playersUsr.find(p => p.socket === winner);
+        const username = player?.alias ?? "Unknown";
+        winnerUsernames.push(username);
+      }
       // prepare next round
       if (winnerIds.length === 1) {
         // tournament finished
         const champion = winnerIds[0];
-        console.log(`Tournament ${tid} champion: ${champion}`);
+        const room = findPlayerRoom(champion).room;
+        const player = room?.playersUsr.find(p => p.socket === champion);
+        const championUsername = player?.alias ?? "Unknown";
+        console.log(`Tournament ${tid} champion: ${champion} username: ${championUsername}`);
         // notify all original players
         tournament.players.forEach((pid: string) => {
           const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
-          s?.emit("tournamentWinner", { tournamentId: tid, champion });
+          s?.emit("tournamentWinner", { tournamentId: tid, champion, alias: championUsername });
         });
         // clean up
         delete this.tournaments[tid];
@@ -236,6 +248,7 @@ class TournamentManager {
           code: roomCode,
           numPlayers: 2,
           players: [p1, p2],
+          // playersUsr: [{ p1,  }],
           game: new GameMath(),
           inProgress: true,
           tournamentId: tid,
@@ -412,8 +425,9 @@ if(room.vanilla==1)
   if (typeof state.winner === "number" && state.winner >= 0) {
     const winnerIdx = state.winner;
     const winnerSocketId = room.players[winnerIdx] || null;
-    console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}`);
-    io.to(roomCode).emit("matchOver", { winner: winnerIdx, winnerSocketId });
+    const winnerUsername = room.playersUsr.find(p => p.socket === winnerSocketId)?.alias;
+    console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}, username=${winnerUsername}`);
+    io.to(roomCode).emit("matchOver", { winner: winnerIdx, winnerSocketId, winnerIdx });
     room.inProgress = false;
     // notify tournament manager if this room belongs to a tournament
     if (room.tournamentId) {
@@ -482,7 +496,7 @@ function handleCreateRoom(socket: Socket, numPlayers: number, creatorAlias: stri
     code,
     numPlayers,
     players: [socket.id],
-    playersUsr: [{ socket: socket.id, creatorAlias }], // in dev
+    playersUsr: [{ socket: socket.id, alias: creatorAlias }], // in dev
     game: new GameMath(),
     chat: { messages: [] },
     announced: {},
@@ -634,13 +648,14 @@ export async function run_phantai(room: Room) {
     }, 1000);
 }
 
-function handleSinglePlayerRoom(socket: Socket, ai_type: number): void {
+function handleSinglePlayerRoom(socket: Socket, ai_type: number, username: string): void {
   const code = generateRoomCode();
 
   rooms[code] = {
     code,
     numPlayers: 1,
     players: [socket.id],
+    playersUsr: [{ socket: socket.id, alias: username }],
     isSinglePlayer: 1,
     game: new GameMath(),
     vanilla: 0
@@ -652,12 +667,14 @@ function handleSinglePlayerRoom(socket: Socket, ai_type: number): void {
   activateRoomPaddles(rooms[code]);
   if (ai_type === 1) { //phantAI
     rooms[code].phantai = 1;
+    rooms[code].playersUsr.push({ socket: socket.id, alias: "BOSS_PHANTAI" });
     if(rooms[code].phantai) {
       run_phantai(rooms[code]);
     }
   }
   else {
     rooms[code].isSinglePlayer = 2;
+    rooms[code].playersUsr.push({ socket: socket.id, alias: "BOSS_YOHAI" });
     const reactiveAiWeights = {
       "W_hidden_input": [ [49.883014951616495, 57.59245484151263, -0.672577288078086, -4.988903375386864, -4.2386723787104765, -0.3802829464326487, -51.52614743053423, -59.20616069082931, -0.4303144400709679, -0.836430769864361], [1.2544896487429547, 197.73535324613735, 0.7665678664574481, -4.658991689623148, -1.0275278197147089, -0.3451168247239438, -0.5776360566089656, -196.62893288854255, 0.4268622957960812, 2.178145258677974], [-179.34087472924793, 0.7910683310065308, 0.430917659025812, -2.138491954795344, -0.8131762181423372, -0.0842501760791633, 179.23931157143116, -0.33218877304350536, 0.7374233388982616, 2.182871844878219], [-1.8856184881515037, -199.36124730962808, 0.5161760026018247, 0.8775234365777097, -0.40272117552745673, -0.29177826813695046, 0.8619607268262148, 198.7478854316389, 0.7309280007671577, 2.8834162453359533], [-22.76439364124033, 32.17873733260302, 0.4494440089348593, 0.86188829294182, -0.5152416406545638, -0.4242219259814442, 23.772702979567274, -34.243764859067944, -0.4699325899500329, -0.9306503029856132], [71.72902797518802, -24.642572101036187, -1.1887620290793939, -9.351780622359469, 0.6552540092697473, -0.32683117663651295, -72.30544470588285, 25.441351774131114, 0.3086879060488837, -0.07668660919595624], [-75.86308235675678, -0.4165895490075364, -0.36244775911148897, 6.424601071087086, 0.11621691470307739, 0.1961613556401925, 77.37544032562543, 0.4532437288454668, -0.44616262736535484, -0.02955419470821464], [-44.33606741514581, -19.108908886658078, -1.296419481874001, -2.465958212038669, -0.9609409249957751, 0.5266627547411857, 45.25354336023601, 19.976748008530606, -0.6104460885759498, -0.9186865318481638], [-0.07804077496242733, 72.51280099061795, 0.309984489766807, -1.8185226406625477, -8.006314338310663, 0.2903906843349179, 0.5356594697151632, -73.47338763597504, -0.20072560919587434, 0.2319115189972271], [-72.32539836751404, -0.3343070772493475, -1.8389759473381462, 6.595825855476627, -1.2525681143986411, 0.34575120274392274, 73.56232473229731, 0.4193739100963286, 0.29670967561504874, -0.21442011244565481], [-0.9788612006634587, 74.66218463818542, -0.49469581705441, -0.6590369155086644, -9.513810909502904, -0.03753540020625136, 1.6356985209351431, -75.58997750201836, 0.23132947532264617, 0.03111452879686536], [177.40195941476367, 0.4658773873903743, -0.03260172414886233, -0.14706310353610588, 2.705154523570634, -0.4361935311142867, -175.90573614815588, -0.31561629942845354, 0.7062683125035957, 2.003598337173347] ],
       "W_hidden_output": [ [7.650137811102573, 28.039404897503236, 5.0034281208843385, -24.915143573287367, 4.677286371179467, -1.487087071416732, 5.06121575294785, -12.895009491290573, 29.186388229157316, 4.785865184266846, 36.691571141105015, -0.9434390301118122], [-15.660898726172736, -21.008240162682576, 4.730941334452439, 47.51327273551138, -14.753165188227344, 3.2486474605984865, 5.22647463761581, 3.98988568113515, -36.130306788678475, 3.3454049009746254, -36.92460563482108, 0.9537553603313668], [-21.833426872651277, 6.048561276690666, 25.639180582303258, -1.820268485990384, 2.2617664098800105, -34.92158181162808, 35.37173610720054, 11.328544932427679, 5.589795440778212, 29.46619605343566, 5.466222801563043, -26.179762549460573], [7.994094300954188, 6.681789527074746, -23.08051216755152, -1.707366164383075, -8.41021106899765, 23.133544616209996, -41.70796509379141, -13.739103894228753, 4.385943529363188, -38.60011788859233, 3.2122653157480046, 38.716280501162245], [23.312763280984324, 13.77809114628942, -23.553490194543464, -24.743661569690733, 15.763452365600887, 10.922073759428292, -34.09078127136063, -11.427430496838147, 26.113541312072364, -29.681499101416666, 26.15043563723784, 16.879148097042386], [1.3783837853670664, 6.423182230147775, 10.611481172902202, -27.92694051878354, 13.315134531616, -35.44042196900921, 32.815405223856835, 7.909043065128791, 21.457738193267463, 26.09343817837487, 26.61145860257584, -26.093243972085954], [9.04470032104336, -23.4236592621641, -25.312418879770092, 21.758786775896613, -10.08852907455972, 37.191439037956776, -37.582669029770706, 4.477255457845394, -25.267907761399524, -26.665544267739953, -37.4118193430129, 24.865196663899045], [-13.31186254876307, -23.273537271180807, 20.195651546093753, 14.550994272356446, 1.5106204021670486, -3.672663489939727, 29.813102077792617, 12.9468136233758, -30.259023400757105, 27.76952817779629, -29.44378473313456, -28.714418230692747], [1.286665549347282, 6.844193227729, 5.26477226576454, -1.2665222266506841, -4.3434847899240205, 1.2258976748809034, 4.359527843784567, -2.966274821403714, 5.032895245242552, 3.524508391638244, 4.445331690009612, 0.02080533042381761] ],
@@ -694,6 +711,7 @@ function handleLocalRoom(socket: Socket): void {
     code,
     numPlayers: 1,
     players: [socket.id],
+    playersUsr: [{ socket: socket.id, alias: "Player 1" }, { socket: "local player 2", alias: "Player 2" }],
     isSinglePlayer: 0,
     game: new GameMath(),
 	vanilla: 1
@@ -726,8 +744,8 @@ function handleJoinRoom(socket: Socket, code: string, username: string): void {
   }
   
   room.players.push(socket.id);
-  room.playersUsr.push({ Socket: socket.id, username });
-  console.log(room.playersUsr);
+  room.playersUsr.push({ Socket: socket.id, alias: username });
+  console.log(room.playersUsr.find(p => p.socket === socket));
   socket.join(code);
   
   console.log(`Player ${socket.id} joined room ${code} (${room.players.length}/${room.numPlayers})`);
@@ -753,7 +771,7 @@ function handleJoinRoom(socket: Socket, code: string, username: string): void {
   }
 }
 
-function handleQuickplay(socket: Socket): void {
+function handleQuickplay(socket: Socket, alias: string): void {
   //Find available 6-player room
   let roomId = Object.keys(rooms).find(
     id => rooms[id].numPlayers === 6 && !rooms[id].code && rooms[id].players.length < 6
@@ -766,6 +784,7 @@ function handleQuickplay(socket: Socket): void {
       code: null,
       numPlayers: 6,
       players: [],
+      playersUsr: [{ socket: socket.id, alias: alias }],
       game: new GameMath(),
         chat: { messages: [] },
         announced: {},
@@ -1026,8 +1045,8 @@ io.on("connection", (socket: Socket) => {
     handleCreateRoom(socket, numPlayers, creatorAlias);
   });
 
-  socket.on("createSinglePlayerRoom", ({ ai_type }: { ai_type: number }) => {
-    handleSinglePlayerRoom(socket, ai_type);
+  socket.on("createSinglePlayerRoom", ({ ai_type, username }: { ai_type: number, username: string }) => {
+    handleSinglePlayerRoom(socket, ai_type, username);
   });
 
 	socket.on("createLocalRoom", () => {
@@ -1038,8 +1057,8 @@ io.on("connection", (socket: Socket) => {
     handleJoinRoom(socket, code, username);
   });
   
-  socket.on("quickplay", () => {
-    handleQuickplay(socket);
+  socket.on("quickplay", ({ username }: {username: string }) => {
+    handleQuickplay(socket, username);
   });
   
   // Chat events
@@ -1066,7 +1085,7 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("joinTournament", ( async ({ username }: { username: string }) => {
   tournamentManager.joinTournament(socket.id, username);
-  });
+  }));
 
   // Disconnect handling
   socket.on("disconnect", () => {

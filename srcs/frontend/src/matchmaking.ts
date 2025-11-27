@@ -44,8 +44,8 @@ function createGame(numPlayers: number, creatorAlias: string ) {
     ensureConnected().then(() => socket.emit("createRoom", { numPlayers, creatorAlias }));
 }
 
-function createSinglePlayerGame(ai_type: number = 1) {
-    ensureConnected().then(() => socket.emit("createSinglePlayerRoom", { ai_type }));
+function createSinglePlayerGame(ai_type: number = 1, username: string) {
+    ensureConnected().then(() => socket.emit("createSinglePlayerRoom", { ai_type, username }));
 }
 
 function createLocalGame() {
@@ -56,10 +56,10 @@ function joinGame(code: string, username: string) {
     ensureConnected().then(() => socket.emit("joinRoom", { code, username }));
 }
 
-function startSinglePlayerGame(ai_type: number = 1) {
+function startSinglePlayerGame(ai_type: number = 1, username: string) {
     // renderPong();
     localStorage.setItem('numPlayers', '1');
-    createSinglePlayerGame(ai_type);
+    createSinglePlayerGame(ai_type, username);
 }
 
 export function startLocalGame() {

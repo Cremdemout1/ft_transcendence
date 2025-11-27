@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   play.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 20:30:00 by gcapa-pe          #+#    #+#             */
-/*   Updated: 2025/10/28 18:06:15 by gcapa-pe         ###   ########.fr       */
+/*   Updated: 2025/11/27 17:17:47 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,19 +39,19 @@ function showMultiplayerMenu(push = true) {
         <button class="exit-btn" id="backBtn">BACK</button>
     </div>
 `;
+	const jwt = localStorage.getItem("jwt");
+	const decoded = decodeJwt(jwt);
+    const username = decoded.username;
 
 	if (push) history.pushState({ view: 'multiplayerMenu' }, '', '#multiplayer');
 
 	// Quickplay
 	document.getElementById('quickplayBtn')?.addEventListener('click', () => {
 		localStorage.setItem('numPlayers', '6');
-		socket.emit('quickplay');
+		socket.emit('quickplay', { username });
 	});
 
 	// Create game options
-	const jwt = localStorage.getItem("jwt");
-	const decoded = decodeJwt(jwt);
-    const username = decoded.username;
 
 	const createGameBtn = document.getElementById('createGameBtn');
 	const createGameOptions = document.getElementById('createGameOptions');
@@ -104,17 +104,25 @@ function showMultiplayerMenu(push = true) {
 }
 
 // Socket events
-socket.on('matchOver', ({ winner, winnerSocketId }) => {
+socket.on('matchOver', ({ winner, winnerSocketId, username }) => {
 	localStorage.setItem(
 		'lastMatchWinner',
-		JSON.stringify({ winnerIdx: winner, winnerSocketId })
+		JSON.stringify({ winnerIdx: winner, username })
 	);
+	void(winnerSocketId);
 	// alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
 	window.location.hash = '#endGame';
 });
 
-socket.on('tournamentWinner', ({ tournamentId, champion }) => {
-	alert(`TOURNAMENT ${tournamentId} FINISHED. CHAMPION SOCKET: ${champion}`);
+socket.on('tournamentWinner', ({ tournamentId, champion, alias }) => {
+	// alert(`TOURNAMENT ${tournamentId} FINISHED. CHAMPION SOCKET: ${champion}`);
+	localStorage.setItem(
+		'lastMatchWinner',
+		JSON.stringify({ winnerIdx: champion, alias })
+	);
+	void(tournamentId);
+	// alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
+	window.location.hash = '#endGame';
 });
 
 // Handle back/forward navigation

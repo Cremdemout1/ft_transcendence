@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 17:31:19 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/27 16:32:03 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@ import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
 import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
+import { decodeJwt } from "./profile";
 
 async function renderPong() {
 	await checkLoginState("http://10.12.242.238:8080/api/pong");
@@ -94,6 +95,8 @@ function showGameModeMenu() {
 	history.pushState({ view: "gameModeMenu" }, "", "#gamemode");
 	const singlePlayerBtn = document.getElementById('singlePlayerBtn');
 	const singlePlayerOptions = document.getElementById('singlePlayerOptions');
+	const token = localStorage.getItem("jwt");
+	const username = decodeJwt(token).username;
 	let optionsVisible = false;
 
 	const showOptions = () => {
@@ -122,7 +125,7 @@ function showGameModeMenu() {
 			if (!AI)
 				return ;
 			console.log(AI);
-			startSinglePlayerGame(Number(AI));
+			startSinglePlayerGame(Number(AI), username);
 		});
 	});
 	// document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
