@@ -17,6 +17,7 @@ import {
 	joinGame,
 	socket,
 } from './matchmaking';
+import { getUsernameFromJwt } from './chat';
 
 function showMultiplayerMenu(push = true) {
 	const app = document.getElementById('app');
@@ -46,6 +47,8 @@ function showMultiplayerMenu(push = true) {
 		socket.emit('quickplay');
 	});
 
+	const username = getUsernameFromJwt();
+
 	// Create game options
 	const createGameBtn = document.getElementById('createGameBtn');
 	const createGameOptions = document.getElementById('createGameOptions');
@@ -74,21 +77,21 @@ function showMultiplayerMenu(push = true) {
 	document.querySelectorAll('.neon-subbtn').forEach((btn) => {
 		btn.addEventListener('click', () => {
 			const players = btn.getAttribute('data-players');
-			if (players === '2') start2PlayerGame();
-			else if (players === '4') start4PlayerGame();
-			else if (players === '6') start6PlayerGame();
+			if (players === '2') start2PlayerGame(username!);
+			else if (players === '4') start4PlayerGame(username!);
+			else if (players === '6') start6PlayerGame(username!);
 		});
 	});
 
 	// Join game
 	document.getElementById('joinGameBtn')?.addEventListener('click', () => {
 		const code = prompt('Enter room code:');
-		if (code) joinGame(code);
+		if (code) joinGame(code, username!);
 	});
 
 	// Tournament
 	document.getElementById('tournamentBtn')?.addEventListener('click', () => {
-		socket.emit('joinTournament');
+		socket.emit('joinTournament', { username });
 	});
 
 	// Back button
@@ -98,10 +101,10 @@ function showMultiplayerMenu(push = true) {
 }
 
 // Socket events
-socket.on('matchOver', ({ winner, winnerSocketId }) => {
+socket.on('matchOver', ({ username }) => {
 	localStorage.setItem(
 		'lastMatchWinner',
-		JSON.stringify({ winnerIdx: winner, winnerSocketId })
+		username
 	);
 	// alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
 	window.location.hash = '#endGame';

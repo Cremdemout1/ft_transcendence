@@ -23,7 +23,7 @@ function decodeJwt(token: string) {
   }
 }
 
-function getUsernameFromJwt(): string | null {
+export function getUsernameFromJwt(): string | null {
   const jwt = localStorage.getItem('jwt');
   if (!jwt) return null;
   const payload = decodeJwt(jwt);
@@ -311,6 +311,7 @@ function appendSystem(text: string) {
 
 // Invitation banner (receiver)
 let pendingInvite: { code: string } | null = null;
+try{
 socket.on('chat:invited', ({ fromName, code, currentCount, numPlayers }: any) => {
   const banner = document.getElementById('inviteBanner');
   const text = document.getElementById('inviteText');
@@ -322,7 +323,7 @@ socket.on('chat:invited', ({ fromName, code, currentCount, numPlayers }: any) =>
   banner.style.display = 'block';
   (accept as HTMLButtonElement).onclick = () => {
     if (pendingInvite) {
-      socket.emit('joinRoom', { code: pendingInvite.code });
+      socket.emit('joinRoom', { code: pendingInvite.code, alias: getUsernameFromJwt() });
       banner.style.display = 'none';
       pendingInvite = null;
     }
@@ -332,6 +333,10 @@ socket.on('chat:invited', ({ fromName, code, currentCount, numPlayers }: any) =>
     pendingInvite = null;
   };
 });
+}
+catch(err){
+  console.log(err);
+}
 
 socket.on('chat:inviteError', ({ message }: any) => {
   appendSystem(`Invite error: ${message}`);

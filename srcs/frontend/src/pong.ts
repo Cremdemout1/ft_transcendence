@@ -15,6 +15,7 @@ import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
 import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
+import { getUsernameFromJwt } from "./chat";
 
 async function renderPong() {
 	await checkLoginState("http://10.12.242.238:8080/api/pong");
@@ -94,6 +95,8 @@ function showGameModeMenu() {
 	history.pushState({ view: "gameModeMenu" }, "", "#gamemode");
 	const singlePlayerBtn = document.getElementById('singlePlayerBtn');
 	const singlePlayerOptions = document.getElementById('singlePlayerOptions');
+	const username = getUsernameFromJwt();
+	
 	let optionsVisible = false;
 
 	const showOptions = () => {
@@ -122,7 +125,7 @@ function showGameModeMenu() {
 			if (!AI)
 				return ;
 			console.log(AI);
-			startSinglePlayerGame(Number(AI));
+			startSinglePlayerGame(Number(AI), username!);
 		});
 	});
 	// document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {

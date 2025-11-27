@@ -96,7 +96,7 @@ body.no-crt::after {
     border: 2px solid #ff00ff;
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(255,0,255,0.5), 0 0 20px rgba(0,255,255,0.5);
+    box-shadow: 0 0 20px rgba(255,0,255,0.5), 0 0 20px hsla(180, 100%, 50%, 0.5);
     width: 320px;
   }
 
@@ -105,6 +105,34 @@ body.no-crt::after {
     margin: 0 0 1rem 0;
     color: #ff00ff;
     text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', monospace;
+  }
+
+  #app h2 {
+    margin: 0 0 1rem 0;
+    color: #ff00ff;
+    font-size: 18px;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', monospace;
+  }
+  #app h3 {
+    margin: 0 0 1rem 0;
+    color: #eeb3ee;
+    font-size: 12px;
+    text-transform: uppercase;
+    text-align: center;
+    letter-spacing: 2px;
+    font-family: 'Orbitron', monospace;
+  }
+  #app h4 {
+    margin: 0 0 1rem 0;
+    color: hsl(180, 100%, 50%);
+    font-size: 18px;
+    text-transform: uppercase;
+    text-align: center;
     letter-spacing: 2px;
     font-family: 'Orbitron', monospace;
   }

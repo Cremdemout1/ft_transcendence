@@ -13,6 +13,14 @@
 
 import { connect, io } from "socket.io-client";
 import { renderPong } from "./pong";
+
+function getUsernameFromJwt(): string | null {
+  const jwt = localStorage.getItem('jwt');
+  if (!jwt) return null;
+  const payload = decodeJwt(jwt);
+  return payload?.username || null;
+}
+
 //change this to host pc IP
 //const socket = io("YOUR PC IP", {
 const HOST = window.location.hostname;
@@ -20,7 +28,8 @@ const socket = io(`http://${HOST}:8081`, {
   transports: ["websocket", "polling"],
   withCredentials: true
 });
-
+if (!socket)
+    console.log("urmommmmaaaa");
 function decodeJwt(token: string){
     try{
         const payload = token.split('.')[1];
@@ -39,26 +48,26 @@ socket.on ('connect', () => {
     }
 });
 
-function createGame(numPlayers: number) {
-    ensureConnected().then(() => socket.emit("createRoom", { numPlayers }));
+function createGame(numPlayers: number, alias: string) {
+    ensureConnected().then(() => socket.emit("createRoom", { numPlayers, alias }));
 }
 
-function createSinglePlayerGame(ai_type: number = 1) {
-    ensureConnected().then(() => socket.emit("createSinglePlayerRoom", { ai_type }));
+function createSinglePlayerGame(ai_type: number = 1, alias: string) {
+    ensureConnected().then(() => socket.emit("createSinglePlayerRoom", { ai_type, alias }));
 }
 
 function createLocalGame() {
     ensureConnected().then(() => socket.emit("createLocalRoom"));
 }
 
-function joinGame(code: string) {
-    ensureConnected().then(() => socket.emit("joinRoom", { code }));
+function joinGame(code: string, alias: string) {
+    ensureConnected().then(() => socket.emit("joinRoom", { code, alias }));
 }
 
-function startSinglePlayerGame(ai_type: number = 1) {
+function startSinglePlayerGame(ai_type: number = 1, alias: string) {
     // renderPong();
     localStorage.setItem('numPlayers', '1');
-    createSinglePlayerGame(ai_type);
+    createSinglePlayerGame(ai_type, alias);
 }
 
 export function startLocalGame() {
@@ -67,19 +76,19 @@ export function startLocalGame() {
     createLocalGame();
 }
 
-function start2PlayerGame() {
+function start2PlayerGame(alias: string) {
     localStorage.setItem('numPlayers', '2');
-    createGame(2);
+    createGame(2, alias);
 }
 
-function start4PlayerGame() {
+function start4PlayerGame(alias: string) {
     localStorage.setItem('numPlayers', '4');
-    createGame(4);
+    createGame(4, alias);
 }
 
-function start6PlayerGame() {
+function start6PlayerGame(alias: string) {
     localStorage.setItem('numPlayers', '6');
-    createGame(6);
+    createGame(6, alias);
 }
 
 // Register socket event listeners ONCE to avoid duplication
@@ -227,7 +236,7 @@ function showInviteBannerGlobal({ fromName, code, currentCount, numPlayers }: { 
     if (text) text.textContent = `${fromName} invited you to join room ${code} (${currentCount}/${numPlayers}).`;
     banner.style.display = 'block';
     if (accept) accept.onclick = () => {
-        socket.emit('joinRoom', { code });
+        socket.emit('joinRoom', { code, alias: getUsernameFromJwt() });
         banner!.style.display = 'none';
     };
     if (decline) decline.onclick = () => {

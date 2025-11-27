@@ -1,22 +1,22 @@
 import { checkLoginState } from "./dashboard";
+import { getUsernameFromJwt } from "./chat";
 
-async function renderWinScreen(playerIdx: string) {
-    const storage = localStorage.getItem("lastMatchWinner");
-    if (!storage)
+async function renderWinScreen() { // playerIDX is undefined
+    const winner = localStorage.getItem("lastMatchWinner");
+    const self = getUsernameFromJwt();
+    if (!winner)
         location.href = "#dashboard";
     const app = document.getElementById("app");
     if (!app) return;
-    const winner = storage ? JSON.parse(storage) : null;
-    // { winnerIdx: winner, winnerSocketId }
     let congratulations: string;
-    if (winner && winner.winnerIdx === playerIdx)
-        congratulations = `Congratulations! You fought hard, surmounted obstacles and returned victorious!`;
+    if (winner === self)
+        congratulations = `Congratulations<br></br><strong>${self}!</strong> <h3>You fought hard, surmounted obstacles and returned victorious!</h3>`;
     else
-        congratulations = "Fought like a true warrior... Better luck next time!"
+        congratulations = `<strong>${self}</strong><h3>You fought like a true warrior... Unfortunately</h3> <h4><strong>${winner}</strong></h4> <h3>got the best of you this time!</h3>`;
     
     app.innerHTML = `
         <div class="menu-container">
-            <h1>${congratulations}</h1>
+            <h2>${congratulations}</h2>
             <a href="#dashboard" class="btn">Back to Dashboard</a>
         </div>
     `;

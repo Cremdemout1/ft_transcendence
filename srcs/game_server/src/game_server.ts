@@ -36,6 +36,7 @@ type Room = {
   code: string | null;
   numPlayers: number;
   players: string[];
+  playerUsernames: Map<string, string>;
   game: GameMath;
   inProgress?: boolean;
   tournamentId?: string | null;
@@ -77,32 +78,37 @@ const blockMap: Record<string, Set<string>> = {};
 class TournamentManager {
   io: Server;
   waitingPlayers: string[] = [];
+  waitingPlayersUsernames: string[] = [];
   tournaments: { [id: string]: any } = {};
 
   constructor(ioInstance: Server) {
     this.io = ioInstance;
   }
 
-  joinTournament(socketId: string) {
+  joinTournament(socketId: string, username: string) {
     if (this.waitingPlayers.includes(socketId)) return;
     this.waitingPlayers.push(socketId);
+    this.waitingPlayersUsernames.push(username);
+
     console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayers.length}/8)`);
     // notify clients about updated queue
     this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
     if (this.waitingPlayers.length >= 8) {
       const players = this.waitingPlayers.splice(0, 8);
+      const playerUsernames = this.waitingPlayersUsernames.splice(0, 8);
       // notify queue change (players removed for tournament)
-      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
-      this.startTournament(players);
+      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() }); //usernames not needed
+      this.startTournament(players, playerUsernames);
     }
   }
 
-  startTournament(playerIds: string[]) {
+  startTournament(playerIds: string[], playerUsernames: string[]) {
     const tid = `T-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     console.log(`Starting tournament ${tid} with players:`, playerIds);
     const tournament: any = {
       id: tid,
       players: playerIds.slice(),
+      playerUsernames: playerUsernames.slice(),
       rounds: [],
       activeMatches: {},
     };
@@ -117,7 +123,9 @@ class TournamentManager {
   // Create first round matches (1v1): pairs [0,1],[2,3],[4,5],[6,7]
     for (let i = 0; i < 8; i += 2) {
       const p1 = playerIds[i];
+      const user1 = playerUsernames[i];
       const p2 = playerIds[i + 1];
+      const user2 = playerUsernames[i + 1];
       const roomCode = generateRoomCode();
       const matchId = `${tid}-m${i / 2}`;
 
@@ -125,6 +133,7 @@ class TournamentManager {
         code: roomCode,
         numPlayers: 2,
         players: [p1, p2],
+        playerUsernames: new Map(),
         game: new GameMath(),
         inProgress: true,
         tournamentId: tid,
@@ -133,6 +142,8 @@ class TournamentManager {
       };
       activateRoomPaddles(rooms[roomCode]);
 
+      rooms[roomCode].playerUsernames.set(p1, user1);
+      rooms[roomCode].playerUsernames.set(p2, user2);
       // put sockets into the room if they are connected
       const s1 = this.io.sockets.sockets.get(p1 as any) as Socket | undefined;
       const s2 = this.io.sockets.sockets.get(p2 as any) as Socket | undefined;
@@ -171,7 +182,7 @@ class TournamentManager {
     const tournament = this.tournaments[tid];
     if (!tournament) return;
 
-  const matchMeta = tournament.activeMatches[roomCode];
+    const matchMeta = tournament.activeMatches[roomCode];
     if (!matchMeta) return;
     if (matchMeta.winner) return; // already handled
 
@@ -196,10 +207,13 @@ class TournamentManager {
     // if round complete
     if (roundWinners.length === Object.keys(tournament.activeMatches).length) {
       const winnerIds: string[] = Object.values(tournament.activeMatches).map((m: any) => m.winner);
+      const winnerUsernames = winnerIds.map((item: string) => {
+        room.playerUsernames.get(item);
+      });
       // prepare next round
       if (winnerIds.length === 1) {
         // tournament finished
-        const champion = winnerIds[0];
+        const champion = winnerUsernames[0];
         console.log(`Tournament ${tid} champion: ${champion}`);
         // notify all original players
         tournament.players.forEach((pid: string) => {
@@ -221,7 +235,9 @@ class TournamentManager {
       tournament.activeMatches = {};
       nextRoundPairs.forEach((pair: string[], idx: number) => {
         const p1 = pair[0];
+        const user1 = room.playerUsernames.get(p1);
         const p2 = pair[1];
+        const user2 = room.playerUsernames.get(p2);
         const roomCode = generateRoomCode();
         const matchId = `${tid}-r${Date.now()}-m${idx}`;
 
@@ -229,6 +245,7 @@ class TournamentManager {
           code: roomCode,
           numPlayers: 2,
           players: [p1, p2],
+          playerUsernames: new Map(),
           game: new GameMath(),
           inProgress: true,
           tournamentId: tid,
@@ -236,7 +253,8 @@ class TournamentManager {
           chat: { messages: [] },
         };
         activateRoomPaddles(rooms[roomCode]);
-
+        rooms[roomCode].playerUsernames.set(p1, user1!);
+        rooms[roomCode].playerUsernames.set(p2, user2!);
         const s1 = this.io.sockets.sockets.get(p1 as any) as Socket | undefined;
         const s2 = this.io.sockets.sockets.get(p2 as any) as Socket | undefined;
         s1?.join(roomCode);
@@ -270,10 +288,11 @@ class TournamentManager {
     // remove from waiting queue if present
     const idx = this.waitingPlayers.indexOf(socketId);
     if (idx !== -1) {
+      this.waitingPlayersUsernames.splice(idx, 1);
       this.waitingPlayers.splice(idx, 1);
-  // notify clients about updated queue
-  this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
-  return;
+      // notify clients about updated queue
+      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
+      return;
     }
 
     // if they were in an active tournament match, find match and award win to opponent
@@ -286,6 +305,7 @@ class TournamentManager {
           console.log(`Player ${socketId} disconnected during tournament ${tid} match ${roomCode}. Awarding win to ${other}`);
           // mark winner and trigger next stage
           match.winner = other;
+
           // ensure room state updated too
           if (rooms[roomCode]) rooms[roomCode].inProgress = false;
           this.handleMatchOver(roomCode, rooms[roomCode].players.indexOf(other));
@@ -406,7 +426,8 @@ if(room.vanilla==1)
     const winnerIdx = state.winner;
     const winnerSocketId = room.players[winnerIdx] || null;
     console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}`);
-    io.to(roomCode).emit("matchOver", { winner: winnerIdx, winnerSocketId });
+    const username = room.playerUsernames.get(winnerSocketId!);
+    io.to(roomCode).emit("matchOver", { username });
     room.inProgress = false;
     // notify tournament manager if this room belongs to a tournament
     if (room.tournamentId) {
@@ -469,20 +490,21 @@ function handleAIRequest(socket: Socket): void {
 //   socket.emit("roomResponse", { room });
 // }
 
-function handleCreateRoom(socket: Socket, numPlayers: number): void {
+function handleCreateRoom(socket: Socket, numPlayers: number, alias: string): void {
   const code = generateRoomCode();
 
   rooms[code] = {
     code,
     numPlayers,
     players: [socket.id],
+    playerUsernames: new Map(),
     game: new GameMath(),
     chat: { messages: [] },
     announced: {},
     isSinglePlayer: 0,
     vanilla: 0
   };
-  
+  rooms[code].playerUsernames.set(socket.id, alias);
   activateRoomPaddles(rooms[code]);
   
   socket.join(code);
@@ -627,29 +649,34 @@ export async function run_phantai(room: Room) {
     }, 1000);
 }
 
-function handleSinglePlayerRoom(socket: Socket, ai_type: number): void {
+function handleSinglePlayerRoom(socket: Socket, ai_type: number, alias: string): void {
   const code = generateRoomCode();
 
   rooms[code] = {
     code,
     numPlayers: 1,
     players: [socket.id],
+    playerUsernames: new Map(),
     isSinglePlayer: 1,
     game: new GameMath(),
     vanilla: 0
   };
 
+  rooms[code].playerUsernames.set(rooms[code].players[0], alias);
   rooms[code].players.push("AI-" + code);
+
   rooms[code].numPlayers = 2;
   rooms[code].inProgress = true; //might not be necessary
   activateRoomPaddles(rooms[code]);
   if (ai_type === 1) { //phantAI
+    rooms[code].playerUsernames.set(rooms[code].players[1], "BOSS_PHANTAI");
     rooms[code].phantai = 1;
     if(rooms[code].phantai) {
       run_phantai(rooms[code]);
     }
   }
   else {
+    rooms[code].playerUsernames.set(rooms[code].players[1], "BOSS_YOHAI");
     rooms[code].isSinglePlayer = 2;
     const reactiveAiWeights = {
       "W_hidden_input": [ [49.883014951616495, 57.59245484151263, -0.672577288078086, -4.988903375386864, -4.2386723787104765, -0.3802829464326487, -51.52614743053423, -59.20616069082931, -0.4303144400709679, -0.836430769864361], [1.2544896487429547, 197.73535324613735, 0.7665678664574481, -4.658991689623148, -1.0275278197147089, -0.3451168247239438, -0.5776360566089656, -196.62893288854255, 0.4268622957960812, 2.178145258677974], [-179.34087472924793, 0.7910683310065308, 0.430917659025812, -2.138491954795344, -0.8131762181423372, -0.0842501760791633, 179.23931157143116, -0.33218877304350536, 0.7374233388982616, 2.182871844878219], [-1.8856184881515037, -199.36124730962808, 0.5161760026018247, 0.8775234365777097, -0.40272117552745673, -0.29177826813695046, 0.8619607268262148, 198.7478854316389, 0.7309280007671577, 2.8834162453359533], [-22.76439364124033, 32.17873733260302, 0.4494440089348593, 0.86188829294182, -0.5152416406545638, -0.4242219259814442, 23.772702979567274, -34.243764859067944, -0.4699325899500329, -0.9306503029856132], [71.72902797518802, -24.642572101036187, -1.1887620290793939, -9.351780622359469, 0.6552540092697473, -0.32683117663651295, -72.30544470588285, 25.441351774131114, 0.3086879060488837, -0.07668660919595624], [-75.86308235675678, -0.4165895490075364, -0.36244775911148897, 6.424601071087086, 0.11621691470307739, 0.1961613556401925, 77.37544032562543, 0.4532437288454668, -0.44616262736535484, -0.02955419470821464], [-44.33606741514581, -19.108908886658078, -1.296419481874001, -2.465958212038669, -0.9609409249957751, 0.5266627547411857, 45.25354336023601, 19.976748008530606, -0.6104460885759498, -0.9186865318481638], [-0.07804077496242733, 72.51280099061795, 0.309984489766807, -1.8185226406625477, -8.006314338310663, 0.2903906843349179, 0.5356594697151632, -73.47338763597504, -0.20072560919587434, 0.2319115189972271], [-72.32539836751404, -0.3343070772493475, -1.8389759473381462, 6.595825855476627, -1.2525681143986411, 0.34575120274392274, 73.56232473229731, 0.4193739100963286, 0.29670967561504874, -0.21442011244565481], [-0.9788612006634587, 74.66218463818542, -0.49469581705441, -0.6590369155086644, -9.513810909502904, -0.03753540020625136, 1.6356985209351431, -75.58997750201836, 0.23132947532264617, 0.03111452879686536], [177.40195941476367, 0.4658773873903743, -0.03260172414886233, -0.14706310353610588, 2.705154523570634, -0.4361935311142867, -175.90573614815588, -0.31561629942845354, 0.7062683125035957, 2.003598337173347] ],
@@ -675,7 +702,7 @@ function handleSinglePlayerRoom(socket: Socket, ai_type: number): void {
   }
   socket.join(code);
   socket.emit("singlePlayerRoomCreated", { code });
-
+  console.log(rooms[code].playerUsernames);
   io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: ai_type });
   // console.log(`Room ${code} created for ${1} players by ${socket.id}`);
 }
@@ -687,12 +714,15 @@ function handleLocalRoom(socket: Socket): void {
     code,
     numPlayers: 1,
     players: [socket.id],
+    playerUsernames: new Map(),
     isSinglePlayer: 0,
     game: new GameMath(),
 	vanilla: 1
   };
 
   rooms[code].players.push("local player 2");
+  rooms[code].playerUsernames.set(socket.id, "player 1 -RED-");
+  rooms[code].playerUsernames.set("local player 2", "player 2 -BLUE-");
   rooms[code].numPlayers = 2;
   rooms[code].inProgress = true; //might not be necessary
 
@@ -705,7 +735,7 @@ function handleLocalRoom(socket: Socket): void {
   console.log(`Vanilla Room ${code} created for ${1} players by ${socket.id}`);
 }
 
-function handleJoinRoom(socket: Socket, code: string): void {
+function handleJoinRoom(socket: Socket, code: string, alias: string): void {
   const room = rooms[code];
   
   if (!room) {
@@ -719,6 +749,7 @@ function handleJoinRoom(socket: Socket, code: string): void {
   }
   
   room.players.push(socket.id);
+  room.playerUsernames.set(socket.id, alias);
   socket.join(code);
   
   console.log(`Player ${socket.id} joined room ${code} (${room.players.length}/${room.numPlayers})`);
@@ -757,6 +788,7 @@ function handleQuickplay(socket: Socket): void {
       code: null,
       numPlayers: 6,
       players: [],
+      playerUsernames: new Map(),
       game: new GameMath(),
         chat: { messages: [] },
         announced: {},
@@ -1013,20 +1045,20 @@ io.on("connection", (socket: Socket) => {
   // });
   
   // Room management
-  socket.on("createRoom", ({ numPlayers }: { numPlayers: number }) => {
-    handleCreateRoom(socket, numPlayers);
+  socket.on("createRoom", ({ numPlayers, alias }: { numPlayers: number, alias: string }) => {
+    handleCreateRoom(socket, numPlayers, alias);
   });
 
-  socket.on("createSinglePlayerRoom", ({ ai_type }: { ai_type: number }) => {
-    handleSinglePlayerRoom(socket, ai_type);
+  socket.on("createSinglePlayerRoom", ({ ai_type, alias }: { ai_type: number, alias: string }) => {
+    handleSinglePlayerRoom(socket, ai_type, alias);
   });
 
 	socket.on("createLocalRoom", () => {
     handleLocalRoom(socket);
   });
   
-  socket.on("joinRoom", ({ code }: { code: string }) => {
-    handleJoinRoom(socket, code);
+  socket.on("joinRoom", ({ code, alias }: { code: string, alias: string }) => {
+    handleJoinRoom(socket, code, alias);
   });
   
   socket.on("quickplay", () => {
@@ -1055,8 +1087,8 @@ io.on("connection", (socket: Socket) => {
     if (doBlock) blockMap[socket.id].add(tgt); else blockMap[socket.id].delete(tgt);
   });
 
-  socket.on("joinTournament", () => {
-  tournamentManager.joinTournament(socket.id);
+  socket.on("joinTournament", (username: string) => {
+  tournamentManager.joinTournament(socket.id, username);
   });
 
   // Disconnect handling
