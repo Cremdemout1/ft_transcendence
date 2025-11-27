@@ -38,7 +38,7 @@ export class GameMath {
 	last_hit_by: number |null;
   } = {
     pos: { x: 0, y: 0, z: 0 },
-    velocity: { x: 20, y: 40, z: -10 },
+    velocity: { x: 10, y: 20, z: -10 },
     radius: 3.25,
     reset: 1, //flag for when the ball has just been reset (to tell client to reset the trail)
 	last_hit_by: null
@@ -146,7 +146,12 @@ export class GameMath {
   }
 
   private raycast() {
-    let v_: Vec3 = { ...this.ball.velocity };
+	let fixed_vel: Vec3={
+		x:this.ball.velocity.x*this.dt,
+		y:this.ball.velocity.y*this.dt,
+		z:this.ball.velocity.z*this.dt
+	  }
+    let v_: Vec3 = { ...fixed_vel };
     let p_: Vec3 = { ...this.ball.pos };
 
     while (
@@ -507,9 +512,9 @@ export class GameMath {
         z: 0,
       },
       velocity: {
-        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
-        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
-        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 20 + 40),
+        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
+        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
+        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
       },
       radius: this.ball.radius,
       reset: 1,
