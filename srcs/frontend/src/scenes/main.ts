@@ -612,17 +612,23 @@ export async function createGameScene( //function that makes all the visuals (up
       newMesh.dispose();
       opacity = serverGameState.hitPoint.dist - 4;
       speed = new BABYLON.Vector3(
-        serverGameState.ball.velocity.x,
-        serverGameState.ball.velocity.y,
-        serverGameState.ball.velocity.z
+        serverGameState.ball.velocity.x*serverGameState.dt,
+        serverGameState.ball.velocity.y*serverGameState.dt,
+        serverGameState.ball.velocity.z*serverGameState.dt
       ).length();
       console.log("speed: ", speed);
       console.log("ball vel: ", serverGameState.ball.velocity);
       counter = 0.5;
     }
     if (newnewMesh) {
+		speed = new BABYLON.Vector3(
+        serverGameState.ball.velocity.x*serverGameState.dt,
+        serverGameState.ball.velocity.y*serverGameState.dt,
+        serverGameState.ball.velocity.z*serverGameState.dt
+      ).length();
       if (counter < opacity) counter += speed;
       newnewMesh.material!.alpha = 0.8 - counter / opacity;
+	  console.log("AAAAAAAAAA: " + serverGameState.dt);
     }
     input.reset = 0;
     if (serverGameState) serverGameState = null;

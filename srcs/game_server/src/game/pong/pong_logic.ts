@@ -528,7 +528,8 @@ export class GameMath {
       paddles: { ...this.paddles },
       hitPoint: { ...this.hitPoint },
       hit: this.collision || this.ball.reset || this.wall_collision,
-	  winner: this.winner
+	  winner: this.winner,
+	  dt: this.dt
     };
   }
 }
