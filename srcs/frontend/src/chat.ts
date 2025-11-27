@@ -1,4 +1,5 @@
 import { socket } from "./matchmaking";
+import { decodeJwt } from "./profile";
 
 let mounted = false;
 let containerEl: HTMLElement | null = null;
@@ -13,15 +14,15 @@ let dmTarget: { id: string; name: string } | null = null;
 let blocked = new Set<string>();
 let lastRoster: Array<{ id: string; name: string }> = [];
 
-function decodeJwt(token: string) {
-  try {
-    const payload = token.split(".")[1];
-    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
+// function decodeJwt(token: string) {
+//   try {
+//     const payload = token.split(".")[1];
+//     const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+//     return JSON.parse(json);
+//   } catch {
+//     return null;
+//   }
+// }
 
 function getUsernameFromJwt(): string | null {
   const jwt = localStorage.getItem('jwt');
@@ -316,13 +317,15 @@ socket.on('chat:invited', ({ fromName, code, currentCount, numPlayers }: any) =>
   const text = document.getElementById('inviteText');
   const accept = document.getElementById('inviteAccept');
   const decline = document.getElementById('inviteDecline');
+  const token = localStorage.getItem("jwt");
+  const username = decodeJwt(token).username;
   if (!banner || !text || !accept || !decline) return;
   pendingInvite = { code };
   text.textContent = `${fromName} invited you to join room ${code} (${currentCount}/${numPlayers}).`;
   banner.style.display = 'block';
   (accept as HTMLButtonElement).onclick = () => {
     if (pendingInvite) {
-      socket.emit('joinRoom', { code: pendingInvite.code });
+      socket.emit('joinRoom', { code: pendingInvite.code, username });
       banner.style.display = 'none';
       pendingInvite = null;
     }

@@ -32,10 +32,12 @@ const io = new Server(8081, {
   } 
 });
 
+
 type Room = {
   code: string | null;
   numPlayers: number;
-  players: string[];
+  players: string[]; //array of sockets keyed to the player usernames
+  playersUsr: Array<Record<string, string>>; //array of sockets keyed to the player usernames
   game: GameMath;
   inProgress?: boolean;
   tournamentId?: string | null;
@@ -77,29 +79,33 @@ const blockMap: Record<string, Set<string>> = {};
 class TournamentManager {
   io: Server;
   waitingPlayers: string[] = [];
+  waitingPlayerUsernames: string[] = [];
   tournaments: { [id: string]: any } = {};
 
   constructor(ioInstance: Server) {
     this.io = ioInstance;
   }
 
-  joinTournament(socketId: string) {
+  joinTournament(socketId: string, username: string) {
     if (this.waitingPlayers.includes(socketId)) return;
     this.waitingPlayers.push(socketId);
+    this.waitingPlayerUsernames.push(username);
     console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayers.length}/8)`);
+    console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayerUsernames.length}/8)`);
     // notify clients about updated queue
     this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
     if (this.waitingPlayers.length >= 8) {
       const players = this.waitingPlayers.splice(0, 8);
+      const playerUsernames = this.waitingPlayerUsernames.splice(0, 8);
       // notify queue change (players removed for tournament)
       this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
-      this.startTournament(players);
+      this.startTournament(players, playerUsernames);
     }
   }
 
-  startTournament(playerIds: string[]) {
+  startTournament(playerIds: string[], playersUsernames: string[]) {
     const tid = `T-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    console.log(`Starting tournament ${tid} with players:`, playerIds);
+    console.log(`Starting tournament ${tid} with players:`, playerIds, playersUsernames);
     const tournament: any = {
       id: tid,
       players: playerIds.slice(),
@@ -125,6 +131,7 @@ class TournamentManager {
         code: roomCode,
         numPlayers: 2,
         players: [p1, p2],
+        playersUsr: [{ socket: playerIds[i], alias: playersUsernames[i] }, { socket: playerIds[i + 1], alias: playersUsernames[i + 1] }], // in dev
         game: new GameMath(),
         inProgress: true,
         tournamentId: tid,
@@ -469,13 +476,13 @@ function handleAIRequest(socket: Socket): void {
 //   socket.emit("roomResponse", { room });
 // }
 
-function handleCreateRoom(socket: Socket, numPlayers: number): void {
+function handleCreateRoom(socket: Socket, numPlayers: number, creatorAlias: string): void {
   const code = generateRoomCode();
-
   rooms[code] = {
     code,
     numPlayers,
     players: [socket.id],
+    playersUsr: [{ socket: socket.id, creatorAlias }], // in dev
     game: new GameMath(),
     chat: { messages: [] },
     announced: {},
@@ -705,7 +712,7 @@ function handleLocalRoom(socket: Socket): void {
   console.log(`Vanilla Room ${code} created for ${1} players by ${socket.id}`);
 }
 
-function handleJoinRoom(socket: Socket, code: string): void {
+function handleJoinRoom(socket: Socket, code: string, username: string): void {
   const room = rooms[code];
   
   if (!room) {
@@ -719,6 +726,8 @@ function handleJoinRoom(socket: Socket, code: string): void {
   }
   
   room.players.push(socket.id);
+  room.playersUsr.push({ Socket: socket.id, username });
+  console.log(room.playersUsr);
   socket.join(code);
   
   console.log(`Player ${socket.id} joined room ${code} (${room.players.length}/${room.numPlayers})`);
@@ -1013,8 +1022,8 @@ io.on("connection", (socket: Socket) => {
   // });
   
   // Room management
-  socket.on("createRoom", ({ numPlayers }: { numPlayers: number }) => {
-    handleCreateRoom(socket, numPlayers);
+  socket.on("createRoom", ({ numPlayers, creatorAlias }: { numPlayers: number, creatorAlias: string }) => {
+    handleCreateRoom(socket, numPlayers, creatorAlias);
   });
 
   socket.on("createSinglePlayerRoom", ({ ai_type }: { ai_type: number }) => {
@@ -1025,8 +1034,8 @@ io.on("connection", (socket: Socket) => {
     handleLocalRoom(socket);
   });
   
-  socket.on("joinRoom", ({ code }: { code: string }) => {
-    handleJoinRoom(socket, code);
+  socket.on("joinRoom", ({ code, username }: { code: string, username: string }) => {
+    handleJoinRoom(socket, code, username);
   });
   
   socket.on("quickplay", () => {
@@ -1055,8 +1064,8 @@ io.on("connection", (socket: Socket) => {
     if (doBlock) blockMap[socket.id].add(tgt); else blockMap[socket.id].delete(tgt);
   });
 
-  socket.on("joinTournament", () => {
-  tournamentManager.joinTournament(socket.id);
+  socket.on("joinTournament", ( async ({ username }: { username: string }) => {
+  tournamentManager.joinTournament(socket.id, username);
   });
 
   // Disconnect handling
