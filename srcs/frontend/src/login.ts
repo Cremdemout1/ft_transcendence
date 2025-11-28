@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/26 17:06:35 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/28 15:33:09 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ async function backendLogin() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
         try {
-            const res = await fetch("http://10.12.242.238:8080/api/login",
+            const res = await fetch("/api/login",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ async function send2FA() {
             return alert("Please enter a code");
         
         try {
-            const res = await fetch("http://10.12.242.238:8080/api/verify-2fa", {
+            const res = await fetch("/api/verify-2fa", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json',
                 },

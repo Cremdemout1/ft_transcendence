@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/26 17:06:35 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/28 16:20:21 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ async function checkLoginState(path:string) {
 }
 
 async function fetchDashboard() {
-    checkLoginState("http://10.12.242.238:8080/api/dashboard");
+    checkLoginState("/api/dashboard");
     sessionStorage.removeItem("isSinglePlayer");
     sessionStorage.removeItem("roomCode");
     sessionStorage.removeItem("numPlayers");
