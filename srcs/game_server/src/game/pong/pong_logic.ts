@@ -38,7 +38,7 @@ export class GameMath {
 	last_hit_by: number |null;
   } = {
     pos: { x: 0, y: 0, z: 0 },
-    velocity: { x: 0.2, y: 0.4, z: -0.1 },
+    velocity: { x: 10, y: 20, z: -10 },
     radius: 3.25,
     reset: 1, //flag for when the ball has just been reset (to tell client to reset the trail)
 	last_hit_by: null
@@ -58,8 +58,8 @@ export class GameMath {
     y: 0,
     height: 20,
     depth: 2,
-    speed: 0.3,
-    max_speed: 4,
+    speed: 9,
+    max_speed: 100,
     overshoot: 0.8,
     distance_from_face: 0,
     active: 0, //should be zero, this is just for testing
@@ -85,6 +85,9 @@ export class GameMath {
   private collision: number = 0;
   private wall_collision: number = 0;
   private winner: number = -1;
+  private lastTime: number = -1;
+  private dt: number=1;
+  private first: number= 0;
 
   private add_vec3(a: Vec3, b: Vec3): Vec3 {
     return {
@@ -117,14 +120,32 @@ export class GameMath {
     );
   }
 
-  public async update(
+  public async update(AI: number
   ) {
+	if(this.first==0 && AI!=0){
+		this.paddle_speed();
+	this.first=1;
+	console.log(this.first);
+  	}
+	const now = Date.now();
+	if(AI==0)
+	{
+		if(this.lastTime==-1)
+			this.lastTime=now;
+		this.dt = (now - this.lastTime) / 1000;
+		this.lastTime = now;
+	}
       this.collision = 0;
 	  this.wall_collision = 0;
-      this.ball.pos = this.add_vec3(this.ball.pos, this.ball.velocity);
+	  let fixed_vel: Vec3={
+		x:this.ball.velocity.x*this.dt,
+		y:this.ball.velocity.y*this.dt,
+		z:this.ball.velocity.z*this.dt
+	  }
+	  this.ball.pos = this.add_vec3(this.ball.pos, fixed_vel);
       this.ball.reset = 0;
       this.paddleManager(); //here we check all the paddles(that we need to)
-      this.wallCollisions(); //also checks score
+      this.wallCollisions(AI); //also checks score
       //console.log(this.ball.velocity)
       this.paddles.map((item, idx) => {if(item.score<0) item.score=0;
 		if(item.score>4) this.winner=idx;
@@ -134,7 +155,14 @@ export class GameMath {
   }
 
   private raycast() {
-    let v_: Vec3 = { ...this.ball.velocity };
+	let fixed_vel: Vec3={
+		x:this.ball.velocity.x*this.dt,
+		y:this.ball.velocity.y*this.dt,
+		z:this.ball.velocity.z*this.dt
+	  }
+	  let v_: Vec3;
+	  
+	v_= { ...fixed_vel };
     let p_: Vec3 = { ...this.ball.pos };
 
     while (
@@ -155,7 +183,7 @@ export class GameMath {
     );
   }
 
-  private wallCollisions() {
+  private wallCollisions(AI: number) {
     if (
       Math.abs(this.ball.pos.x) >=
       this.gameArea.width / 2-this.ball.radius
@@ -172,7 +200,7 @@ export class GameMath {
       if (this.ball.pos.x < 0) this.paddles[1].score--;
       else this.paddles[0].score--;
       if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
-      this.resetBall();
+      this.resetBall(AI);
       this.collision = 1;
     }
     else if (
@@ -190,7 +218,7 @@ export class GameMath {
       if (this.ball.pos.y < 0) this.paddles[5].score--;
       else this.paddles[4].score--;
 	  if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
-	  this.resetBall();
+	  this.resetBall(AI);
       this.collision = 1;
       //console.log("WALL COLLISION ON Y AXIS");
     } else if (Math.abs(this.ball.pos.z) >= this.gameArea.depth / 2-this.ball.radius) {
@@ -205,7 +233,7 @@ export class GameMath {
       if (this.ball.pos.z < 0) this.paddles[2].score--;
       else this.paddles[3].score--;
 	  if(this.ball.last_hit_by!=null) this.paddles[this.ball.last_hit_by].score+=2;
-	  this.resetBall();
+	  this.resetBall(AI);
       this.collision = 1;
       //console.log("WALL COLLISION ON Z AXIS");
     }
@@ -241,8 +269,10 @@ export class GameMath {
       Math.min(paddle.vy, paddle.max_speed)
     );
 
-    paddle.x += paddle.vx;
-    paddle.y += paddle.vy;
+
+	paddle.x += paddle.vx*this.dt;
+    paddle.y += paddle.vy*this.dt;
+    
 
     if (
       Math.abs(paddle.x) >
@@ -487,14 +517,18 @@ export class GameMath {
     // console.log(this.ball.pos);
   }
 
-  private resetBall() {
+  public resetBall(AI: number) {
     this.ball = {
       pos: {
         x: 0,
         y: 0,
         z: 0,
       },
-      velocity: {
+      velocity: AI==0? {
+        x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
+        y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
+        z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 10),
+      }: {
         x: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
         y: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
         z: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 0.7 + 0.4),
@@ -505,13 +539,29 @@ export class GameMath {
     };
   }
 
+  private paddle_speed()
+  {
+	this.paddles.forEach((element, idx) => {
+		console.log(element);
+		console.log(idx);
+		if(element.active)
+		{
+			this.paddles[idx].speed=0.3;
+			this.paddles[idx].max_speed=4;
+			console.log(this.paddles[idx].speed);
+		}
+		console.log(this.paddles[idx].speed);
+	});
+  }
+
   public getState() {
     return {
       ball: { ...this.ball },
       paddles: { ...this.paddles },
       hitPoint: { ...this.hitPoint },
       hit: this.collision || this.ball.reset || this.wall_collision,
-	  winner: this.winner
+	  winner: this.winner,
+	  dt: this.dt
     };
   }
 }

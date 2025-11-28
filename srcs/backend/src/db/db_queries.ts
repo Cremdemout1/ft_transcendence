@@ -90,7 +90,7 @@ export default class ORM { //pass hashed password here
     };
 
     public updateUser(userId: number, valueToChange: any, newValue: any): any {
-        const table = (valueToChange === 'password')
+        const table = (valueToChange === 'password' || valueToChange === 'twoFactorAuth')
             ? process.env.DB_USER_TABLE : process.env.DB_USER_INFO_TABLE;
         const id = (valueToChange === 'password') ? "user_id" : "id";
         const query = this.db.prepare(`UPDATE ${table} SET ${valueToChange} = ?  WHERE (${id}) = ?`);

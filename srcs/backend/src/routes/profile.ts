@@ -37,6 +37,7 @@ async function profile(fastify: FastifyInstance)
         if (reply.sent)
             return ;
         const user = request.user;
+        console.log(user);
         return reply.send({message:'User profile', user});
     })
 }
@@ -45,12 +46,13 @@ async function changeUsername(fastify: FastifyInstance)
 {
     fastify.patch('/api/me/username', async (request: myRequest, reply: any) =>
     {
+        console.log("hellooo");
         await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return;
         const { newUsername, username } = request.body as { newUsername: string, username: string };
         const user = request.user as JWTformat;
-
+        console.log(user);
         if (!newUsername || newUsername.trim() === '')
             return reply.status(400).send({error: "Username invalid"});
         // const existingUser = await prisma.user_info.findFirst(
@@ -61,9 +63,12 @@ async function changeUsername(fastify: FastifyInstance)
         //             NOT: { id: user.user_id, },
         //     },
         //     });
+        console.log("new username: " + newUsername + "\nold username: " + username);
         if (newUsername === username)
             return reply.status(409).send({error: "Username can't be the same"});
         const existingUser = orm.getUserByUsername(newUsername);
+        console.log("existing user: ");
+        console.log(existingUser);
         if (existingUser)
             return reply.status(409).send({error: "Username already taken"});
         else
@@ -150,14 +155,18 @@ async function toggle2FA(fastify: FastifyInstance)
 {
     fastify.patch('/api/me/2fa-checkbox', async (request: myRequest, reply: any) => 
     {
+        console.log("aaaaaaa");
         await authenticateJWT(request, reply, fastify);
         if (reply.sent) return;
 
         const { twoFAEnabled } = request.body as { twoFAEnabled: number };
         const user = request.user as JWTformat;
-
-        if (twoFAEnabled !== 0 && twoFAEnabled !== 1)
+        console.log("USER:");
+        console.log(user);
+        if (twoFAEnabled !== 0 && twoFAEnabled !== 1) {
+            console.log("inside urmom");
             return reply.code(400).send({ error: "Invalid value for 2FA" });
+        }
 
         // await prisma.users.update({
         //     where: { id: user.user_id },
@@ -168,21 +177,23 @@ async function toggle2FA(fastify: FastifyInstance)
         //     where: { id: user.user_id },
         //     include: { user_info: true },
         // });
-        const updatedUser = orm.getUserByID(user.user_id);
-        const userInfo = orm.getUserInfoTable(user.user_id);
+        const idx = user ? user.user_id : null;
+        const updatedUser = orm.getUserByID(idx!);
+        const userInfo = orm.getUserInfoTable(idx!);
+        console.log("IDX: "+ idx);
+        console.log(updatedUser);
+        console.log(userInfo);
+        console.log("-----------");
         if (!updatedUser)
             return reply.code(500).send({ error: "Updated user not found" });
-
-        const token = await createNewToken(fastify, {
-            id: updatedUser.id,
-            user_id: userInfo.id,
-            email: updatedUser.email,
-            login_type: updatedUser.login_type,
-            username: userInfo.username,
-            firstname: userInfo.firstname,
-            lastname: userInfo.lastname,
-            twoFactorAuth: updatedUser.twoFactorAuth,
-        });
+        // const email = updatedUser ? updatedUser.email : null;
+        // const login_type = updatedUser ? updatedUser.login_type : null;
+        // const twoFactorAuth = updatedUser ? updatedUser.twoFactorAuth : null;
+        // const id = updatedUser ? updatedUser.id : null;
+        // const username = userInfo ? userInfo.username : null;
+        // const firstname = userInfo ? userInfo.firstname : null;
+        // const lastname = userInfo ? userInfo.lastname : null;
+        const token = await createNewToken(fastify, user);
 
         return reply.send({ success: true, twoFA: twoFAEnabled, token });
     });

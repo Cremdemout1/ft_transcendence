@@ -37,7 +37,7 @@ async function renderProfile() {
 
     const info = sessionStorage.getItem('jwt');
     const userInfo = info ? decodeJwt(info) : null;
-
+    console.log("hi: ", userInfo);
     app.innerHTML = `
         <div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
             <button class="neon-btn exit-btn" id="backBtn">BACK</button>

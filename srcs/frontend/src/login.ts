@@ -71,6 +71,7 @@ async function logout() {
 
 async function verify2faCode () {
     const app = document.getElementById('app');
+    console.log("VERIFY 2FA");
     if (!app)
         return ;
     const email = sessionStorage.getItem('pendingEmail');

@@ -121,17 +121,22 @@ async function SignUp(fastify: FastifyInstance) {
         orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID)
 
         const user = await orm.getProtectedUser(email, password);
+        const idx = user ? user.user_id : null;
+        const userInformation = orm.getUserInfoTable(idx);
         if (user)
         {
+            const username = userInformation ? userInformation.username : null;
+            const firstname = userInformation ? userInformation.firstname : null;
+            const lastname = userInformation ? userInformation.lastname : null;
             const token = fastify.jwt.sign(
             {
                 id: user.id,
-                user_id: userInfo.id,
+                user_id: idx,
                 email: user.email,  
                 login_type: user.login_type, 
-                username: userInfo.username,
-                firstname: userInfo.firstname,
-                lastname: userInfo.lastname,
+                username: username,
+                firstname: firstname,
+                lastname: lastname,
                 twoFactorAuth: user.twoFactorAuth,
             },
             {

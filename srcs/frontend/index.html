@@ -164,13 +164,15 @@ function router() {
     // console.log("hash: ", hash);
     // console.log("path: ", path);
     // console.log("querystring: ", queryString);
-    // console.log("params: ", params);
-    // console.log("firstSegment: ", firstSegment);
-    // console.log("render: ", render);
+    console.log("params: ", params);
+    console.log("firstSegment: ", firstSegment);
+    console.log("render: ", render);
+    console.log("HERE");
 
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
     } else if (firstSegment === 'login' && params.get('section') === '2FA-verification') {
+        console.log("IF");
         if (sessionStorage.getItem('jwt')) location.href = '/#dashboard';
         verify2faCode();
     } else {

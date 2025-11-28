@@ -112,7 +112,9 @@ async function login(fastify: FastifyInstance)
         if (user)
         {
             const twoFa = user ? user.twoFactorAuth : null;
-            if (twoFa.twoFactorAuth === 1)
+            console
+            console.log(twoFa);
+            if (twoFa === 1)
             {
                 const code = Math.floor(100000 + Math.random() * 900000).toString(); //random 6 digit code
                 await fastify.redis.set(`2fa:${email}`, code, 'EX', 300);
@@ -125,8 +127,8 @@ async function login(fastify: FastifyInstance)
             else
             {
                 const username = userInfo ? userInfo.username : null;
-                const firstname = userInfo ? userInfo.username : null;
-                const lastname = userInfo ? userInfo.username : null;
+                const firstname = userInfo ? userInfo.firstname : null;
+                const lastname = userInfo ? userInfo.lastname : null;
                 const token = fastify.jwt.sign(
                     {
                         id: user.id,
@@ -162,18 +164,23 @@ async function verify2fa(fastify: FastifyInstance) {
             await fastify.redis.del(`2fa:${email}`);
             // const user = await prisma.users.findFirst({ where: { email: email }, include: { user_info: true } })
             const user = orm.getUserByEmail(email);
-            const userInfo = orm.getUserInfoTable(user.user_id);
+            const idx = user ? user.user_id : null;
+            const userInfo = orm.getUserInfoTable(idx);
+
             if (user)
             {
+                const username = userInfo ? userInfo.username : null;
+                const firstname = userInfo ? userInfo.firstname : null;
+                const lastname = userInfo ? userInfo.lastname : null;
                 const token = fastify.jwt.sign(
                 {
                     id: user.id,
-                    user_id: userInfo.id,
+                    user_id: idx,
                     email: user.email,  
                     login_type: user.login_type,
-                    username: userInfo.username,
-                    firstname: userInfo.firstname,
-                    lastname: userInfo.lastname,
+                    username: username,
+                    firstname: firstname,
+                    lastname: lastname,
                     twoFactorAuth: user.twoFactorAuth,
                 },
                 {
