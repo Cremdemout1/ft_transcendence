@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 16:51:44 by yohan            ###   ########.fr       */
+/*   Updated: 2025/11/28 11:18:29 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,7 @@ class TournamentManager {
         this.io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: 2 });
         // send initial state
         try {
-          rooms[roomCode].game.update();
+          rooms[roomCode].game.update(rooms[roomCode].isSinglePlayer!);
           this.io.to(roomCode).emit("gameState", { gameState: rooms[roomCode].game.getState() });
         } catch (e) {
           console.error("Error initializing match game state", e);
@@ -254,7 +254,7 @@ class TournamentManager {
         setTimeout(() => {
           this.io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: 2 });
           try {
-            rooms[roomCode].game.update();
+            rooms[roomCode].game.update(room.isSinglePlayer!);
             this.io.to(roomCode).emit("gameState", { gameState: rooms[roomCode].game.getState() });
           } catch (e) {
             console.error("Error initializing next round match game state", e);
@@ -356,7 +356,7 @@ let i=0;
 //Socket Event Handlers
 async function handlePlayerInput(socket: Socket, input: any, input2: any){
   const { roomCode, room } = findPlayerRoom(socket.id);
-  
+
   if (!roomCode || !room) {
     // console.log(`Player ${socket.id} not found in any room`);
     return;
@@ -389,7 +389,7 @@ if(room.vanilla==1)
   }
   
   //Update game state
-  await room.game.update();
+  await room.game.update(room.isSinglePlayer!);
   // const AIidx = room.players.indexOf("AI-" + room.code);
   // const paddleAI = room.game.paddles[AIidx];
   // if (paddleAI && paddle.active) {
@@ -717,7 +717,7 @@ function handleJoinRoom(socket: Socket, code: string): void {
     socket.emit("error", { message: "Room is full" });
     return;
   }
-  
+   
   room.players.push(socket.id);
   socket.join(code);
   
@@ -737,7 +737,8 @@ function handleJoinRoom(socket: Socket, code: string): void {
     
     //Send initial game state to all players
     setTimeout(() => {
-      room.game.update(); // Initialize the game state
+	room.game.resetBall(room.isSinglePlayer!);
+      room.game.update(room.isSinglePlayer!); // Initialize the game state
       io.to(code).emit("gameState", { gameState: room.game.getState() });
       console.log(`Sent initial game state to room ${code}`);
     }, 1000); //Give clients time to set up their scenes

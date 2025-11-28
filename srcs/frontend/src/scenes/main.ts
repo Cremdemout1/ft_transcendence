@@ -628,7 +628,6 @@ export async function createGameScene( //function that makes all the visuals (up
       ).length();
       if (counter < opacity) counter += speed;
       newnewMesh.material!.alpha = 0.8 - counter / opacity;
-	  console.log("AAAAAAAAAA: " + serverGameState.dt);
     }
     input.reset = 0;
     if (serverGameState) serverGameState = null;
