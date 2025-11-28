@@ -13,8 +13,8 @@
 import { authenticateJWT } from "./dashboard";
 import { FastifyRequest, FastifyInstance } from "fastify";
 import { JWTformat } from "./profile";
-import { prisma } from '../server';
 import * as bcrypt from 'bcrypt';
+import { orm } from "../server";
 
 type myRequest = FastifyRequest;
 
@@ -46,15 +46,16 @@ async function changePasswordLogic(fastify: FastifyInstance)
         const userData = request.user as JWTformat;
         const { oldPassword, newPassword } = request.body as passwordChangeBody;
         
-        const user = await prisma.users.findUnique({
-            where: {
-                email_login_type:
-                {
-                    email: userData.email,
-                    login_type: userData.login_type,
-                },
-            },
-          });
+        // const user = await prisma.users.findUnique({
+        //     where: {
+        //         email_login_type:
+        //         {
+        //             email: userData.email,
+        //             login_type: userData.login_type,
+        //         },
+        //     },
+        //   });
+        const user = orm.getUserByEmail(userData.email);
         if (!user)
             return reply.status(404).send({ error: 'User not found' });
         else if (!user.password)
@@ -64,10 +65,11 @@ async function changePasswordLogic(fastify: FastifyInstance)
             return reply.status(403).send({ error: 'Old password is incorrect' });
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-        await prisma.users.update({
-            where: { id: user.id },
-            data: { password: hashedNewPassword },
-        })
+        // await prisma.users.update({
+        //     where: { id: user.id },
+        //     data: { password: hashedNewPassword },
+        // })
+        orm.updateUser(user.user_id, "password", hashedNewPassword);
         return reply.send( { message: 'successfully changed password' } );
     })
 }

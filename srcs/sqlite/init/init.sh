@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS $DB_USER_INFO_TABLE (
 		-- We declare login_type as TEXT but restrict values
 		-- We allow empty password when login is handled by third party Oauth
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS $DB_USER_TABLE (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL,
+  user_id INTEGER,
   provider_id TEXT NOT NULL,
   login_type TEXT NOT NULL CHECK (login_type IN ('google', '42', 'local')),
   password TEXT,

@@ -18,7 +18,6 @@ import fastifyFormBody from '@fastify/formbody';
 // import swaggerUI from '@fastify/swagger-ui';
 import { FastifyInstance } from 'fastify';
 import dotenv from 'dotenv';
-import { PrismaClient } from '../generated/prisma';
 import fastifyRedis from '@fastify/redis';
 
 import { dashboard } from './routes/dashboard';
@@ -28,8 +27,8 @@ import { pong } from './routes/pong';
 import { profile, changeUsername, changeFirstname, changeLastname, toggle2FA } from './routes/profile';
 import { changePassword, changePasswordLogic } from './routes/changePassword';
 import fastifySocketIO from 'fastify-socket.io';
+import ORM from './db/db_queries';
 
-export const prisma = new PrismaClient();
 dotenv.config();
 const fastify = Fastify({ logger: true });
 
@@ -105,4 +104,5 @@ async function init() {
   await startServer();
 }
 
+export const orm = new ORM(process.env.DATABASE_URL);
 init();

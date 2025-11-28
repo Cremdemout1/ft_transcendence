@@ -12,8 +12,8 @@
 
 import { authenticateJWT } from "./dashboard";
 import { FastifyRequest, FastifyInstance } from "fastify";
-import { prisma } from '../server';
 import { createNewToken } from './token';
+import { orm } from '../server';
 
 type myRequest = FastifyRequest;
 
@@ -48,27 +48,31 @@ async function changeUsername(fastify: FastifyInstance)
         await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return;
-        const { newUsername } = request.body as { newUsername: string };
+        const { newUsername, username } = request.body as { newUsername: string, username: string };
         const user = request.user as JWTformat;
 
         if (!newUsername || newUsername.trim() === '')
             return reply.status(400).send({error: "Username invalid"});
-        const existingUser = await prisma.user_info.findFirst(
-        { 
-            where: 
-            {
-                    username: newUsername ,
-                    NOT: { id: user.user_id, },
-            },
-            });
+        // const existingUser = await prisma.user_info.findFirst(
+        // { 
+        //     where: 
+        //     {
+        //             username: newUsername ,
+        //             NOT: { id: user.user_id, },
+        //     },
+        //     });
+        if (newUsername === username)
+            return reply.status(409).send({error: "Username can't be the same"});
+        const existingUser = orm.getUserByUsername(newUsername);
         if (existingUser)
             return reply.status(409).send({error: "Username already taken"});
         else
         {
-            await prisma.user_info.update({
-                where: { id: user.user_id },
-                data:  { username: newUsername }
-            });
+            // await prisma.user_info.update({
+            //     where: { id: user.user_id },
+            //     data:  { username: newUsername }
+            // });
+            orm.updateUser(user.user_id, 'username', newUsername);
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -95,10 +99,11 @@ async function changeFirstname(fastify: FastifyInstance)
             return reply.status(400).send({error: "newFirstname invalid"});
         else
         {
-            await prisma.user_info.update({
-                where: { id: user.user_id },
-                data:  { firstname: newFirstname }
-            });
+            // await prisma.user_info.update({
+            //     where: { id: user.user_id },
+            //     data:  { firstname: newFirstname }
+            // });
+            orm.updateUser(user.user_id, 'firstname', newFirstname);
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -125,10 +130,11 @@ async function changeLastname(fastify: FastifyInstance)
             return reply.status(400).send({error: "new Lastname invalid"});
         else
         {
-            await prisma.user_info.update({
-                where: { id: user.user_id },
-                data:  { lastname: newLastname }
-            });
+            // await prisma.user_info.update({
+            //     where: { id: user.user_id },
+            //     data:  { lastname: newLastname }
+            // });
+            orm.updateUser(user.user_id, 'lastname', newLastname);
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -139,35 +145,6 @@ async function changeLastname(fastify: FastifyInstance)
         return reply.status(400).send({ error: "error fetching new JWT" });
     })
 }
-
-// async function toggle2FA(fastify: FastifyInstance)
-// {
-//     fastify.patch('/api/me/2fa-checkbox', async (request: myRequest, reply: any) => 
-//     {
-//         await authenticateJWT(request, reply, fastify);
-//         if (reply.sent)
-//             return ;
-//         const { twoFAEnabled } = request.body as { twoFAEnabled: number };
-//         const user = request.user as JWTformat;
-
-//         if (twoFAEnabled !== 0 && twoFAEnabled !== 1)
-//             return reply.code(400).send({ error: "Invalid value for 2FA" });
-//         await prisma.users.update({
-//             where: { id: user.user_id },
-//             data: { twoFactorAuth: twoFAEnabled },
-//         });
-//         // const updatedUser = await prisma.users.findFirst({
-//         //     where: { id: user.id },
-//         //     include: {user_info: true },
-//         // });
-//         // if (updatedUser)
-//         // {
-//         //     createNewToken(fastify, updatedUser);
-//         // }
-//         createNewToken(fastify, user);
-//         return reply.send({ success: true, twoFA: twoFAEnabled });
-//     });
-// }
 
 async function toggle2FA(fastify: FastifyInstance)
 {
@@ -182,25 +159,28 @@ async function toggle2FA(fastify: FastifyInstance)
         if (twoFAEnabled !== 0 && twoFAEnabled !== 1)
             return reply.code(400).send({ error: "Invalid value for 2FA" });
 
-        await prisma.users.update({
-            where: { id: user.user_id },
-            data: { twoFactorAuth: twoFAEnabled },
-        });
-        const updatedUser = await prisma.users.findUnique({
-            where: { id: user.user_id },
-            include: { user_info: true },
-        });
+        // await prisma.users.update({
+        //     where: { id: user.user_id },
+        //     data: { twoFactorAuth: twoFAEnabled },
+        // });
+        orm.updateUser(user.user_id, 'twoFactorAuth', twoFAEnabled);
+        // const updatedUser = await prisma.users.findUnique({
+        //     where: { id: user.user_id },
+        //     include: { user_info: true },
+        // });
+        const updatedUser = orm.getUserByID(user.user_id);
+        const userInfo = orm.getUserInfoTable(user.user_id);
         if (!updatedUser)
             return reply.code(500).send({ error: "Updated user not found" });
 
         const token = await createNewToken(fastify, {
             id: updatedUser.id,
-            user_id: updatedUser.user_info.id,
+            user_id: userInfo.id,
             email: updatedUser.email,
             login_type: updatedUser.login_type,
-            username: updatedUser.user_info.username,
-            firstname: updatedUser.user_info.firstname,
-            lastname: updatedUser.user_info.lastname,
+            username: userInfo.username,
+            firstname: userInfo.firstname,
+            lastname: userInfo.lastname,
             twoFactorAuth: updatedUser.twoFactorAuth,
         });
 

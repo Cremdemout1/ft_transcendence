@@ -12,9 +12,8 @@
 
 import { FastifyInstance, FastifyRequest } from 'fastify';
 // import { exchangeCodeForToken, getAuthURL, decodeToken } from '../google_auth';
-import { getUser } from '../db/db_queries';
 import { send2FAcode } from './token';
-import { prisma } from '../server';
+import { orm } from '../server';
 
 interface loginBody
 {
@@ -103,44 +102,47 @@ async function login(fastify: FastifyInstance)
         const invalid = invalidChars.some(char => email.includes(char)) || invalidChars.some(char => password.includes(char));
         if (invalid)
             return reply.code(422).send({ error: 'Error: invalid characters' });
-        const authenticated = await getUser(email, password);
-        if (authenticated)
+        // const user = await getUser(email, password);
+        const user = await orm.getProtectedUser(email, password);
+        console.log(user);
+        const idx = user ? user.user_id : null;
+        console.log("user_id: ", idx);
+        const userInfo = orm.getUserInfoTable(idx);
+        console.log(userInfo);
+        if (user)
         {
-            const user = await prisma.users.findFirst({
-                where: { email },
-                include: { user_info: true },
-            });
-            if (user)
+            const twoFa = user ? user.twoFactorAuth : null;
+            if (twoFa.twoFactorAuth === 1)
             {
-                if (user.twoFactorAuth === 1)
-                {
-                    const code = Math.floor(100000 + Math.random() * 900000).toString(); //random 6 digit code
-                    await fastify.redis.set(`2fa:${email}`, code, 'EX', 300);
-                    await send2FAcode(email, code);
-                    return reply.send({
-                        message: '2FA code sent to email',
-                        twoFA: 1,
-                    });
-                }
-                else
-                {
-                    const token = fastify.jwt.sign(
-                        {
-                            id: user.id,
-                            user_id: user.user_info.id,
-                            email: user.email,  
-                            login_type: user.login_type,
-                            username: user.user_info.username,
-                            firstname: user.user_info.firstname,
-                            lastname: user.user_info.lastname,
-                            twoFactorAuth: user.twoFactorAuth,
-                        },
+                const code = Math.floor(100000 + Math.random() * 900000).toString(); //random 6 digit code
+                await fastify.redis.set(`2fa:${email}`, code, 'EX', 300);
+                await send2FAcode(email, code);
+                return reply.send({
+                    message: '2FA code sent to email',
+                    twoFA: 1,
+                });
+            }
+            else
+            {
+                const username = userInfo ? userInfo.username : null;
+                const firstname = userInfo ? userInfo.username : null;
+                const lastname = userInfo ? userInfo.username : null;
+                const token = fastify.jwt.sign(
+                    {
+                        id: user.id,
+                        user_id: idx,
+                        email: user.email,  
+                        login_type: user.login_type,
+                        username: username,
+                        firstname: firstname,
+                        lastname: lastname,
+                        twoFactorAuth: user.twoFactorAuth,
+                    },
                         {
                             expiresIn: '1h'
                         }
-                        )
-                    return reply.send({ user: user, token: token, twoFA: 0 });
-                }
+                    )
+                return reply.send({ user: user, token: token, twoFA: 0 });
             }
         }
         else
@@ -158,18 +160,20 @@ async function verify2fa(fastify: FastifyInstance) {
         if (stashedCode === code)
         {
             await fastify.redis.del(`2fa:${email}`);
-            const user = await prisma.users.findFirst({ where: { email: email }, include: { user_info: true } })
+            // const user = await prisma.users.findFirst({ where: { email: email }, include: { user_info: true } })
+            const user = orm.getUserByEmail(email);
+            const userInfo = orm.getUserInfoTable(user.user_id);
             if (user)
             {
                 const token = fastify.jwt.sign(
                 {
                     id: user.id,
-                    user_id: user.user_info.id,
+                    user_id: userInfo.id,
                     email: user.email,  
                     login_type: user.login_type,
-                    username: user.user_info.username,
-                    firstname: user.user_info.firstname,
-                    lastname: user.user_info.lastname,
+                    username: userInfo.username,
+                    firstname: userInfo.firstname,
+                    lastname: userInfo.lastname,
                     twoFactorAuth: user.twoFactorAuth,
                 },
                 {
@@ -185,50 +189,5 @@ async function verify2fa(fastify: FastifyInstance) {
             return reply.code(401).send({ error: 'Invalid or expired 2FA code' });
     });
 }
-
-
-// interface OAuthCallbackQuery {
-//   code?: string;
-//   error?: string;
-// }
-
-// async function googleAuth(fastify: FastifyInstance)
-// {
-//     fastify.get<{ Querystring: OAuthCallbackQuery }>('/auth/google/callback', async (request, reply) => {
-//     const { code, error } = request.query;
-//         if (error)
-//             return reply.status(400).send(`Google OAuth error: ${error}`);
-//         else if (!code) {
-//             const googleAuthURL = getAuthURL();
-//             return reply.redirect(googleAuthURL);
-//         }
-        
-//         const token = await exchangeCodeForToken(code);
-//         const userInfo: userInfo = await decodeToken(token, fastify);
-
-//         const user = await getUser(userInfo.email, '', 'google', userInfo.sub);
-//         if (user)
-//         {
-//             const token = fastify.jwt.sign(
-//             {
-//                 id: user.id,
-//                 user_id: user.user_info.id,
-//                 email: user.email,  
-//                 login_type: user.login_type,
-//                 username: user.user_info.username,
-//                 firstname: user.user_info.firstname,
-//                 lastname: user.user_info.lastname,
-//                 twoFactorAuth: user.twoFactorAuth,
-//             },
-//             {
-//                 expiresIn: '1h'
-//             }
-//             )
-//             return reply.send({token: token});
-//         }
-//         return reply.code(401).send({ error: 'Invalid email or password' });
-//     })
-
-// }
 
 export { login, verify2fa };

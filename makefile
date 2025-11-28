@@ -13,8 +13,8 @@
 DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-DEV_DB_DIR	   = home/transcendence/Desktop/Data/sqlite-data
-DEV_DB_PATH	   = file:home/transcendence/Desktop/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/transcendence/Desktop/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/transcendence/Desktop/Data/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 # DEV_DB_DIR	   = /home/yohan/ft_transcendence/sqlite-data

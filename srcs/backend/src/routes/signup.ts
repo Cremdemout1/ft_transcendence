@@ -12,8 +12,7 @@
 
 import { FastifyInstance,FastifyRequest } from 'fastify';
 import * as bcrypt from 'bcrypt';
-import { prisma } from '../server';
-import { getUser } from '../db/db_queries'
+import { orm } from '../server';
 
 interface signupBody
 {
@@ -89,65 +88,50 @@ async function SignUp(fastify: FastifyInstance) {
         const invalid = invalidChars.some(char => email.includes(char)) || invalidChars.some(char => password.includes(char)) || invalidChars.some(char => username.includes(char)) || invalidChars.some(char => firstname.includes(char)) || invalidChars.some(char => lastname.includes(char));
         if (invalid)
             return reply.code(422).send({ error:"Invalid", message: 'Error: invalid characters' });
-        const existingUser = await prisma.users.findMany({ where: { email } });
-        for (const user of existingUser)
-            if (user.login_type === login_type)
-                return (reply.code(409).send({
-                    error: "Conflict",
-                    message: "User with this email and login type already exists. would you like to log-in instead?"}))
-
-        const usernameTaken = await prisma.user_info.findFirst({ where: { username } });
-        if (usernameTaken)
+        const existingUser = orm.getUserByEmail(email);
+        if (existingUser) {
             return (reply.code(409).send({
                 error: "Conflict",
-                message: "Username already taken"}))
-
-        let userInfoTableID: number;
-        if (existingUser.length !== 0) //dont create a new user_info, just create a new user linked to user of existingUser id
-                userInfoTableID = existingUser[0].user_id;
-        else
-        {
-            const userInfo = await prisma.user_info.create({
-                data: {
-                    username: username,
-                    firstname: firstname,
-                    lastname: lastname
-                }
-            })
-            userInfoTableID = userInfo.id;
+                message: "User with this email already exists. would you like to login instead?"}
+            ));
         }
-        
+
+        const usernameTaken = orm.getUserByUsername(username);
+        if (usernameTaken) {
+            return (reply.code(409).send({
+                error: "Conflict",
+                message: "Username already taken"}
+            ));
+        }
+        let userInfoTableID: number;
+        const userInfo = orm.createUserInfo(firstname, lastname, username);
+        userInfoTableID = userInfo ? userInfo.lastInsertRowid : null;
+        if (!userInfoTableID)
+            console.log("no player id for some reaosnnn");
+        console.log(userInfo);
+        console.log("user info id: " + userInfoTableID);
         let provider_id = email;
         let hashedPassword: string | undefined;
-
         if (login_type === 'local')
             hashedPassword = await bcrypt.hash(password, 10);
         else if (login_type === 'google')
             provider_id = 'GOOGLE_ID'; // TODO: replace with actual Google provider_id
         else if (login_type === '42')
             provider_id = 'INTRA_ID'; // TODO: replace with actual 42 provider_id
-        await prisma.users.create({
-            data: {
-                email: email,
-                login_type: login_type,
-                password: hashedPassword,
-                provider_id: provider_id,
-                user_info: { connect: { id: userInfoTableID } }
-            }
-        });
+        orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID)
 
-        const user = await getUser(email, password);
+        const user = await orm.getProtectedUser(email, password);
         if (user)
         {
             const token = fastify.jwt.sign(
             {
                 id: user.id,
-                user_id: user.user_info.id,
+                user_id: userInfo.id,
                 email: user.email,  
-                login_type: user.login_type,
-                username: user.user_info.username,
-                firstname: user.user_info.firstname,
-                lastname: user.user_info.lastname,
+                login_type: user.login_type, 
+                username: userInfo.username,
+                firstname: userInfo.firstname,
+                lastname: userInfo.lastname,
                 twoFactorAuth: user.twoFactorAuth,
             },
             {

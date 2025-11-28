@@ -124,15 +124,17 @@ function attachUsernameChange() {
 
     const handleChange = async () => {
         const newUsername = input.value.trim();
+        const jwt = sessionStorage.getItem('jwt');
+        const username = decodeJwt(jwt).username;
         if (!newUsername) return alert("Please enter a new username.");
         try {
             const res = await fetch('http://10.12.242.238:8080/api/me/username', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${sessionStorage.getItem('jwt')}`,
+                    Authorization: `Bearer ${jwt}`,
                 },
-                body: JSON.stringify({ newUsername }),
+                body: JSON.stringify({ newUsername, username }),
             });
             const data = await res.json();
             if (res.ok) {

@@ -16,8 +16,6 @@ WORKDIR /home/backend
 
 COPY ./package.json ./package-lock.json ./tsconfig.json ./
 
-COPY ./prisma ./prisma
-
 RUN apk add --no-cache \
     python3 \
     make \
@@ -31,9 +29,6 @@ RUN apk add --no-cache \
 RUN npm install \
     && apk del python3 make g++ sqlite-dev \
     && npm cache clean --force
-
-RUN npx prisma generate
-
 
 # Copy source code and environment file
 COPY src ./src

@@ -10,30 +10,33 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { prisma } from '../server'
+// import { prisma } from '../server'
 import { FastifyInstance } from 'fastify';
 import { JWTformat } from './profile';
 import nodemailer from 'nodemailer';
+import { orm } from '../server';
 
 async function createNewToken(fastify: FastifyInstance, user: JWTformat): Promise<string|null>
 {
     if (!user?.id)
         return null;
-    const updatedUser = await prisma.users.findUnique({ 
-        where: { id: user.id },
-        include: { user_info: true }
-    });
+    // const updatedUser = await prisma.users.findUnique({ 
+    //     where: { id: user.id },
+    //     include: { user_info: true }
+    // });
+    const updatedUser = orm.getUserByID(user.user_id);
+    const userInfo = orm.getUserInfoTable(user.user_id)
     if (!updatedUser)
       return null;
 
     const newToken = fastify.jwt.sign({
         id: updatedUser.id,
-        user_id: updatedUser.user_info.id,
+        user_id: userInfo.id,
         email: updatedUser.email,
         login_type: updatedUser.login_type,
-        username: updatedUser.user_info.username,
-        firstname: updatedUser.user_info.firstname,
-        lastname: updatedUser.user_info.lastname,
+        username: userInfo.username,
+        firstname: userInfo.firstname,
+        lastname: userInfo.lastname,
         twoFactorAuth: updatedUser.twoFactorAuth,
     },
     {
