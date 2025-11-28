@@ -78,7 +78,7 @@ down: #removes containers
 fclean: down
 	docker system prune -a -f --volumes
 	docker volume prune -f
-	# @rm -rf ${DEV_DB_DIR}
+	@rm -rf ${DEV_DB_DIR}
 	@rm -rf ${PROD_DB_DIR}
 
 .PHONY: all up down start stop re logs fclean 
