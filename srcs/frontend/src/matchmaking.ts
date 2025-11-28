@@ -15,7 +15,7 @@ import { connect, io } from "socket.io-client";
 import { renderPong } from "./pong";
 
 function getUsernameFromJwt(): string | null {
-  const jwt = localStorage.getItem('jwt');
+  const jwt = sessionStorage.getItem('jwt');
   if (!jwt) return null;
   const payload = decodeJwt(jwt);
   return payload?.username || null;
@@ -28,8 +28,7 @@ const socket = io(`http://${HOST}:8081`, {
   transports: ["websocket", "polling"],
   withCredentials: true
 });
-if (!socket)
-    console.log("urmommmmaaaa");
+
 function decodeJwt(token: string){
     try{
         const payload = token.split('.')[1];
@@ -41,7 +40,7 @@ function decodeJwt(token: string){
 }
 
 socket.on ('connect', () => {
-    const jwt = localStorage.getItem('jwt');
+    const jwt = sessionStorage.getItem('jwt');
     const username = jwt ? decodeJwt(jwt)?.username : null;
     if (username) {
         socket.emit('presence:identify', { username });
@@ -66,28 +65,28 @@ function joinGame(code: string, alias: string) {
 
 function startSinglePlayerGame(ai_type: number = 1, alias: string) {
     // renderPong();
-    localStorage.setItem('numPlayers', '1');
+    sessionStorage.setItem('numPlayers', '1');
     createSinglePlayerGame(ai_type, alias);
 }
 
 export function startLocalGame() {
     // renderPong();
-    localStorage.setItem('numPlayers', '1');
+    sessionStorage.setItem('numPlayers', '1');
     createLocalGame();
 }
 
 function start2PlayerGame(alias: string) {
-    localStorage.setItem('numPlayers', '2');
+    sessionStorage.setItem('numPlayers', '2');
     createGame(2, alias);
 }
 
 function start4PlayerGame(alias: string) {
-    localStorage.setItem('numPlayers', '4');
+    sessionStorage.setItem('numPlayers', '4');
     createGame(4, alias);
 }
 
 function start6PlayerGame(alias: string) {
-    localStorage.setItem('numPlayers', '6');
+    sessionStorage.setItem('numPlayers', '6');
     createGame(6, alias);
 }
 
@@ -112,16 +111,16 @@ socket.on("roomCreated", async ({ code, numPlayers }: { code: string, numPlayers
             mod.mountChat(chatRoot);
         }
     }
-    localStorage.setItem('roomCode', code);
-    localStorage.setItem('numPlayers', numPlayers.toString());
+    sessionStorage.setItem('roomCode', code);
+    sessionStorage.setItem('numPlayers', numPlayers.toString());
 });
 
 socket.on("singlePlayerRoomCreated", async ({ code }: { code: string }) => {
     console.log("single player room created event received:", code, 1);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to backend
 
-    localStorage.setItem('roomCode', code);
-    localStorage.setItem('numPlayers', "1");
+    sessionStorage.setItem('roomCode', code);
+    sessionStorage.setItem('numPlayers', "1");
 });
 
 socket.on("roomJoined", async ({ code, numPlayers }: { code: string, numPlayers: number }) => {
@@ -143,8 +142,8 @@ socket.on("roomJoined", async ({ code, numPlayers }: { code: string, numPlayers:
             mod.mountChat(chatRoot);
         }
     }
-    localStorage.setItem('roomCode', code);
-    localStorage.setItem('numPlayers', numPlayers.toString());
+    sessionStorage.setItem('roomCode', code);
+    sessionStorage.setItem('numPlayers', numPlayers.toString());
 });
 
 socket.on("error", ({ message }: { message: string }) => {
@@ -156,8 +155,8 @@ socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
       document.body.classList.add("game-active");
-    localStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
-	localStorage.setItem("vanilla", String(vanilla)); 
+    sessionStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
+	sessionStorage.setItem("vanilla", String(vanilla)); 
     location.href = '/#pong';
 });
 
@@ -190,7 +189,7 @@ function renderTournamentQueue(waitingPlayers: string[]) {
         queueDiv.style.marginTop = '8px';
         app.appendChild(queueDiv);
     }
-    queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/8)</h3>` +
+    queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/4)</h3>` +
         `<ol>${waitingPlayers.map(pid => `<li>${pid}</li>`).join('')}</ol>`;
 }
 

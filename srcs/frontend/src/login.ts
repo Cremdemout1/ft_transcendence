@@ -37,12 +37,12 @@ async function backendLogin() {
             if (res.ok) {
                 if (Number(data.twoFA) === 1)
                 {
-                    localStorage.setItem('pendingEmail', email);
+                    sessionStorage.setItem('pendingEmail', email);
                     location.href = '/#login?section=2FA-verification';
                 }
                 else
                 {
-                    localStorage.setItem('jwt', data.token);
+                    sessionStorage.setItem('jwt', data.token);
                     emitPresence();
                     location.href = '/#dashboard';
                 }
@@ -62,7 +62,8 @@ async function logout() {
    const btn = document.getElementById('logoutBtn');
     if (btn) {
     btn.addEventListener('click', () => {
-        localStorage.removeItem('jwt');
+        sessionStorage.removeItem('jwt');
+        sessionStorage.removeItem('twoFA');
         location.href = '/#login';
         });
     };
@@ -72,7 +73,7 @@ async function verify2faCode () {
     const app = document.getElementById('app');
     if (!app)
         return ;
-    const email = localStorage.getItem('pendingEmail');
+    const email = sessionStorage.getItem('pendingEmail');
     app.innerHTML = `
     <div id='2FA-verification'>
         <p>We've sent a code to "${email}". Please enter the code in the email below</p>
@@ -93,7 +94,7 @@ async function send2FA() {
     
     const handleVerification = async () => {
         const code = input?.value.trim();
-        const email = localStorage.getItem('pendingEmail');
+        const email = sessionStorage.getItem('pendingEmail');
         const errorMsg = document.getElementById('error-msg');
 
         if (!code)
@@ -114,9 +115,9 @@ async function send2FA() {
             const data = await res.json();
             if (errorMsg)
                 errorMsg.textContent = '';
-            localStorage.setItem('jwt', data.token);
+            sessionStorage.setItem('jwt', data.token);
             emitPresence();
-            localStorage.removeItem('pendingEmail');
+            sessionStorage.removeItem('pendingEmail');
             window.location.hash = '#dashboard';
         } catch (err) {
             if (errorMsg) errorMsg.textContent = "Network error. Please try again.";

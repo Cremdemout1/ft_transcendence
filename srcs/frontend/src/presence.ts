@@ -22,7 +22,7 @@ function decodeJwt(token: string): any | null {
 }
 
 export async function emitPresence() {
-  const jwt = localStorage.getItem('jwt');
+  const jwt = sessionStorage.getItem('jwt');
   if (!jwt) return;
   const username = decodeJwt(jwt)?.username;
   if (!username) return;

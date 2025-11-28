@@ -39,7 +39,7 @@ async function backendSignup() {
             const data = await res.json();
             console.log(data);
             if (res.ok) {
-                localStorage.setItem('jwt', data.token);
+                sessionStorage.setItem('jwt', data.token);
                 if (messageDiv) {
                     messageDiv.textContent = "Successful signup!";
                 }

@@ -13,7 +13,7 @@
 import { socket } from "./matchmaking";
 
 async function checkLoginState(path:string) {
-    const token = localStorage.getItem('jwt');
+    const token = sessionStorage.getItem('jwt');
     if (!token) {
         return location.hash = '/#login';
     }
@@ -28,18 +28,18 @@ async function checkLoginState(path:string) {
         console.log(data);
     } else {
         console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
-        localStorage.removeItem("jwt");
+        sessionStorage.removeItem("jwt");
         return location.hash = '/#login';
     }
 }
 
 async function fetchDashboard() {
     checkLoginState("http://10.12.242.238:8080/api/dashboard");
-    localStorage.removeItem("isSinglePlayer");
-    localStorage.removeItem("roomCode");
-    localStorage.removeItem("numPlayers");
-    localStorage.removeItem("lastMatchWinner");
-    localStorage.removeItem("vanilla"); //for now
+    sessionStorage.removeItem("isSinglePlayer");
+    sessionStorage.removeItem("roomCode");
+    sessionStorage.removeItem("numPlayers");
+    sessionStorage.removeItem("lastMatchWinner");
+    sessionStorage.removeItem("vanilla"); //for now
     window.addEventListener("popstate", () => {
         if (window.location.hash !== "#pong") {
             // console.log("found someone going away from game")

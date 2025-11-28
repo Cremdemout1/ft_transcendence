@@ -35,7 +35,7 @@ async function renderProfile() {
     const app = document.getElementById('app');
     if (!app) return;
 
-    const info = localStorage.getItem('jwt');
+    const info = sessionStorage.getItem('jwt');
     const userInfo = info ? decodeJwt(info) : null;
 
     app.innerHTML = `
@@ -92,15 +92,15 @@ async function renderProfile() {
     // 2FA toggle
     const checkbox = document.getElementById('twoFA') as HTMLInputElement | null;
     if (checkbox) {
-        const stored2FA = localStorage.getItem('twoFA');
+        const stored2FA = sessionStorage.getItem('twoFA');
         if (stored2FA !== null) {
             checkbox.checked = stored2FA === 'true';
         } else {
             checkbox.checked = !!userInfo?.twoFactorAuth;
-            localStorage.setItem('twoFA', checkbox.checked.toString());
+            sessionStorage.setItem('twoFA', checkbox.checked.toString());
         }
         checkbox.addEventListener('change', () => {
-            localStorage.setItem('twoFA', checkbox.checked.toString());
+            sessionStorage.setItem('twoFA', checkbox.checked.toString());
             toggle2FA();
         });
     }
@@ -130,13 +130,13 @@ function attachUsernameChange() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                    Authorization: `Bearer ${sessionStorage.getItem('jwt')}`,
                 },
                 body: JSON.stringify({ newUsername }),
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('jwt', data.token);
+                sessionStorage.setItem('jwt', data.token);
                 document.getElementById('username')!.textContent = `Username: ${newUsername}`;
                 input.value = '';
             }
@@ -163,13 +163,13 @@ function attachFirstnameChange() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                    Authorization: `Bearer ${sessionStorage.getItem('jwt')}`,
                 },
                 body: JSON.stringify({ newFirstname }),
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('jwt', data.token);
+                sessionStorage.setItem('jwt', data.token);
                 document.getElementById('firstname')!.textContent = `Firstname: ${newFirstname}`;
                 input.value = '';
             }
@@ -196,13 +196,13 @@ function attachLastnameChange() {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                    Authorization: `Bearer ${sessionStorage.getItem('jwt')}`,
                 },
                 body: JSON.stringify({ newLastname }),
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('jwt', data.token);
+                sessionStorage.setItem('jwt', data.token);
                 document.getElementById('lastname')!.textContent = `Lastname: ${newLastname}`;
                 input.value = '';
             }
@@ -235,7 +235,7 @@ async function toggle2FA() {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+                Authorization: `Bearer ${sessionStorage.getItem('jwt')}`,
             },
             body: JSON.stringify({ twoFAEnabled: is2FAEnabled }),
         });

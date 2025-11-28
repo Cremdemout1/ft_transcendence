@@ -18,7 +18,7 @@ async function renderchangePassword() {
     const app = document.getElementById('app');
     if (!app)
         return ;
-    const info = localStorage.getItem('jwt');
+    const info = sessionStorage.getItem('jwt');
     let userData = null;
     if (info)
         userData = decodeJwt(info);
@@ -65,7 +65,7 @@ async function changePassword() {
                 method: "PATCH",
                 headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem('jwt')}`
+                            Authorization: `Bearer ${sessionStorage.getItem('jwt')}`
                             },
                 body: JSON.stringify({ oldPassword: oldPassword, newPassword: newPassword }) // replace with actual new username
             });

@@ -43,7 +43,7 @@ function showMultiplayerMenu(push = true) {
 
 	// Quickplay
 	document.getElementById('quickplayBtn')?.addEventListener('click', () => {
-		localStorage.setItem('numPlayers', '6');
+		sessionStorage.setItem('numPlayers', '6');
 		socket.emit('quickplay');
 	});
 
@@ -91,7 +91,7 @@ function showMultiplayerMenu(push = true) {
 
 	// Tournament
 	document.getElementById('tournamentBtn')?.addEventListener('click', () => {
-		socket.emit('joinTournament', { username });
+		socket.emit('joinTournament',  username! );
 	});
 
 	// Back button
@@ -101,12 +101,13 @@ function showMultiplayerMenu(push = true) {
 }
 
 // Socket events
-socket.on('matchOver', ({ username }) => {
-	localStorage.setItem(
+socket.on('matchOver', ({ username, tournamentId }) => {
+	if (tournamentId)
+		return ;
+	sessionStorage.setItem(
 		'lastMatchWinner',
 		username
 	);
-	// alert(`MATCH FINISHED. WINNER: PLAYER ${winner + 1}`);
 	window.location.hash = '#endGame';
 });
 

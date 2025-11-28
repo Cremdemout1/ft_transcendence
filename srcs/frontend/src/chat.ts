@@ -24,7 +24,7 @@ function decodeJwt(token: string) {
 }
 
 export function getUsernameFromJwt(): string | null {
-  const jwt = localStorage.getItem('jwt');
+  const jwt = sessionStorage.getItem('jwt');
   if (!jwt) return null;
   const payload = decodeJwt(jwt);
   return payload?.username || null;
@@ -78,7 +78,7 @@ function ensureDOM(target: HTMLElement) {
   dmBadgeEl = target.querySelector('#dmBadge');
 
   // Fill room code in header
-  const code = localStorage.getItem('roomCode') || '';
+  const code = sessionStorage.getItem('roomCode') || '';
   if (headerEl) headerEl.textContent = `ROOM ${code}`;
 }
 
@@ -150,7 +150,7 @@ export function mountChat(target: HTMLElement) {
   ensureDOM(target);
   // load blocked list
   try {
-    const saved = localStorage.getItem('chatBlocked');
+    const saved = sessionStorage.getItem('chatBlocked');
     if (saved) blocked = new Set(JSON.parse(saved));
   } catch {}
   bindSocketOnce();
@@ -296,7 +296,7 @@ function setDMTarget(target: { id: string; name: string } | null) {
 
 function toggleBlock(id: string) {
   if (blocked.has(id)) blocked.delete(id); else blocked.add(id);
-  try { localStorage.setItem('chatBlocked', JSON.stringify(Array.from(blocked))); } catch {}
+  try { sessionStorage.setItem('chatBlocked', JSON.stringify(Array.from(blocked))); } catch {}
   // inform server of block state for enforcement
   try { socket.emit('chat:block', { target: id, block: blocked.has(id) }); } catch {}
   // roster UI will update on next roster push; no-op here

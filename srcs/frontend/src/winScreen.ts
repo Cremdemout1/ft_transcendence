@@ -2,8 +2,16 @@ import { checkLoginState } from "./dashboard";
 import { getUsernameFromJwt } from "./chat";
 
 async function renderWinScreen() { // playerIDX is undefined
-    const winner = localStorage.getItem("lastMatchWinner");
-    const self = getUsernameFromJwt();
+    const winner = sessionStorage.getItem("lastMatchWinner");
+    let self;
+    if (sessionStorage.getItem("vanilla") === "1") {
+        if (winner === "PLAYER 1 -RED-")
+            self = "player 2 -BLUE-";
+        else
+            self = "player 1 -RED-";
+    }
+    else
+        self = getUsernameFromJwt();
     if (!winner)
         location.href = "#dashboard";
     const app = document.getElementById("app");

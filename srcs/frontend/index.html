@@ -96,7 +96,7 @@ function renderLogin() {
         <a href="#signup" class="btn">Signup instead</a>
         <div id="message"></div>
     `;
-    if (localStorage.getItem('jwt')) location.href = '/#dashboard';
+    if (sessionStorage.getItem('jwt')) location.href = '/#dashboard';
     backendLogin();
 }
 
@@ -171,7 +171,7 @@ function router() {
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
     } else if (firstSegment === 'login' && params.get('section') === '2FA-verification') {
-        if (localStorage.getItem('jwt')) location.href = '/#dashboard';
+        if (sessionStorage.getItem('jwt')) location.href = '/#dashboard';
         verify2faCode();
     } else {
         render();

@@ -80,7 +80,7 @@ class TournamentManager {
   waitingPlayers: string[] = [];
   waitingPlayersUsernames: string[] = [];
   tournaments: { [id: string]: any } = {};
-
+  participantNum: number = 4;
   constructor(ioInstance: Server) {
     this.io = ioInstance;
   }
@@ -90,14 +90,14 @@ class TournamentManager {
     this.waitingPlayers.push(socketId);
     this.waitingPlayersUsernames.push(username);
 
-    console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayers.length}/8)`);
+    console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayers.length}/this.participantNum)`);
     // notify clients about updated queue
-    this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
-    if (this.waitingPlayers.length >= 8) {
-      const players = this.waitingPlayers.splice(0, 8);
-      const playerUsernames = this.waitingPlayersUsernames.splice(0, 8);
+    this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayersUsernames.slice() });
+    if (this.waitingPlayers.length >= this.participantNum) {
+      const players = this.waitingPlayers.splice(0, this.participantNum);
+      const playerUsernames = this.waitingPlayersUsernames.splice(0, this.participantNum);
       // notify queue change (players removed for tournament)
-      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() }); //usernames not needed
+      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayersUsernames.slice() }); //usernames not needed
       this.startTournament(players, playerUsernames);
     }
   }
@@ -121,7 +121,7 @@ class TournamentManager {
     });
 
   // Create first round matches (1v1): pairs [0,1],[2,3],[4,5],[6,7]
-    for (let i = 0; i < 8; i += 2) {
+    for (let i = 0; i < this.participantNum; i += 2) {
       const p1 = playerIds[i];
       const user1 = playerUsernames[i];
       const p2 = playerIds[i + 1];
@@ -210,6 +210,7 @@ class TournamentManager {
       const winnerUsernames = winnerIds.map((item: string) => {
         room.playerUsernames.get(item);
       });
+      console.log("round winners:"+ roundWinners);
       // prepare next round
       if (winnerIds.length === 1) {
         // tournament finished
@@ -372,7 +373,6 @@ function broadcastRosterAllRooms() {
   }
 }
 
-let i=0;
 //Socket Event Handlers
 async function handlePlayerInput(socket: Socket, input: any, input2: any){
   const { roomCode, room } = findPlayerRoom(socket.id);
@@ -410,14 +410,6 @@ if(room.vanilla==1)
   
   //Update game state
   await room.game.update();
-  // const AIidx = room.players.indexOf("AI-" + room.code);
-  // const paddleAI = room.game.paddles[AIidx];
-  // if (paddleAI && paddle.active) {
-  //   paddleAI.up = 0;
-  //   paddleAI.down = 0;
-  //   paddleAI.left = 0;
-  //   paddleAI.right = 0;
-  // }
   //Send game state only to players in this specific room
   io.to(roomCode).emit("gameState", { gameState: room.game.getState() });
   // detect match winner and notify tournament manager
@@ -427,19 +419,13 @@ if(room.vanilla==1)
     const winnerSocketId = room.players[winnerIdx] || null;
     console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}`);
     const username = room.playerUsernames.get(winnerSocketId!);
-    io.to(roomCode).emit("matchOver", { username });
+    io.to(roomCode).emit("matchOver", { username, tournamentId: room.tournamentId });
     room.inProgress = false;
     // notify tournament manager if this room belongs to a tournament
     if (room.tournamentId) {
+      console.log("inside tournament for match over");
       tournamentManager.handleMatchOver(roomCode, winnerIdx);
     }
-  }
-  if(room.game.getState().hit==1)
-  {
-	// console.log("SERVER:")
-	// console.log(room.game.getState());
-	i++;
-	// console.log("i: "+i);
   }
 }
 
