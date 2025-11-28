@@ -21,12 +21,13 @@ function getUsernameFromJwt(): string | null {
   return payload?.username || null;
 }
 
-//change this to host pc IP
-//const socket = io("YOUR PC IP", {
-const HOST = window.location.hostname;
-const socket = io(`http://${HOST}:8081`, {
-  transports: ["websocket", "polling"],
-  withCredentials: true
+const isHttps = window.location.protocol === "https:"; // Detects if the current page is using HTTPS
+const SOCKET_URL_OVERRIDE = (window as any).__GAME_SOCKET_URL__ as string | undefined; // Checks for a global variable that may override the URL
+const socket = io(SOCKET_URL_OVERRIDE || "/", { // Creates the socket.io client/connection using override or default path
+  path: "/socket.io",
+  transports: ["websocket", "polling"], //Supports both websocket or http
+  withCredentials: true, //Accepts credentials such as cookies
+  secure: isHttps, //Makes sure the connection uses HTTPS
 });
 
 function decodeJwt(token: string){

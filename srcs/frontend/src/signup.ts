@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/26 17:06:35 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/28 16:29:30 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ async function backendSignup() {
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
         try {
-            const res = await fetch("http://10.12.242.238:8080/api/signup",
+            const res = await fetch("/api/signup",
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -57,9 +57,5 @@ async function backendSignup() {
         }
     });
 }
-
-// document.addEventListener('DOMContentLoaded', () => {
-//   backendSignup();
-// });
 
 export { backendSignup };

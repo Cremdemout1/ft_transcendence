@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 17:31:19 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/28 16:29:51 by luiberna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
 import { getUsernameFromJwt } from "./chat";
 
 async function renderPong() {
-	await checkLoginState("http://10.12.242.238:8080/api/pong");
+	await checkLoginState("/api/pong");
 
 	const app = document.getElementById("app");
 	if (!app) return;
@@ -128,9 +128,6 @@ function showGameModeMenu() {
 			startSinglePlayerGame(Number(AI), username!);
 		});
 	});
-	// document.getElementById("singlePlayerBtn")?.addEventListener("click", () => {
-	// 	startSinglePlayerGame();
-	// })
 
 	document.getElementById("localGameBtn")?.addEventListener("click", () => {
 		startLocalGame();

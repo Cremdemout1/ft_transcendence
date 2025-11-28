@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Dockerfile                                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
+#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/04 10:00:30 by yohan             #+#    #+#              #
-#    Updated: 2025/11/20 14:42:58 by gcapa-pe         ###   ########.fr        #
+#    Updated: 2025/11/28 16:29:14 by luiberna         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,9 @@ RUN npm install --silent
 
 # copy source
 COPY . .
+
+# Install ssl plugin for vite
+RUN npm install -D @vitejs/plugin-basic-ssl
 
 # expose vite dev port and static server port
 EXPOSE 5173
