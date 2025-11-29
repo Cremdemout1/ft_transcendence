@@ -21,24 +21,24 @@ export function checkregex(username: string | null, firstname: string | null, la
     
     if(firstname){
         if(!regexNames.test(firstname))
-            throw new Error("first name contains forbidden characters");
+            throw new Error("first name has an invalid format/characters");
     }
     if(lastname){
         if(!regexNames.test(lastname))
-            throw new Error("last name contains forbidden characters");
+            throw new Error("last name has an invalid format/characters");
     }
     if(username)
     {
         if(!regexUsername.test(username))
-            throw new Error("username contains forbidden characters");
+            throw new Error("username has an invalid format/characters");
     }
     if(email){
         if(!regexEmail.test(email))
-            throw new Error("email contains forbidden characters");
+            throw new Error("email has an invalid format/characters");
     }
     if(password){
         if(!regexPassword.test(password))
-            throw new Error("password contains forbidden characters");
+            throw new Error("password has an invalid format/characters");
     }
 
 }
@@ -59,7 +59,7 @@ async function backendSignup() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
         try {checkregex(username, firstname, lastname, email, password);}
-        catch(error) {messageDiv.textContent = `Sign up failed: ${error} || 'Unknown error'}`;}
+        catch(error) {messageDiv.textContent = `Sign up failed: ${error || 'Unknown error}'}`;return;}
         try {
             const res = await fetch("/api/signup",
             {

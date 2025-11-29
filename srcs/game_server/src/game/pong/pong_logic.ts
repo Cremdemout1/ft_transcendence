@@ -546,8 +546,8 @@ export class GameMath {
 		console.log(idx);
 		if(element.active)
 		{
-			this.paddles[idx].speed=0.3;
-			this.paddles[idx].max_speed=4;
+			this.paddles[idx].speed=1.5;
+			this.paddles[idx].max_speed=2.2;
 			console.log(this.paddles[idx].speed);
 		}
 		console.log(this.paddles[idx].speed);

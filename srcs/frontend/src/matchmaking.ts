@@ -158,6 +158,9 @@ socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: {
       document.body.classList.add("game-active");
     sessionStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
 	sessionStorage.setItem("vanilla", String(vanilla)); 
+    sessionStorage.setItem("roomCode", String(code)); 
+    sessionStorage.setItem("numPlayers", String(numPlayers)); 
+    console.log("aaaaaaaaaaaaaaa");
     location.href = '/#pong';
 });
 

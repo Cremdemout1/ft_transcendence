@@ -342,7 +342,7 @@ function activateRoomPaddles(room: Room): void {
 
 function cleanupRoom(roomCode: string): void {
   const room = rooms[roomCode];
-  if (room && room.players.length === 0) {
+  if (room) {
     console.log(`Deleting empty room: ${roomCode}`);
     delete rooms[roomCode];
   }
@@ -725,7 +725,7 @@ function handleLocalRoom(socket: Socket): void {
   socket.join(code);
   socket.emit("LocalRoomCreated", { code });
 
-  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: 1, vanilla: 1 });
+  io.to(code).emit("gameStart", { code, numPlayers: rooms[code].numPlayers, isSinglePlayer: 0, vanilla: 1 });
   console.log(`Vanilla Room ${code} created for ${1} players by ${socket.id}`);
 }
 
@@ -819,7 +819,8 @@ function handleDisconnect(socket: Socket): void {
     console.log("outsidee")
     if (rooms[code].isSinglePlayer) {
       console.log("insidee")
-      socket.emit('leaveGame', {code});
+      clearInterval(room.actionTimer!);
+      clearInterval(room.ai_timer!);
       // window.location.hash = 'dashboard';
     }
 

@@ -23,11 +23,6 @@ async function renderPong() {
 	const app = document.getElementById("app");
 	if (!app) return;
 	console.log("RENDER PONG");
-	if(window.sessionStorage.getItem('numPlayers')=='-700' || !window.sessionStorage.getItem('roomCode'))
-	{
-		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
-		location.hash='dashboard';
-	}
 	const isSinglePlayer = Boolean(sessionStorage.getItem("isSinglePlayer"));
 	app.innerHTML = isSinglePlayer ? `
 		<div id="pongMenu" class="terminal-menu">
@@ -61,8 +56,14 @@ async function renderPong() {
 			<div id="chatContainer" style="position:absolute; right: 16px; top: 80px; z-index:10;"></div>
 		</div>
 	`;
-
-	initBabylon();
+	if(window.sessionStorage.getItem('numPlayers')=='-700' || !window.sessionStorage.getItem('roomCode'))
+	{
+		console.log("killing myselffff");
+		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
+		location.hash='dashboard';
+	}
+	else
+		initBabylon();
 	const chatMount= document.getElementById('chatContainer');
 	if (chatMount) {
 		console.log("urmom");
