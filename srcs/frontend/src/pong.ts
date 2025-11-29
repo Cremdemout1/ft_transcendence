@@ -22,6 +22,9 @@ async function renderPong() {
 
 	const app = document.getElementById("app");
 	if (!app) return;
+	console.log("RENDER PONG");
+	if(window.sessionStorage.getItem('numPlayers')=='-700')
+		location.hash='dashboard';
 	const isSinglePlayer = Boolean(sessionStorage.getItem("isSinglePlayer"));
 	app.innerHTML = isSinglePlayer ? `
 		<div id="pongMenu" class="terminal-menu">

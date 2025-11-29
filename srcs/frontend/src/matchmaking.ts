@@ -199,6 +199,10 @@ socket.on("tournamentQueueUpdate", ({ waitingCount, waitingPlayers }: { waitingC
     renderTournamentQueue(waitingPlayers);
 });
 
+socket.on('toDashboard', () => {
+    location.hash = 'dashboard';
+});
+
 socket.on("tournamentStarted", ({ tournamentId, players }: { tournamentId: string, players: string[] }) => {
     console.log(`Tournament ${tournamentId} started with players:`, players);
     const app = document.getElementById('app');

@@ -62,6 +62,9 @@ import { renderPong, play } from './src/pong';
 import { renderProfile, me } from './src/profile';
 import { renderchangePassword } from './src/changePassword';
 import {renderWinScreen } from './src/winScreen';
+import { socket } from './src/matchmaking'
+import { getUsernameFromJwt } from './src/chat';
+
 
 const app = document.getElementById('app');
 
@@ -164,10 +167,10 @@ function router() {
     // console.log("hash: ", hash);
     // console.log("path: ", path);
     // console.log("querystring: ", queryString);
-    console.log("params: ", params);
-    console.log("firstSegment: ", firstSegment);
-    console.log("render: ", render);
-    console.log("HERE");
+    // console.log("params: ", params);
+    // console.log("firstSegment: ", firstSegment);
+    // console.log("render: ", render);
+    // console.log("HERE");
 
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
@@ -271,15 +274,46 @@ drawCyberPunkBG();
 </script>
 <script>
 	function byeCRT() {
-    if (window.location.hash == "#pong") {
-        document.body.classList.add("no-crt");
-    } else {
-        document.body.classList.remove("no-crt");
+        if (window.location.hash == "#pong") {
+            document.body.classList.add("no-crt");
+        } else {
+            document.body.classList.remove("no-crt");
+        }
     }
-}
 
-byeCRT();
-window.addEventListener("hashchange", byeCRT);
+    byeCRT();
+    window.addEventListener("hashchange", byeCRT);
+</script>
+<script>
+    const UnloadHandler = (event) => {
+    
+        const hash = window.location.hash || 'login';
+        const [path, queryString] = hash.slice(1).split('?');
+        const params = new URLSearchParams(queryString);
+        let firstSegment = path.toLowerCase();
+
+        if (firstSegment !== "pong") {
+            console.log("outside of pong");
+        }
+        else {
+            console.log("inside pong");
+            //const roomCode = window.sessionStorage.getItem('roomCode');
+            // if (!roomCode)
+            // window.sessionStorage.removeItem('roomCode');
+            // window.sessionStorage.removeItem('vanilla');
+            // window.sessionStorage.removeItem('isSinglePlayer');
+            // window.sessionStorage.removeItem('numPlayers');
+            // window.location.hash = 'dashboard';
+            // else
+            //     socket.emit('joinRoom', { code: roomCode, alias: getUsernameFromJwt() });
+
+console.log("REFRESHER");
+            const roomCode = window.sessionStorage.getItem("roomCode");
+            window.sessionStorage.setItem('numPlayers', '-700');
+        }
+        event.returnValue = '';
+    };
+    window.addEventListener("unload", UnloadHandler);
 </script>
 </body>
 </html>

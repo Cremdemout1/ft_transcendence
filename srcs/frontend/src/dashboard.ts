@@ -47,6 +47,7 @@ async function fetchDashboard() {
             socket.emit("leaveGame");
         }
     });
+    
 }
 
 export { checkLoginState, fetchDashboard };

@@ -815,7 +815,14 @@ function handleDisconnect(socket: Socket): void {
   for (const code in rooms) {
     const room = rooms[code];
     const playerIndex = room.players.indexOf(socket.id);
-    
+
+    console.log("outsidee")
+    if (rooms[code].isSinglePlayer) {
+      console.log("insidee")
+      socket.emit('leaveGame');
+      // window.location.hash = 'dashboard';
+    }
+
     if (playerIndex !== -1) {
       room.players.splice(playerIndex, 1);
       console.log(`Player ${socket.id} removed from room ${code} (${room.players.length}/${room.numPlayers} remaining)`);

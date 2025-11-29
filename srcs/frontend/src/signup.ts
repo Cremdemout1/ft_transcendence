@@ -28,6 +28,14 @@ async function backendSignup() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
+        let regexUsername= /^[a-zA-Z0-9_]{1,10}$/;
+        let regexNames= /^[a-zA-Z0-9]{1,20}$/;
+        if(!regexUsername.test(username))
+            throw new Error("username contains forbidden characters");
+        if(!regexNames.test(firstname))
+            throw new Error("first name contains forbidden characters");
+        if(!regexNames.test(lastname))
+            throw new Error("last name contains forbidden characters");
         try {
             const res = await fetch("/api/signup",
             {
