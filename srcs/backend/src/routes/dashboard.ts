@@ -11,6 +11,25 @@
 /* ************************************************************************** */
 
 import { FastifyRequest, FastifyInstance } from "fastify";
+import { orm } from "../server";
+
+
+function decodeJwt(token: string | null) {
+    if (token === null)
+    {
+        location.hash = "#login";
+        throw new Error("jwt is null");
+    }
+    try {
+        const payloadBase64Url = token.split('.')[1];
+        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payloadJson = atob(payloadBase64);
+        return JSON.parse(payloadJson);
+    } catch (e) {
+        console.error('Invalid JWT token', e);
+        return null;
+    }
+}
 
 type myRequest = FastifyRequest;
 
@@ -25,12 +44,15 @@ export async function authenticateJWT(request: myRequest, reply: any, fastify: F
     const token = authHeader?.split(' ')[1];
     if (token) {
         try {
-            const decoded = await fastify.jwt.verify(token)
+            const decoded = await fastify.jwt.verify(token);
+            const jwtUser = decodeJwt(token);
+            if (!orm.getUserByEmail(jwtUser.email))
+                throw new Error("User does not exist");
             request.user = decoded;
-    } catch (err) {
-        reply.status(401).send({ error: err })
-    }
-};
+        } catch (err) {
+            reply.status(401).send({ error: err })
+        }
+    };
 }
 
 async function dashboard(fastify: FastifyInstance)

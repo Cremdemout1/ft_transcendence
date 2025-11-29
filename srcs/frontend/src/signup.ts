@@ -14,7 +14,7 @@ import {emitPresence} from './presence';
 
 export function checkregex(username: string | null, firstname: string | null, lastname:string | null, password: string | null)
 {
-    let regexUsername= /^[a-zA-Z0-9_]{1,10}$/;
+    let regexUsername= /^[a-zA-Z0-9_]{1,15}$/;
     let regexNames= /^[a-zA-Z0-9]{1,20}$/;
     let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
     if(username)

@@ -12,7 +12,7 @@ async function renderWinScreen() { // playerIDX is undefined
     }
     else
         self = getUsernameFromJwt();
-    if (!winner)
+    if (!winner || winner === "-1")
         location.href = "#dashboard";
     const app = document.getElementById("app");
     if (!app) return;

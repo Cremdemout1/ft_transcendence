@@ -23,7 +23,7 @@ async function renderPong() {
 	const app = document.getElementById("app");
 	if (!app) return;
 	console.log("RENDER PONG");
-	if(window.sessionStorage.getItem('numPlayers')=='-700')
+	if(window.sessionStorage.getItem('numPlayers')=='-700' || !window.sessionStorage.getItem('roomCode'))
 	{
 		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
 		location.hash='dashboard';
