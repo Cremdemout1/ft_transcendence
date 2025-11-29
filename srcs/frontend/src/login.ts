@@ -12,6 +12,7 @@
 
 
 import {emitPresence} from './presence';
+import {checkregex} from './signup'
 
 async function backendLogin() {
 
@@ -26,6 +27,8 @@ async function backendLogin() {
 
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
+        
+        checkregex(null, null, null, password);
         try {
             const res = await fetch("/api/login",
                 {

@@ -819,7 +819,7 @@ function handleDisconnect(socket: Socket): void {
     console.log("outsidee")
     if (rooms[code].isSinglePlayer) {
       console.log("insidee")
-      socket.emit('leaveGame');
+      socket.emit('leaveGame', {code});
       // window.location.hash = 'dashboard';
     }
 
@@ -1008,20 +1008,21 @@ io.on("connection", (socket: Socket) => {
     handlePlayerInput(socket, input, input2);
   });
 
-  socket.on("leaveGame", () => {
-    const { roomCode, room } = findPlayerRoom(socket.id);
-    if (!room)
-        console.log("urmom");
-    console.log("inside socket on leaveGame", roomCode);
+  socket.on("leaveGame", ({ code }: { code: string }) => {
+    // const { roomCode, room } = findPlayerRoom(socket.id);
+    // if (!room)
+    //     console.log("urmom");
+    let room = rooms[code];
+    console.log("inside socket on leaveGame", code);
     console.log(room?.isSinglePlayer);
     if (room?.isSinglePlayer) {
-    console.log("inside socket on is single player check", roomCode);
+    console.log("inside socket on is single player check", code);
       clearInterval(room.actionTimer!);
       clearInterval(room.ai_timer!);
       // delete room.ai_bot;
     }
     if (room?.vanilla || room?.isSinglePlayer)
-      delete rooms[roomCode!];
+      delete rooms[code!];
     socket.disconnect();
   });
   

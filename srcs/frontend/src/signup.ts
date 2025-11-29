@@ -12,6 +12,30 @@
 
 import {emitPresence} from './presence';
 
+export function checkregex(username: string | null, firstname: string | null, lastname:string | null, password: string | null)
+{
+    let regexUsername= /^[a-zA-Z0-9_]{1,10}$/;
+    let regexNames= /^[a-zA-Z0-9]{1,20}$/;
+    let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    if(username)
+    {
+        if(!regexUsername.test(username))
+            throw new Error("username contains forbidden characters");
+    }
+    if(firstname){
+        if(!regexNames.test(firstname))
+            throw new Error("first name contains forbidden characters");
+    }
+    if(lastname){
+        if(!regexNames.test(lastname))
+            throw new Error("last name contains forbidden characters");
+    }
+    if(password){
+        if(!regexPassword.test(password))
+            throw new Error("password contains forbidden characters");
+    }
+}
+
 async function backendSignup() {
     const form = document.querySelector("#signup-form");
     const messageDiv = document.querySelector("#message");
@@ -28,14 +52,7 @@ async function backendSignup() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
 
-        let regexUsername= /^[a-zA-Z0-9_]{1,10}$/;
-        let regexNames= /^[a-zA-Z0-9]{1,20}$/;
-        if(!regexUsername.test(username))
-            throw new Error("username contains forbidden characters");
-        if(!regexNames.test(firstname))
-            throw new Error("first name contains forbidden characters");
-        if(!regexNames.test(lastname))
-            throw new Error("last name contains forbidden characters");
+        checkregex(username, firstname, lastname, password);
         try {
             const res = await fetch("/api/signup",
             {

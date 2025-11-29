@@ -14,7 +14,7 @@ import { checkLoginState } from "./dashboard";
 import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
 import { mountChat } from "./chat";
-import { startSinglePlayerGame, startLocalGame } from "./matchmaking";
+import { startSinglePlayerGame, startLocalGame, socket } from "./matchmaking";
 import { getUsernameFromJwt } from "./chat";
 
 async function renderPong() {
@@ -24,7 +24,10 @@ async function renderPong() {
 	if (!app) return;
 	console.log("RENDER PONG");
 	if(window.sessionStorage.getItem('numPlayers')=='-700')
+	{
+		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
 		location.hash='dashboard';
+	}
 	const isSinglePlayer = Boolean(sessionStorage.getItem("isSinglePlayer"));
 	app.innerHTML = isSinglePlayer ? `
 		<div id="pongMenu" class="terminal-menu">

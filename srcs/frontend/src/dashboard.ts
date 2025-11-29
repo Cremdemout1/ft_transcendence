@@ -36,7 +36,6 @@ async function checkLoginState(path:string) {
 async function fetchDashboard() {
     checkLoginState("/api/dashboard");
     sessionStorage.removeItem("isSinglePlayer");
-    sessionStorage.removeItem("roomCode");
     sessionStorage.removeItem("numPlayers");
     sessionStorage.removeItem("lastMatchWinner");
     sessionStorage.removeItem("vanilla"); //for now
@@ -44,10 +43,10 @@ async function fetchDashboard() {
         if (window.location.hash !== "#pong") {
             // console.log("found someone going away from game")
             // console.log(window.location.hash)
-            socket.emit("leaveGame");
+            socket.emit("leaveGame", { code: sessionStorage.getItem('roomCode') });
         }
     });
-    
+    sessionStorage.removeItem("roomCode");
 }
 
 export { checkLoginState, fetchDashboard };
