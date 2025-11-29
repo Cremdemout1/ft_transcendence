@@ -105,6 +105,8 @@ async function SignUp(fastify: FastifyInstance) {
         }
         let userInfoTableID: number;
         const userInfo = orm.createUserInfo(firstname, lastname, username);
+        if (userInfo === -1)
+            return reply.status(422).send({ error: 'firstname, lastname or username contains invalid characters' });
         userInfoTableID = userInfo ? userInfo.lastInsertRowid : null;
         if (!userInfoTableID)
             console.log("no player id for some reaosnnn");
@@ -118,8 +120,8 @@ async function SignUp(fastify: FastifyInstance) {
             provider_id = 'GOOGLE_ID'; // TODO: replace with actual Google provider_id
         else if (login_type === '42')
             provider_id = 'INTRA_ID'; // TODO: replace with actual 42 provider_id
-        orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID)
-
+        if (orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID) == -1)
+            return reply.status(422).send({ error: 'email or password contains invalid characters' });
         const user = await orm.getProtectedUser(email, password);
         const idx = user ? user.user_id : null;
         const userInformation = orm.getUserInfoTable(idx);

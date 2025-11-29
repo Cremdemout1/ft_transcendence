@@ -12,6 +12,7 @@
 
 import { checkLoginState } from "./dashboard";
 import { decodeJwt } from './profile'
+import { checkregex } from "./signup";
 
 async function renderchangePassword() {
     checkLoginState("/api/change-password")
@@ -30,7 +31,7 @@ async function renderchangePassword() {
         <input type='password' id='newPasswordCopy' placeholder="Confirm" required></input>
         <button type='submit' id="changePassword">change</button>
     </div>
-    <p id='message'></p>
+    <div id='message'></div>
     `;
     changePassword();
 }
@@ -58,7 +59,13 @@ async function changePassword() {
 
         if (newPassword !== newPasswordCopy)
             return messageDiv.textContent = 'Error changing password: Passwords don\'t match';
-
+        try {
+            checkregex(null, null, null, null, newPassword);
+            checkregex(null, null, null, null, oldPassword);
+        }
+        catch(err) {
+            messageDiv.textContent = `${err}`;
+        }
         try {
             const res = await fetch('/api/me/change-password', 
             {
@@ -81,7 +88,7 @@ async function changePassword() {
                     messageDiv.textContent = `Error changing password: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
             }
         } catch(error) {
-            console.log("Error changing password:", error);
+            messageDiv.textContent = `${error}`;
         }
     }
     if (!btn || !oldPasswordInput || !newPasswordInput || !newPasswordCopyInput)

@@ -91,7 +91,11 @@ function showMultiplayerMenu(push = true) {
 
 	// Tournament
 	document.getElementById('tournamentBtn')?.addEventListener('click', () => {
-		socket.emit('joinTournament',  username! );
+		const alias = prompt('Enter Alias - If no alias is chosen, your username will be used: ');
+		if (alias)
+			socket.emit('joinTournament',  alias );
+		else
+			socket.emit('joinTournament',  username! );
 	});
 
 	// Back button

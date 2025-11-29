@@ -37,6 +37,7 @@ async function renderProfile() {
 
     const info = sessionStorage.getItem('jwt');
     const userInfo = info ? decodeJwt(info) : null;
+
     console.log("hi: ", userInfo);
     app.innerHTML = `
         <div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
@@ -71,6 +72,7 @@ async function renderProfile() {
                     <input id="twoFA" type="checkbox" />
                     <label for="twoFA">Enable Two Factor Authentication</label>
                 </div>
+                <div id="message"></div>
             </div>
         </div>
 `;
@@ -120,6 +122,8 @@ async function me() {
 function attachUsernameChange() {
     const btn = document.getElementById('changeUsername');
     const input = document.getElementById('newUsernameInput') as HTMLInputElement | null;
+    const messageDiv = document.querySelector("#message");
+
     if (!btn || !input) return;
 
     const handleChange = async () => {
@@ -142,8 +146,10 @@ function attachUsernameChange() {
                 document.getElementById('username')!.textContent = `Username: ${newUsername}`;
                 input.value = '';
             }
+            else
+                throw new Error(data.error);
         } catch (err) {
-            console.error('Error changing username:', err);
+            messageDiv.textContent = `${err}`;
         }
     };
 
@@ -155,6 +161,7 @@ function attachUsernameChange() {
 function attachFirstnameChange() {
     const btn = document.getElementById('changeFirstname');
     const input = document.getElementById('newFirstnameInput') as HTMLInputElement | null;
+    const messageDiv = document.querySelector("#message");
     if (!btn || !input) return;
 
     const handleChange = async () => {
@@ -175,8 +182,12 @@ function attachFirstnameChange() {
                 document.getElementById('firstname')!.textContent = `Firstname: ${newFirstname}`;
                 input.value = '';
             }
-        } catch (err) {
-            console.error('Error changing firstname:', err);
+            else {
+                if (messageDiv)
+                    messageDiv.textContent = `Error changing firstname: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
+            }
+            } catch (err) {
+                messageDiv.textContent = `${err}`;
         }
     };
 
@@ -188,6 +199,7 @@ function attachFirstnameChange() {
 function attachLastnameChange() {
     const btn = document.getElementById('changeLastname');
     const input = document.getElementById('newLastnameInput') as HTMLInputElement | null;
+    const messageDiv = document.querySelector("#message");
     if (!btn || !input) return;
 
     const handleChange = async () => {
@@ -208,8 +220,12 @@ function attachLastnameChange() {
                 document.getElementById('lastname')!.textContent = `Lastname: ${newLastname}`;
                 input.value = '';
             }
+            else{
+                if (messageDiv)
+                    messageDiv.textContent = `Error changing lastname: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
+            }
         } catch (err) {
-            console.error('Error changing lastname:', err);
+            messageDiv.textContent = `${err}`;
         }
     };
 

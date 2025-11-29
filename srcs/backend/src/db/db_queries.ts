@@ -43,7 +43,35 @@ dotenv.config();
 //   )
 // );
 
-
+export function checkregexBackend(username: string | null, firstname: string | null, lastname:string | null, email: string | null, password: string | null)
+{
+    let regexUsername= /^[a-zA-Z0-9_]{1,15}$/;
+    let regexNames= /^[a-zA-Z0-9]{1,20}$/;
+    let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    let regexEmail= /^[a-zA-Z0-9._]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{2,}$/;
+    
+    if(username)
+    {
+        if(!regexUsername.test(username))
+            throw new Error("username has an invalid format/characters");
+    }
+    if(firstname){
+        if(!regexNames.test(firstname))
+            throw new Error("first name has an invalid format/characters");
+    }
+    if(lastname){
+        if(!regexNames.test(lastname))
+            throw new Error("last name has an invalid format/characters");
+    }
+    if(password){
+        if(!regexPassword.test(password))
+            throw new Error("password has an invalid format/characters");
+    }
+    if(email){
+        if(!regexEmail.test(email))
+            throw new Error("email has an invalid format/characters");
+    }
+}
 
 export default class ORM { //pass hashed password here
 
@@ -64,6 +92,7 @@ export default class ORM { //pass hashed password here
     }
 
     public getUserByEmail(email: string): any {
+
         return this.db.prepare(`SELECT * FROM ${process.env.DB_USER_TABLE} WHERE email = ?`).get(email);
     }
 
@@ -77,6 +106,12 @@ export default class ORM { //pass hashed password here
     }
 
     public createUser(email: string, password: string, provider_id: string, login_type: string, user_info_id: number): any {
+        try {
+            checkregexBackend(null, null, null, email, null);
+        }
+        catch(error) {
+            return -1;
+        }
         const query = this.db.prepare(`INSERT INTO ${process.env.DB_USER_TABLE} (email, password, login_type, provider_id, user_id) VALUES (?, ?, ?, ?, ?)`);
         const userResult = query.run(email, password, login_type, provider_id, user_info_id);
         console.log(userResult);
@@ -84,6 +119,12 @@ export default class ORM { //pass hashed password here
     }
 
     public createUserInfo(firstname: string, lastname: string, username: string): any {
+        try{
+        checkregexBackend(username, firstname, lastname, null, null);
+        }
+        catch(error) {
+            return -1;
+        }
         const query = this.db.prepare(`INSERT INTO ${process.env.DB_USER_INFO_TABLE} (firstname, lastname, username) VALUES (?, ?, ?)`);
         const userResult = query.run(firstname, lastname, username);
         return userResult;
@@ -93,6 +134,18 @@ export default class ORM { //pass hashed password here
         const table = (valueToChange === 'password' || valueToChange === 'twoFactorAuth')
             ? process.env.DB_USER_TABLE : process.env.DB_USER_INFO_TABLE;
         const id = (valueToChange === 'password') ? "user_id" : "id";
+        try{
+            if(valueToChange=="username")
+                checkregexBackend(newValue, null, null, null, null);
+            else if(valueToChange=="firstname")
+                checkregexBackend(null, newValue, null, null, null);
+            else if(valueToChange=="lastname")
+                checkregexBackend(null, null, newValue, null, null);
+        }
+        catch(error)
+        {
+            return -1;
+        }
         const query = this.db.prepare(`UPDATE ${table} SET ${valueToChange} = ?  WHERE (${id}) = ?`);
         const updatedUser = query.run(newValue, userId);
         return updatedUser;

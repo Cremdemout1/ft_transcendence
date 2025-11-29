@@ -46,7 +46,6 @@ async function changeUsername(fastify: FastifyInstance)
 {
     fastify.patch('/api/me/username', async (request: myRequest, reply: any) =>
     {
-        console.log("hellooo");
         await authenticateJWT(request, reply, fastify);
         if (reply.sent)
             return;
@@ -55,14 +54,7 @@ async function changeUsername(fastify: FastifyInstance)
         console.log(user);
         if (!newUsername || newUsername.trim() === '')
             return reply.status(400).send({error: "Username invalid"});
-        // const existingUser = await prisma.user_info.findFirst(
-        // { 
-        //     where: 
-        //     {
-        //             username: newUsername ,
-        //             NOT: { id: user.user_id, },
-        //     },
-        //     });
+
         console.log("new username: " + newUsername + "\nold username: " + username);
         if (newUsername === username)
             return reply.status(409).send({error: "Username can't be the same"});
@@ -77,7 +69,8 @@ async function changeUsername(fastify: FastifyInstance)
             //     where: { id: user.user_id },
             //     data:  { username: newUsername }
             // });
-            orm.updateUser(user.user_id, 'username', newUsername);
+            if (orm.updateUser(user.user_id, 'username', newUsername) == -1)
+                return reply.status(422).send({ error: 'new username contains invalid characters' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -108,7 +101,8 @@ async function changeFirstname(fastify: FastifyInstance)
             //     where: { id: user.user_id },
             //     data:  { firstname: newFirstname }
             // });
-            orm.updateUser(user.user_id, 'firstname', newFirstname);
+            if (orm.updateUser(user.user_id, 'firstname', newFirstname) == -1)
+                return reply.status(422).send({ error: 'new firstname contains invalid characters' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -139,7 +133,8 @@ async function changeLastname(fastify: FastifyInstance)
             //     where: { id: user.user_id },
             //     data:  { lastname: newLastname }
             // });
-            orm.updateUser(user.user_id, 'lastname', newLastname);
+            if (orm.updateUser(user.user_id, 'lastname', newLastname) == -1)
+                return reply.status(422).send({ error: 'new lastname contains invalid characters' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)

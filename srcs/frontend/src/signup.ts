@@ -12,16 +12,13 @@
 
 import {emitPresence} from './presence';
 
-export function checkregex(username: string | null, firstname: string | null, lastname:string | null, password: string | null)
+export function checkregex(username: string | null, firstname: string | null, lastname:string | null, email: string | null, password: string | null)
 {
     let regexUsername= /^[a-zA-Z0-9_]{1,15}$/;
     let regexNames= /^[a-zA-Z0-9]{1,20}$/;
     let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
-    if(username)
-    {
-        if(!regexUsername.test(username))
-            throw new Error("username contains forbidden characters");
-    }
+    let regexEmail= /^[a-zA-Z0-9._]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{2,}$/;
+    
     if(firstname){
         if(!regexNames.test(firstname))
             throw new Error("first name contains forbidden characters");
@@ -30,10 +27,20 @@ export function checkregex(username: string | null, firstname: string | null, la
         if(!regexNames.test(lastname))
             throw new Error("last name contains forbidden characters");
     }
+    if(username)
+    {
+        if(!regexUsername.test(username))
+            throw new Error("username contains forbidden characters");
+    }
+    if(email){
+        if(!regexEmail.test(email))
+            throw new Error("email contains forbidden characters");
+    }
     if(password){
         if(!regexPassword.test(password))
             throw new Error("password contains forbidden characters");
     }
+
 }
 
 async function backendSignup() {
@@ -51,8 +58,8 @@ async function backendSignup() {
         const username = (document.querySelector("input[name='username']") as HTMLInputElement).value;
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
-
-        checkregex(username, firstname, lastname, password);
+        try {checkregex(username, firstname, lastname, email, password);}
+        catch(error) {messageDiv.textContent = `Sign up failed: ${error} || 'Unknown error'}`;}
         try {
             const res = await fetch("/api/signup",
             {

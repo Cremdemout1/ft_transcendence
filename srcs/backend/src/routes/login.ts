@@ -97,11 +97,7 @@ async function login(fastify: FastifyInstance)
     fastify.post('/api/login', loginOpts, async (request: ReqBody<loginBody>, reply: any) =>
     {
         const { email, password }: loginBody = request.body;
-        const invalidChars = ['\'', '\"', '`'];
-
-        const invalid = invalidChars.some(char => email.includes(char)) || invalidChars.some(char => password.includes(char));
-        if (invalid)
-            return reply.code(422).send({ error: 'Error: invalid characters' });
+        
         // const user = await getUser(email, password);
         const user = await orm.getProtectedUser(email, password);
         console.log(user);
