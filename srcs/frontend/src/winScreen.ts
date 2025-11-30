@@ -16,11 +16,23 @@ async function renderWinScreen() { // playerIDX is undefined
         location.href = "#dashboard";
     const app = document.getElementById("app");
     if (!app) return;
+    // If server provided a custom message (e.g. forfeit), show it instead of generic text
+    const customMsg = sessionStorage.getItem('lastMatchMessage');
     let congratulations: string;
-    if (winner === self)
-        congratulations = `Congratulations<br></br><strong>${self}!</strong> <h3>You fought hard, surmounted obstacles and returned victorious!</h3>`;
-    else
-        congratulations = `<strong>${self}</strong><h3>You fought like a true warrior... Unfortunately</h3> <h4><strong>${winner}</strong></h4> <h3>got the best of you this time!</h3>`;
+    if (customMsg) {
+        if (winner === self) {
+            congratulations = `<strong>${self}</strong><h3>${customMsg}</h3>`;
+        } else {
+            congratulations = `<h3>${customMsg}</h3><h4><strong>${winner}</strong></h4>`;
+        }
+        // remove after consumption so it doesn't persist
+        sessionStorage.removeItem('lastMatchMessage');
+    } else {
+        if (winner === self)
+            congratulations = `Congratulations<br></br><strong>${self}!</strong> <h3>You fought hard, surmounted obstacles and returned victorious!</h3>`;
+        else
+            congratulations = `<strong>${self}</strong><h3>You fought like a true warrior... Unfortunately</h3> <h4><strong>${winner}</strong></h4> <h3>got the best of you this time!</h3>`;
+    }
     
     app.innerHTML = `
         <div class="menu-container">

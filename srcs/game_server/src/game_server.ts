@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/28 11:18:29 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/11/30 12:40:24 by gcapa-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,249 +67,381 @@ type ChatMessage = {
   to?: string; // target socket for dm
 };
 
-// Keep a simple mapping of socket.id -> username (provided by client after auth)
 const socketUsername: Record<string, string> = {};
-// Track all online-identified users (can be outside rooms)
 const onlineUsers: Record<string, string> = {};
-// Simple per-socket block lists: who each user has blocked
 const blockMap: Record<string, Set<string>> = {};
 
-// Simple tournament manager for single-elimination 8-player tournaments
+//----------------------------- Tournament Manager -----------------------------
 class TournamentManager {
   io: Server;
-  waitingPlayers: string[] = [];
-  waitingPlayersUsernames: string[] = [];
+  waitingPlayers: Map<string, { alias: string }> = new Map(); // socketId -> { alias }
   tournaments: { [id: string]: any } = {};
   participantNum: number = 4;
+
   constructor(ioInstance: Server) {
     this.io = ioInstance;
   }
 
-  joinTournament(socketId: string, username: string) {
-    if (this.waitingPlayers.includes(socketId)) return;
-    this.waitingPlayers.push(socketId);
-    this.waitingPlayersUsernames.push(username);
+  joinTournament(socketId: string, alias: string) {
+    const raw = (alias || '').toString().trim();
+    const safeAlias = raw.substring(0, 24);
+    const aliasLower = safeAlias.toLowerCase();
 
-    console.log(`Player ${socketId} joined tournament queue (${this.waitingPlayers.length}/this.participantNum)`);
-    // notify clients about updated queue
-    this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayersUsernames.slice() });
-    if (this.waitingPlayers.length >= this.participantNum) {
-      const players = this.waitingPlayers.splice(0, this.participantNum);
-      const playerUsernames = this.waitingPlayersUsernames.splice(0, this.participantNum);
-      // notify queue change (players removed for tournament)
-      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayersUsernames.slice() }); //usernames not needed
-      this.startTournament(players, playerUsernames);
+    if (this.waitingPlayers.has(socketId)) return;
+
+    // alias duplicadoss
+    for (const p of this.waitingPlayers.values()) {
+      if ((p.alias || '').toString().toLowerCase() === aliasLower) {
+        const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
+        if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
+        return;
+      }
+    }
+
+    // alias que já estão no torneio
+    for (const tid in this.tournaments) {
+      const t = this.tournaments[tid];
+      try {
+        if (t.players) {
+          for (const p of t.players.values()) {
+            if ((p.alias || '').toString().toLowerCase() === aliasLower) {
+              const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
+              if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
+              return;
+            }
+          }
+        }
+        if (t.activeMatches) {
+          for (const m of Object.values(t.activeMatches) as any[]) {
+            if (m && m.aliases && (m.aliases as any[]).some((a: any) => (a || '').toString().toLowerCase() === aliasLower)) {
+              const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
+              if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
+              return;
+            }
+          }
+        }
+      } catch (e) {
+      }
+    }
+
+    this.waitingPlayers.set(socketId, { alias: safeAlias });
+    this.io.emit("tournamentQueueUpdate", {
+      waitingCount: this.waitingPlayers.size,
+      waitingPlayers: Array.from(this.waitingPlayers.values()).map(p => p.alias)
+    });
+    if (this.waitingPlayers.size >= this.participantNum) {
+      const entries = Array.from(this.waitingPlayers.entries()).slice(0, this.participantNum);
+      entries.forEach(([sid]) => this.waitingPlayers.delete(sid));
+      this.io.emit("tournamentQueueUpdate", {
+        waitingCount: this.waitingPlayers.size,
+        waitingPlayers: Array.from(this.waitingPlayers.values()).map(p => p.alias)
+      });
+      this.startTournament(entries);
     }
   }
 
-  startTournament(playerIds: string[], playerUsernames: string[]) {
+  async startTournament(playerEntries: [string, { alias: string }][]) {
     const tid = `T-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-    console.log(`Starting tournament ${tid} with players:`, playerIds);
     const tournament: any = {
       id: tid,
-      players: playerIds.slice(),
-      playerUsernames: playerUsernames.slice(),
+      players: new Map(playerEntries), // Map<socketId, { alias }>
       rounds: [],
       activeMatches: {},
+      round: 1,
+      winners: []
     };
     this.tournaments[tid] = tournament;
+    // Countdown before start
+    try {
+      const sockets = Array.from(tournament.players.keys());
+      for (let i = 5; i > 0; i--) {
+        sockets.forEach((sid) => {
+          const s = this.io.sockets.sockets.get(sid as any) as Socket | undefined;
+          if (s) s.emit("tournamentCountdown", { seconds: i, round: tournament.round });
+        });
+        await new Promise(res => setTimeout(res, 1000));
+      }
+    } catch (err) {
+      console.error('tournament countdown error', err);
+    }
+    // Pairings for round 1
+    const entries: [string, { alias: string }][] = Array.from(tournament.players.entries());
+    const pairs: Array<[[string, { alias: string }], [string, { alias: string }]]> = [
+      [entries[0], entries[1]],
+      [entries[2], entries[3]]
+    ];
 
-    // notify the players that their tournament is starting
-    playerIds.forEach((pid) => {
-      const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
-      s?.emit("tournamentStarted", { tournamentId: tid, players: playerIds });
-    });
-
-  // Create first round matches (1v1): pairs [0,1],[2,3],[4,5],[6,7]
-    for (let i = 0; i < this.participantNum; i += 2) {
-      const p1 = playerIds[i];
-      const user1 = playerUsernames[i];
-      const p2 = playerIds[i + 1];
-      const user2 = playerUsernames[i + 1];
+    for (let idx = 0; idx < pairs.length; idx++) {
+      const pair = pairs[idx];
+      const [p1, obj1] = pair[0];
+      const [p2, obj2] = pair[1];
       const roomCode = generateRoomCode();
-      const matchId = `${tid}-m${i / 2}`;
+      const matchId = `${tid}-r1-m${idx}`;
 
       rooms[roomCode] = {
         code: roomCode,
         numPlayers: 2,
-        players: [p1, p2],
+        players: [], 
         playerUsernames: new Map(),
         game: new GameMath(),
-        inProgress: true,
+        inProgress: false,
         tournamentId: tid,
         matchId,
         chat: { messages: [] },
       };
-      activateRoomPaddles(rooms[roomCode]);
 
-      rooms[roomCode].playerUsernames.set(p1, user1);
-      rooms[roomCode].playerUsernames.set(p2, user2);
-      // put sockets into the room if they are connected
+      //inicialização 
+      tournament.activeMatches[roomCode] = {
+        players: [p1, p2],
+        aliases: [obj1.alias, obj2.alias],
+        winner: null,
+        round: 1
+      };
+
+      // Try to look up sockets and instruct them to join; if a participant is missing
+      // award a bye to the connected participant so tournament can progress.
       const s1 = this.io.sockets.sockets.get(p1 as any) as Socket | undefined;
       const s2 = this.io.sockets.sockets.get(p2 as any) as Socket | undefined;
-      s1?.join(roomCode);
-      s2?.join(roomCode);
 
-      s1?.emit("roomJoined", { code: roomCode, numPlayers: 2 });
-      s2?.emit("roomJoined", { code: roomCode, numPlayers: 2 });
-      this.io.to(roomCode).emit("playerCount", { count: 2, numPlayers: 2 });
-      broadcastRoster(roomCode);
-      // chat system messages
-      pushAndBroadcastChat(roomCode, { id: genMsgId(), from: "system", text: `Match ${matchId} started`, ts: Date.now(), system: true });
-      pushAndBroadcastChat(roomCode, { id: genMsgId(), from: "system", text: `Players: ${p1.substring(0,6)} vs ${p2.substring(0,6)}`, ts: Date.now(), system: true });
-
-      // Save match metadata
-      tournament.activeMatches[roomCode] = { players: [p1, p2], winner: null, matchId };
-
-      // start match after small delay
-      setTimeout(() => {
-        this.io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: 2 });
-        // send initial state
+      if (s1) handleJoinRoom(s1, roomCode, obj1.alias);
+      // Defensive: ensure socket is joined to the room and listed in rooms[roomCode].players
+      if (s1) {
         try {
-          rooms[roomCode].game.update(rooms[roomCode].isSinglePlayer!);
-          this.io.to(roomCode).emit("gameState", { gameState: rooms[roomCode].game.getState() });
+          s1.join(roomCode);
+          if (!rooms[roomCode].players.includes(p1)) rooms[roomCode].players.push(p1);
         } catch (e) {
-          console.error("Error initializing match game state", e);
+          console.error(`Error forcing join for ${p1} into ${roomCode}:`, e);
         }
-      }, 500);
+      }
+      if (s2) handleJoinRoom(s2, roomCode, obj2.alias);
+      if (s2) {
+        try {
+          s2.join(roomCode);
+          if (!rooms[roomCode].players.includes(p2)) rooms[roomCode].players.push(p2);
+        } catch (e) {
+          console.error(`Error forcing join for ${p2} into ${roomCode}:`, e);
+        }
+      }
+
+      // bye bye loser
+      if (!s1 || !s2) {
+        if (s1 && !s2) {
+          tournament.activeMatches[roomCode].winner = p1;
+          tournament.winners.push({ id: p1, alias: obj1.alias });
+          s1.emit("tournament:matchResult", { result: "win", message: "Opponent disconnected. You advance.", tournamentId: tid });
+        } else if (!s1 && s2) {
+          tournament.activeMatches[roomCode].winner = p2;
+          tournament.winners.push({ id: p2, alias: obj2.alias });
+          s2.emit("tournament:matchResult", { result: "win", message: "Opponent disconnected. You advance.", tournamentId: tid });
+        } else {
+          // se ambos sairem bye bye os dois
+        }
+        continue;
+      }
+
+      // avoid hash race
+      setTimeout(() => ensureStartRoom(roomCode), 250);
     }
+
   }
 
-  handleMatchOver(roomCode: string, winnerIdx: number) {
+  async handleMatchOver(roomCode: string, winnerIdx: number) {
     const room = rooms[roomCode];
     if (!room || !room.tournamentId) return;
     const tid = room.tournamentId;
     const tournament = this.tournaments[tid];
     if (!tournament) return;
-
     const matchMeta = tournament.activeMatches[roomCode];
-    if (!matchMeta) return;
-    if (matchMeta.winner) return; // already handled
+    if (!matchMeta || matchMeta.winner) return;
 
-    const winnerSocketId = room.players[winnerIdx];
+    const winnerSocketId = (room.players && room.players[winnerIdx]) || matchMeta.players[winnerIdx];
     matchMeta.winner = winnerSocketId;
-    console.log(`Tournament ${tid} match ${roomCode} finished. Winner: ${winnerSocketId}`);
-
-    // remove both players from the room
-    room.players.forEach((pid) => {
-      const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
-      s?.leave(roomCode);
-    });
-
-    // keep room entry but mark not in progress
+    tournament.winners.push({ id: winnerSocketId, alias: matchMeta.aliases?.[winnerIdx] || room.playerUsernames.get(winnerSocketId) });
     room.inProgress = false;
+    //cleanup
+    clearRoomResources(room);
+    // Determine loser from before
+    const loserIds = matchMeta.players.filter((pid: string) => pid !== winnerSocketId);
+    const winnerSocket = this.io.sockets.sockets.get(winnerSocketId as any) as Socket | undefined;
+    const loserSockets = loserIds.map((id: string) => this.io.sockets.sockets.get(id as any) as Socket | undefined);
 
-    // check if all active matches of this round have winners
+      // Send per-player result: winner waits for next opponent, losers are eliminated
+      if (winnerSocket) {
+        winnerSocket.emit("tournament:matchResult", {
+          result: "win",
+          message: "You won the round. Waiting for your next opponent...",
+          tournamentId: tid,
+        });
+      }
+      loserSockets.forEach((ls: Socket | undefined) => {
+        if (ls) {
+          ls.emit("tournament:matchResult", {
+            result: "loss",
+            message: "You lost the tournament.",
+            tournamentId: tid,
+          });
+        }
+      });
+
+      // Remove the original match participants from the socket.io room
+      matchMeta.players.forEach((pid: string) => {
+        const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
+        s?.leave(roomCode);
+      });
+      room.players = room.players.filter(pid => !matchMeta.players.includes(pid));
+      // If no players remain in this room, remove it to avoid stale rooms
+      if (room.players.length === 0) {
+        clearRoomResources(room);
+        delete rooms[roomCode];
+      }
+    // Check if all matches in this round are finished
     const roundWinners = Object.values(tournament.activeMatches)
       .map((m: any) => m.winner)
       .filter((w: any) => w !== null);
-
-    // if round complete
     if (roundWinners.length === Object.keys(tournament.activeMatches).length) {
-      const winnerIds: string[] = Object.values(tournament.activeMatches).map((m: any) => m.winner);
-      const winnerUsernames = winnerIds.map((item: string) => {
-        room.playerUsernames.get(item);
-      });
-      console.log("round winners:"+ roundWinners);
-      // prepare next round
-      if (winnerIds.length === 1) {
-        // tournament finished
-        const champion = winnerUsernames[0];
-        console.log(`Tournament ${tid} champion: ${champion}`);
-        // notify all original players
-        tournament.players.forEach((pid: string) => {
-          const s = this.io.sockets.sockets.get(pid as any) as Socket | undefined;
-          s?.emit("tournamentWinner", { tournamentId: tid, champion });
-        });
-        // clean up
-        delete this.tournaments[tid];
-        return;
-      }
+      // If this was round 1, start final
+      if (tournament.round === 1) {
+        tournament.round = 2;
+        // Final pairing
+        const [w1, w2] = tournament.winners;
+        if (!w1 || !w2) {
+          console.log(`Tournament ${tid} missing winners for final`);
+          return;
+        }
 
-      // build pairings for next round
-      const nextRoundPairs: string[][] = [];
-      for (let i = 0; i < winnerIds.length; i += 2) {
-        nextRoundPairs.push([winnerIds[i], winnerIds[i + 1]]);
-      }
+        //3 ,2 ,1 start
+        console.log(`Tournament ${tid}: starting final countdown (3..1) for winners`);
+        const winnerSockets = [
+          this.io.sockets.sockets.get(w1.id as any) as Socket | undefined,
+          this.io.sockets.sockets.get(w2.id as any) as Socket | undefined,
+        ].filter(Boolean) as Socket[];
 
-      // clear activeMatches and create new room matches
-      tournament.activeMatches = {};
-      nextRoundPairs.forEach((pair: string[], idx: number) => {
-        const p1 = pair[0];
-        const user1 = room.playerUsernames.get(p1);
-        const p2 = pair[1];
-        const user2 = room.playerUsernames.get(p2);
-        const roomCode = generateRoomCode();
-        const matchId = `${tid}-r${Date.now()}-m${idx}`;
+        for (let i = 3; i > 0; i--) {
+          winnerSockets.forEach(s => s.emit("tournamentCountdown", { seconds: i, round: tournament.round }));
+          await new Promise(res => setTimeout(res, 1000));
+        }
 
-        rooms[roomCode] = {
-          code: roomCode,
+        // Create the final room
+        const finalRoomCode = generateRoomCode();
+        rooms[finalRoomCode] = {
+          code: finalRoomCode,
           numPlayers: 2,
-          players: [p1, p2],
+          players: [],
           playerUsernames: new Map(),
           game: new GameMath(),
-          inProgress: true,
+          inProgress: false,
           tournamentId: tid,
-          matchId,
+          matchId: `${tid}-final`,
           chat: { messages: [] },
         };
-        activateRoomPaddles(rooms[roomCode]);
-        rooms[roomCode].playerUsernames.set(p1, user1!);
-        rooms[roomCode].playerUsernames.set(p2, user2!);
-        const s1 = this.io.sockets.sockets.get(p1 as any) as Socket | undefined;
-        const s2 = this.io.sockets.sockets.get(p2 as any) as Socket | undefined;
-        s1?.join(roomCode);
-        s2?.join(roomCode);
-        s1?.emit("roomJoined", { code: roomCode, numPlayers: 2 });
-        s2?.emit("roomJoined", { code: roomCode, numPlayers: 2 });
-        this.io.to(roomCode).emit("playerCount", { count: 2, numPlayers: 2 });
-        broadcastRoster(roomCode);
-        // chat system messages
-        pushAndBroadcastChat(roomCode, { id: genMsgId(), from: "system", text: `Next round match ${matchId} started`, ts: Date.now(), system: true });
-        pushAndBroadcastChat(roomCode, { id: genMsgId(), from: "system", text: `Players: ${p1.substring(0,6)} vs ${p2.substring(0,6)}`, ts: Date.now(), system: true });
+        console.log(`Tournament ${tid}: created final room ${finalRoomCode}`);
 
-        tournament.activeMatches[roomCode] = { players: [p1, p2], winner: null, matchId };
-
-        setTimeout(() => {
-          this.io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: 2 });
-          try {
-            rooms[roomCode].game.update(room.isSinglePlayer!);
-            this.io.to(roomCode).emit("gameState", { gameState: rooms[roomCode].game.getState() });
-          } catch (e) {
-            console.error("Error initializing next round match game state", e);
+        // Register the final match metadata BEFORE asking winners to join
+        tournament.activeMatches = {
+          [finalRoomCode]: {
+            players: [w1.id, w2.id],
+            aliases: [w1.alias, w2.alias],
+            winner: null,
+            round: 2
           }
-        }, 500);
-      });
+        };
+      
+        tournament.winners = [];
+        // Track which finalists have acknowledged they're ready to receive start
+        tournament.finalReady = new Set();
+        // Fallback: if readiness acks don't arrive, start final after a short timeout
+        setTimeout(() => {
+          try {
+            const r = rooms[finalRoomCode];
+            if (r && r.players.length === r.numPlayers && !r.inProgress) {
+              console.log(`Final readiness fallback: starting final room ${finalRoomCode} (players=${r.players.length})`);
+              ensureStartRoom(finalRoomCode);
+            }
+          } catch (e) {
+            console.error('Final readiness fallback error', e);
+          }
+        }, 1600);
+        
+        const s1 = this.io.sockets.sockets.get(w1.id as any) as Socket | undefined;
+        const s2 = this.io.sockets.sockets.get(w2.id as any) as Socket | undefined;
+        if (!s1) console.log(`Tournament ${tid}: winner socket ${w1.id} not connected`);
+        if (!s2) console.log(`Tournament ${tid}: winner socket ${w2.id} not connected`);
+
+        if (s1) {
+          console.log(`Tournament ${tid}: instructing ${w1.alias} to join final ${finalRoomCode}`);
+          handleJoinRoom(s1, finalRoomCode, w1.alias);
+          // Defensive join in case handleJoinRoom missed a race
+          try {
+            s1.join(finalRoomCode);
+            if (!rooms[finalRoomCode].players.includes(w1.id)) rooms[finalRoomCode].players.push(w1.id);
+          } catch (e) {
+            console.error(`Error forcing final join for ${w1.id} into ${finalRoomCode}:`, e);
+          }
+        }
+        // small stagger to reduce simultaneous join/start race
+        await new Promise(res => setTimeout(res, 120));
+        if (s2) {
+          console.log(`Tournament ${tid}: instructing ${w2.alias} to join final ${finalRoomCode}`);
+          handleJoinRoom(s2, finalRoomCode, w2.alias);
+          // Defensive join in case handleJoinRoom missed a race
+          try {
+            s2.join(finalRoomCode);
+            if (!rooms[finalRoomCode].players.includes(w2.id)) rooms[finalRoomCode].players.push(w2.id);
+          } catch (e) {
+            console.error(`Error forcing final join for ${w2.id} into ${finalRoomCode}:`, e);
+          }
+        }
+
+        // mesmo que vá primeiro para joined game, garantir o start
+        setTimeout(() => ensureStartRoom(finalRoomCode), 250);
+        // se ambos os vencedoresa se juntarem mas 
+        // delay para race cond
+        setTimeout(() => {
+          try {
+            const r = rooms[finalRoomCode];
+            if (r && r.players.length === r.numPlayers && !r.inProgress) {
+              console.log(`Fallback: starting final room ${finalRoomCode} (players=${r.players.length})`);
+              ensureStartRoom(finalRoomCode);
+            }
+          } catch (e) {
+            console.error('Fallback ensureStartRoom error', e);
+          }
+        }, 800);
+      } else {
+        // Tournament finished
+          const champion = tournament.winners[0];
+          try {
+            const champSocket = this.io.sockets.sockets.get(champion.id as any) as Socket | undefined;
+            if (champSocket) {
+              champSocket.emit("tournamentWinner", { tournamentId: tid, champion: champion.alias });
+            } else {
+              // Fallback: broadcast if champion socket not found
+              console.log(`Tournament ${tid}: champion socket ${champion.id} not connected, broadcasting winner`);
+              this.io.emit("tournamentWinner", { tournamentId: tid, champion: champion.alias });
+            }
+          } catch (e) {
+            console.error('Error emitting tournamentWinner', e);
+            this.io.emit("tournamentWinner", { tournamentId: tid, champion: champion.alias });
+          }
+          delete this.tournaments[tid];
+      }
     }
   }
 
-
-
   handleDisconnect(socketId: string) {
-    // remove from waiting queue if present
-    const idx = this.waitingPlayers.indexOf(socketId);
-    if (idx !== -1) {
-      this.waitingPlayersUsernames.splice(idx, 1);
-      this.waitingPlayers.splice(idx, 1);
-      // notify clients about updated queue
-      this.io.emit("tournamentQueueUpdate", { waitingCount: this.waitingPlayers.length, waitingPlayers: this.waitingPlayers.slice() });
-      return;
-    }
-
-    // if they were in an active tournament match, find match and award win to opponent
+    this.waitingPlayers.delete(socketId);
+    this.io.emit("tournamentQueueUpdate", {
+      waitingCount: this.waitingPlayers.size,
+      waitingPlayers: Array.from(this.waitingPlayers.values()).map(p => p.alias)
+    });
+    // If they were in an active tournament match, find match and award win to opponent
     for (const tid in this.tournaments) {
-      const t = this.tournaments[tid];
-      for (const roomCode in t.activeMatches) {
-        const match = t.activeMatches[roomCode];
+      const tournament = this.tournaments[tid];
+      for (const roomCode in tournament.activeMatches) {
+        const match = tournament.activeMatches[roomCode];
         if (match.players.includes(socketId) && !match.winner) {
-          const other = match.players.find((p: string) => p !== socketId);
-          console.log(`Player ${socketId} disconnected during tournament ${tid} match ${roomCode}. Awarding win to ${other}`);
-          // mark winner and trigger next stage
-          match.winner = other;
-
-          // ensure room state updated too
-          if (rooms[roomCode]) rooms[roomCode].inProgress = false;
-          this.handleMatchOver(roomCode, rooms[roomCode].players.indexOf(other));
+          const winnerIdx = match.players[0] === socketId ? 1 : 0;
+          this.handleMatchOver(roomCode, winnerIdx);
         }
       }
     }
@@ -340,10 +472,35 @@ function activateRoomPaddles(room: Room): void {
   }
 }
 
+// Clear timers, AI intervals and other transient resources for a room
+function clearRoomResources(room: Room | undefined): void {
+  if (!room) return;
+  try {
+    if (room.ai_timer) {
+      clearInterval(room.ai_timer as any);
+      room.ai_timer = null;
+    }
+    if (room.actionTimer) {
+      clearTimeout(room.actionTimer as any);
+      room.actionTimer = null;
+    }
+    room.interval = null;
+    if (room.ai_bot) {
+      // dereference AI model to free resources
+      // @ts-ignore
+      room.ai_bot = null;
+    }
+    room.phantai = null;
+  } catch (e) {
+    console.error('clearRoomResources error', e);
+  }
+}
+
 function cleanupRoom(roomCode: string): void {
   const room = rooms[roomCode];
   if (room && room.players.length === 0) {
     console.log(`Deleting empty room: ${roomCode}`);
+    clearRoomResources(room);
     delete rooms[roomCode];
   }
 }
@@ -370,6 +527,69 @@ function broadcastRoster(roomCode: string) {
 function broadcastRosterAllRooms() {
   for (const code of Object.keys(rooms)) {
     broadcastRoster(code);
+  }
+}
+
+// codigo de merda para garantir que a sala começa
+function ensureStartRoom(roomCode: string): void {
+  const room = rooms[roomCode];
+  if (!room) return;
+  if (room.players.length !== room.numPlayers) return;
+  if (room.inProgress) return; 
+
+  console.log(`ensureStartRoom: starting room ${roomCode}`);
+  //ver race conditions 
+  try {
+    const adapterSet = (io.sockets.adapter.rooms.get(roomCode) || new Set<string>());
+    console.log(`ensureStartRoom: adapter members for ${roomCode}:`, Array.from(adapterSet));
+    console.log(`ensureStartRoom: server room.players for ${roomCode}:`, room.players);
+  } catch (e) { console.warn('ensureStartRoom: failed to read adapter rooms', e); }
+ 
+  //limpeza geral
+  clearRoomResources(room);
+  try {
+    room.game = new GameMath();
+  } catch (e) {
+    console.error('Failed to recreate GameMath for room', roomCode, e);
+  }
+  activateRoomPaddles(room);
+  room.inProgress = true;
+
+  //io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: room.numPlayers });
+  if (room.tournamentId) {
+    const t = tournamentManager.tournaments[room.tournamentId];
+    const matchMeta = t?.activeMatches?.[roomCode];
+    const roundNum = matchMeta?.round || t?.round || 1;
+    room.players.forEach((pid, idx) => {
+      const opponentIdx = idx === 0 ? 1 : 0;
+      const opponentId = room.players[opponentIdx];
+      const opponentAlias = room.playerUsernames.get(opponentId) || matchMeta?.aliases?.[opponentIdx] || 'Opponent';
+      const s = io.sockets.sockets.get(pid as any) as Socket | undefined;
+      s?.emit("tournamentRoundInfo", { round: roundNum, opponent: opponentAlias });
+    });
+  }
+
+  io.to(roomCode).emit("gameStart", { code: roomCode, numPlayers: room.numPlayers });
+
+  //primeira game state instance
+  try {
+    room.game.resetBall(room.isSinglePlayer!);
+    room.game.update(room.isSinglePlayer!);
+    const state = room.game.getState();
+    io.to(roomCode).emit("gameState", { gameState: state });
+    console.log(`Sent initial game state to room ${roomCode} (ensureStart immediate)`);
+    setTimeout(() => {
+      try { io.to(roomCode).emit("gameState", { gameState: room.game.getState() });
+            console.log(`Sent initial game state to room ${roomCode} (ensureStart 250ms)`);
+      } catch (e) { console.warn('ensureStartRoom emit retry 250ms failed', e); }
+    }, 250);
+    setTimeout(() => {
+      try { io.to(roomCode).emit("gameState", { gameState: room.game.getState() });
+            console.log(`Sent initial game state to room ${roomCode} (ensureStart 750ms)`);
+      } catch (e) { console.warn('ensureStartRoom emit retry 750ms failed', e); }
+    }, 750);
+  } catch (err) {
+    console.error(`ensureStartRoom error for ${roomCode}:`, err);
   }
 }
 
@@ -747,8 +967,24 @@ function handleJoinRoom(socket: Socket, code: string, alias: string): void {
   socket.join(code);
   
   console.log(`Player ${socket.id} joined room ${code} (${room.players.length}/${room.numPlayers})`);
+
+  // Debug: log adapter membership shortly after join to help diagnose join/start races
+  try {
+    setTimeout(() => {
+      try {
+        const adapterSet = (io.sockets.adapter.rooms.get(code) || new Set<string>());
+        console.log(`handleJoinRoom: adapter members for ${code}:`, Array.from(adapterSet));
+        console.log(`handleJoinRoom: server room.players for ${code}:`, room.players);
+      } catch (e) { console.warn('handleJoinRoom: failed to read adapter rooms', e); }
+      // Ensure that if this join produced a full room, we attempt to start it (covers races)
+      try { ensureStartRoom(code); } catch (e) { console.warn('handleJoinRoom: ensureStartRoom call failed', e); }
+    }, 120);
+  } catch (e) { console.warn('handleJoinRoom: scheduling adapter log failed', e); }
+
+  // Debug: log room counts to help diagnose tournament final-start issues
+  console.log(`handleJoinRoom: room=${code} playersAfterJoin=${room.players.length} numPlayers=${room.numPlayers} tournamentId=${room.tournamentId}`);
   
-  socket.emit("roomJoined", { code, numPlayers: room.numPlayers });
+  socket.emit("roomJoined", { code, numPlayers: room.numPlayers, tournamentId: room.tournamentId ?? null });
   io.to(code).emit("playerCount", { count: room.players.length, numPlayers: room.numPlayers });
   // ensure chat exists and refresh roster
   room.chat = room.chat || { messages: [] };
@@ -758,14 +994,50 @@ function handleJoinRoom(socket: Socket, code: string, alias: string): void {
   //Start game if room is full
   if (room.players.length === room.numPlayers) {
     console.log(`Room ${code} is full, starting game!`);
+    // Activate paddles now that all players are present
+    // Ensure any leftover timers or AI from previous activity are stopped
+    clearRoomResources(room);
+    // Recreate game instance so previous state doesn't leak into new match
+    try { room.game = new GameMath(); } catch (e) { console.error('Failed to recreate GameMath for room', code, e); }
+    activateRoomPaddles(room);
+    room.inProgress = true;
+
+    // Debug: log players and aliases for this room
+    try {
+      const pls = room.players.map(pid => ({ id: pid, alias: room.playerUsernames.get(pid) }));
+      console.log(`Starting room ${code} players:`, JSON.stringify(pls));
+    } catch (e) {
+      console.error('Error logging room players', e);
+    }
+
+    // If this room is a tournament match, send round/opponent info
+    if (room.tournamentId) {
+      const t = tournamentManager.tournaments[room.tournamentId];
+      const matchMeta = t?.activeMatches?.[code];
+      const roundNum = matchMeta?.round || t?.round || 1;
+      // Emit tournamentRoundInfo to each player with their opponent alias
+      room.players.forEach((pid, idx) => {
+        const opponentIdx = idx === 0 ? 1 : 0;
+        const opponentId = room.players[opponentIdx];
+        const opponentAlias = room.playerUsernames.get(opponentId) || matchMeta?.aliases?.[opponentIdx] || 'Opponent';
+        const s = io.sockets.sockets.get(pid as any) as Socket | undefined;
+        s?.emit("tournamentRoundInfo", { round: roundNum, opponent: opponentAlias });
+      });
+    }
+
+    console.log(`Emitting gameStart to room ${code}`);
     io.to(code).emit("gameStart", { code, numPlayers: room.numPlayers });
-    
+
     //Send initial game state to all players
     setTimeout(() => {
-	room.game.resetBall(room.isSinglePlayer!);
-      room.game.update(room.isSinglePlayer!); // Initialize the game state
-      io.to(code).emit("gameState", { gameState: room.game.getState() });
-      console.log(`Sent initial game state to room ${code}`);
+      try {
+        room.game.resetBall(room.isSinglePlayer!);
+        room.game.update(room.isSinglePlayer!); // Initialize the game state
+        io.to(code).emit("gameState", { gameState: room.game.getState() });
+        console.log(`Sent initial game state to room ${code}`);
+      } catch (err) {
+        console.error(`Error sending initial game state for ${code}:`, err);
+      }
     }, 1000); //Give clients time to set up their scenes
   }
 }
@@ -798,7 +1070,7 @@ function handleQuickplay(socket: Socket): void {
   
   console.log(`Player ${socket.id} joined quickplay room ${roomId} (${rooms[roomId].players.length}/6)`);
   
-  socket.emit("roomJoined", { code: roomId, numPlayers: 6 });
+  socket.emit("roomJoined", { code: roomId, numPlayers: 6, tournamentId: rooms[roomId].tournamentId ?? null });
   io.to(roomId).emit("playerCount", { count: rooms[roomId].players.length, numPlayers: 6 });
   broadcastRoster(roomId);
   
@@ -839,7 +1111,25 @@ function handleDisconnect(socket: Socket): void {
       // Notify remaining players
       io.to(code).emit("playerCount", { count: room.players.length, numPlayers: room.numPlayers });
       broadcastRoster(code);
-      
+
+      // Special case: regular 1v1 non-tournament match — award win by forfeit
+      if (!room.tournamentId && room.numPlayers === 2) {
+        // If exactly one player remains, award them the win by forfeit
+        if (room.players.length === 1) {
+          const winnerId = room.players[0];
+          const winnerName = room.playerUsernames.get(winnerId) || socketUsername[winnerId] || winnerId.substring(0,6);
+          console.log(`Player ${socket.id} disconnected from 1v1 room ${code}; awarding forfeit win to ${winnerId}`);
+          // Emit matchOver so clients follow the normal end-of-match flow
+          io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'You won by forfeit!' });
+          // Ensure room is no longer in progress and clear resources
+          room.inProgress = false;
+          clearRoomResources(room);
+          // Cleanup the room after awarding the win
+          cleanupRoom(code);
+          break;
+        }
+      }
+
       // Clean up empty room
       cleanupRoom(code);
       break;
@@ -1015,11 +1305,9 @@ io.on("connection", (socket: Socket) => {
     let room = rooms[code];
     console.log("inside socket on leaveGame", code);
     console.log(room?.isSinglePlayer);
-    if (room?.isSinglePlayer) {
-    console.log("inside socket on is single player check", code);
-      clearInterval(room.actionTimer!);
-      clearInterval(room.ai_timer!);
-      // delete room.ai_bot;
+    if (room) {
+      console.log("inside socket on leaveGame for", code);
+      clearRoomResources(room);
     }
     if (room?.vanilla || room?.isSinglePlayer)
       delete rooms[code!];
@@ -1090,14 +1378,67 @@ io.on("connection", (socket: Socket) => {
     if (doBlock) blockMap[socket.id].add(tgt); else blockMap[socket.id].delete(tgt);
   });
 
-  socket.on("joinTournament", (username: string) => {
-  tournamentManager.joinTournament(socket.id, username);
+  socket.on("joinTournament", (alias: string) => {
+    tournamentManager.joinTournament(socket.id, alias);
+  });
+
+  // Client notifies server it is ready to receive the final's start/state
+  // NOTE: derive the room from the socket's current room membership to avoid
+  // stale/incorrect codes emitted by the client (race conditions where client
+  // may still reference a previous room code).
+  socket.on('tournament:readyForFinal', (payload: { code?: string } = {}) => {
+    try {
+      // Prefer to resolve the room from the socket itself (most reliable)
+      const { roomCode } = findPlayerRoom(socket.id);
+      let resolvedCode = roomCode;
+
+      // If we couldn't find the room by socket membership, fall back to payload.code
+      if (!resolvedCode && payload?.code) {
+        resolvedCode = payload.code;
+      }
+
+      if (!resolvedCode) {
+        console.log(`tournament:readyForFinal from ${socket.id} had no resolvable room (payload.code=${payload?.code})`);
+        return;
+      }
+
+      const r = rooms[resolvedCode];
+      if (!r) {
+        console.log(`tournament:readyForFinal: resolved room ${resolvedCode} not found for ${socket.id}`);
+        return;
+      }
+
+      const tid = r.tournamentId;
+      if (!tid) {
+        console.log(`tournament:readyForFinal: room ${resolvedCode} has no tournamentId (socket ${socket.id})`);
+        return;
+      }
+
+      const t = tournamentManager.tournaments[tid];
+      if (!t) {
+        console.log(`tournament:readyForFinal: tournament ${tid} not found for room ${resolvedCode}`);
+        return;
+      }
+
+      t.finalReady = t.finalReady || new Set<string>();
+      t.finalReady.add(socket.id);
+      console.log(`Received tournament:readyForFinal ack from ${socket.id} for room ${resolvedCode} (readyCount=${t.finalReady.size}/${r.numPlayers})`);
+
+      if (t.finalReady.size === r.numPlayers) {
+        console.log(`All finalists ready for ${resolvedCode}, starting room`);
+        ensureStartRoom(resolvedCode);
+      }
+    } catch (e) {
+      console.error('tournament:readyForFinal handler error', e);
+    }
   });
 
   // Disconnect handling
   socket.on("disconnect", () => {
-  handleDisconnect(socket);
+  // First let the tournament manager detect disconnects (so it can reference match metadata)
   tournamentManager.handleDisconnect(socket.id);
+  // Then perform the regular room cleanup
+  handleDisconnect(socket);
   // clean username mapping
   delete socketUsername[socket.id];
   delete onlineUsers[socket.id];

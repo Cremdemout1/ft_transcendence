@@ -3,18 +3,18 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
+#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/11/28 16:19:02 by luiberna         ###   ########.fr        #
+#    Updated: 2025/11/29 17:32:46 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-DEV_DB_DIR	   = /home/transcendence/Desktop/Data/sqlite-data
-DEV_DB_PATH	   = file:/home/transcendence/Desktop/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/capa/ft_transcendence/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/capa/ft_transcendence/Data/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 # DEV_DB_DIR	   = /home/yohan/ft_transcendence/sqlite-data
