@@ -21,8 +21,24 @@ export async function initBabylon() {
     console.error("Canvas not found!");
     return;
   }
+  // Reuse existing engine when possible to avoid creating multiple WebGL contexts
+  const win: any = window as any;
+  let engine: BABYLON.Engine | undefined = win.__babylonEngine as BABYLON.Engine | undefined;
+  try {
+    if (engine && engine.getRenderingCanvas() !== canvas) {
+      // dispose old engine tied to a different canvas
+      try { engine.dispose(); } catch (e) { console.warn('Failed to dispose old engine', e); }
+      engine = undefined;
+      win.__babylonEngine = undefined;
+    }
+  } catch (e) {
+    engine = undefined;
+  }
 
-  const engine= new BABYLON.Engine(canvas);
+  if (!engine) {
+    engine = new BABYLON.Engine(canvas);
+    win.__babylonEngine = engine;
+  }
   //waitroom, pessoasàespera++, quando pessoasàespera = minimo de jogadores, game class (backend) é criado
   //api request: chegou um gajo, muda a variavel de pae
   //const game = new babylonGame(canvas, engine);
@@ -75,6 +91,7 @@ export class Game {
   private _scene: Scene;
   private _canvas: HTMLCanvasElement;
   private _engine: Engine;
+  private _isLoading: boolean = false;
   private _currentState: State;
 
   constructor(canvas: HTMLCanvasElement, engine: Engine) {
@@ -86,15 +103,26 @@ export class Game {
   }
 
   public async changeState(newState: State): Promise<void> {
-    if (this._scene) {
-      this._scene.dispose();
+    if (this._isLoading) {
+      console.warn('Scene load already in progress — ignoring changeState request');
+      return;
+    }
+    this._isLoading = true;
+    try {
+      if (this._scene) {
+        try { this._scene.dispose(); } catch (e) { console.warn('Error disposing scene', e); }
+      }
+
+      this._currentState = newState;
+      this._scene = await this.createSceneForState();
+    } finally {
+      this._isLoading = false;
     }
 
-    this._currentState = newState;
-    this._scene = await this.createSceneForState();
-
-	this._engine.runRenderLoop(() => {
-    this._scene.render();
+    // Ensure we don't stack multiple render loops: stop any existing loops, then start a fresh one.
+    try { this._engine.stopRenderLoop(); } catch (e) { /* ignore */ }
+    this._engine.runRenderLoop(() => {
+      try { this._scene.render(); } catch (e) { console.warn('Render error', e); }
     });
   }
 

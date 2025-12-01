@@ -124,9 +124,21 @@ socket.on("singlePlayerRoomCreated", async ({ code }: { code: string }) => {
     sessionStorage.setItem('numPlayers', "1");
 });
 
-socket.on("roomJoined", async ({ code, numPlayers }: { code: string, numPlayers: number }) => {
+socket.on("roomJoined", async ({ code, numPlayers, tournamentId }: { code: string, numPlayers: number, tournamentId?: string | null }) => {
     console.log("roomJoined event received:", code, numPlayers);
     const app = document.getElementById('app');
+
+    // If we're already inside the game view (#pong), do not overwrite the canvas/UI
+    // with the 'Joined Room' waiting UI. Just update session storage and return.
+    if (location.hash.startsWith('#pong')) {
+        console.log('roomJoined received while in #pong — updating sessionStorage only');
+        sessionStorage.setItem('roomCode', code);
+        sessionStorage.setItem('numPlayers', numPlayers.toString());
+        // also notify game scene via a playerCount event in case it needs to update UI
+        try { socket.emit('playerCountRequest', {}); } catch (e) { /* ignore */ }
+        return;
+    }
+
     if (app) {
         app.innerHTML = `
             <div>
@@ -145,6 +157,8 @@ socket.on("roomJoined", async ({ code, numPlayers }: { code: string, numPlayers:
     }
     sessionStorage.setItem('roomCode', code);
     sessionStorage.setItem('numPlayers', numPlayers.toString());
+    if (tournamentId) sessionStorage.setItem('tournamentId', String(tournamentId));
+    else sessionStorage.removeItem('tournamentId');
 });
 
 socket.on("error", ({ message }: { message: string }) => {
@@ -155,13 +169,55 @@ socket.on("error", ({ message }: { message: string }) => {
 socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: number, vanilla: number }) => {
     console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
-      document.body.classList.add("game-active");
-    sessionStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
-	sessionStorage.setItem("vanilla", String(vanilla)); 
+        document.body.classList.add("game-active");
+        // Ensure the main app container is visible so the pong canvas can be mounted
+        try { const app = document.getElementById('app'); if (app) app.style.display = ''; } catch (e) {}
+        // Hide transient overlays that might block the canvas
+        try { hideOverlaysExceptApp(); } catch (e) {}
+        sessionStorage.setItem("isSinglePlayer", String(isSinglePlayer)); 
+        sessionStorage.setItem("vanilla", String(vanilla)); 
     sessionStorage.setItem("roomCode", String(code)); 
     sessionStorage.setItem("numPlayers", String(numPlayers)); 
     console.log("aaaaaaaaaaaaaaa");
-    location.href = '/#pong';
+   
+        location.href = '/#pong';
+        // clear flag after a short grace period
+});
+
+socket.on("gameState", ({ gameState }: { gameState: any }) => {
+    try {
+        if (!location.hash.startsWith('#pong')) {
+            console.log('Received gameState while not on #pong — navigating to #pong');
+            // Ensure UI state matches an active game
+            document.body.classList.add('game-active');
+            sessionStorage.setItem('isSinglePlayer', String(gameState?.isSinglePlayer || 0));
+            sessionStorage.setItem('vanilla', String(gameState?.vanilla || 0));
+            // Make sure the main app container is visible and hide overlays
+            try { const app = document.getElementById('app'); if (app) app.style.display = ''; } catch (e) {}
+            try { hideOverlaysExceptApp(); } catch (e) {}
+            // navigate to pong view so the scene mounts and will register its own gameState handler
+            const navTs2 = parseInt(sessionStorage.getItem('navigatingToPongTS') || '0', 10) || 0;
+                // If a matchOver was just received (forfeit/win), avoid immediately navigating back to #pong
+                const lastMatchAt = parseInt(sessionStorage.getItem('lastMatchAt') || '0', 10) || 0;
+                const nowCheck = Date.now();
+                const suppressNav = lastMatchAt && (nowCheck - lastMatchAt) < 4000; // 4s grace window
+                if (suppressNav) {
+                    console.log('Suppressing gameState -> #pong navigation due to recent matchOver', { lastMatchAt, nowCheck });
+                }
+            const now2 = Date.now();
+            const navigating2 = (now2 - navTs2) < 3000;
+            if (!location.hash.startsWith('#pong') && !navigating2 && !suppressNav) {
+                console.log('Navigating to #pong (gameState fallback)');
+                sessionStorage.setItem('navigatingToPongTS', String(now2));
+                try { location.hash = '#pong'; window.dispatchEvent(new Event('hashchange')); } catch (e) { location.href = '/#pong'; }
+                setTimeout(() => sessionStorage.removeItem('navigatingToPongTS'), 3000);
+            } else {
+                console.log('Skipping navigation (already navigating recently or in #pong)', { navigating2, navTs2 });
+            }
+        }
+    } catch (e) {
+        console.warn('gameState fallback error', e);
+    }
 });
 
 
@@ -184,6 +240,10 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
 function renderTournamentQueue(waitingPlayers: string[]) {
     const app = document.getElementById('app');
     if (!app) return;
+    // Only show the tournament queue UI when the multiplayer/tournament UI is present
+    const multiplayerVisible = !!document.getElementById('multiplayerMenu') || !!document.getElementById('tournamentAliasModal') || location.hash === '#multiplayer';
+    if (!multiplayerVisible) return;
+
     let queueDiv = document.getElementById('tournamentQueue');
     if (!queueDiv) {
         queueDiv = document.createElement('div');
@@ -194,7 +254,15 @@ function renderTournamentQueue(waitingPlayers: string[]) {
         app.appendChild(queueDiv);
     }
     queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/4)</h3>` +
-        `<ol>${waitingPlayers.map(pid => `<li>${pid}</li>`).join('')}</ol>`;
+        `<ol>${waitingPlayers.map(alias => `<li>${alias}</li>`).join('')}</ol>`;
+}
+
+function hideOverlaysExceptApp() {
+    const ids = ['tournamentCountdown', 'tournamentRoundInfo', 'tournamentResultOverlay', 'tournamentQueue', 'inviteBannerGlobal', 'inviteBanner'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
 }
 
 socket.on("tournamentQueueUpdate", ({ waitingCount, waitingPlayers }: { waitingCount: number, waitingPlayers: string[] }) => {
@@ -202,16 +270,117 @@ socket.on("tournamentQueueUpdate", ({ waitingCount, waitingPlayers }: { waitingC
     renderTournamentQueue(waitingPlayers);
 });
 
-socket.on('toDashboard', () => {
-    location.hash = 'dashboard';
+socket.on('tournament:aliasError', ({ message }: { message?: string }) => {
+    console.log('tournament alias error:', message);
+    const modal = document.getElementById('tournamentAliasModal');
+    if (modal) {
+        modal.style.display = 'block';
+        let err = document.getElementById('tournamentAliasError');
+        if (!err) {
+            err = document.createElement('div');
+            err.id = 'tournamentAliasError';
+            err.style.color = 'salmon';
+            err.style.marginTop = '8px';
+            err.style.fontSize = '0.9em';
+            (modal as HTMLElement).appendChild(err);
+        }
+        err.textContent = message || 'Alias already in use';
+        // clear message after a short time
+        setTimeout(() => { if (err) err.textContent = ''; }, 2600);
+    } else {
+        alert(message || 'Alias already in use');
+    }
 });
 
-socket.on("tournamentStarted", ({ tournamentId, players }: { tournamentId: string, players: string[] }) => {
-    console.log(`Tournament ${tournamentId} started with players:`, players);
-    const app = document.getElementById('app');
-    if (app) {
-        app.innerHTML = `<div><h2>Tournament ${tournamentId} started!</h2><p>Players: ${players.join(', ')}</p><p>Waiting for matches to begin...</p></div>`;
+// Show tournament countdown
+socket.on("tournamentCountdown", ({ seconds, round }: { seconds: number, round?: number }) => {
+    let cd = document.getElementById('tournamentCountdown');
+    if (!cd) {
+        cd = document.createElement('div');
+        cd.id = 'tournamentCountdown';
+        cd.style.position = 'fixed';
+        cd.style.top = '20%';
+        cd.style.left = '50%';
+        cd.style.transform = 'translate(-50%,0)';
+        cd.style.background = '#222';
+        cd.style.color = '#fff';
+        cd.style.fontSize = '2em';
+        cd.style.padding = '16px';
+        cd.style.borderRadius = '8px';
+        cd.style.zIndex = '9999';
+        document.body.appendChild(cd);
     }
+    if (typeof round === 'number') {
+        cd.textContent = `Round ${round} starting in ${seconds}...`;
+    } else {
+        cd.textContent = `Tournament starting in ${seconds}...`;
+    }
+    cd.style.display = 'block';
+    if (seconds === 1) setTimeout(() => { cd.style.display = 'none'; }, 1200);
+});
+
+// Show round info and opponent alias
+socket.on("tournamentRoundInfo", ({ round, opponent }: { round: number, opponent: string }) => {
+    let info = document.getElementById('tournamentRoundInfo');
+    if (!info) {
+        info = document.createElement('div');
+        info.id = 'tournamentRoundInfo';
+        info.style.position = 'fixed';
+        info.style.top = '30%';
+        info.style.left = '50%';
+        info.style.transform = 'translate(-50%,0)';
+        info.style.background = '#222';
+        info.style.color = '#fff';
+        info.style.fontSize = '1.5em';
+        info.style.padding = '12px';
+        info.style.borderRadius = '8px';
+        info.style.zIndex = '9999';
+        document.body.appendChild(info);
+    }
+    info.textContent = `Round ${round} - Facing ${opponent}`;
+    info.style.display = 'block';
+    setTimeout(() => { info.style.display = 'none'; }, 3500);
+});
+
+// Handle match result for tournament participants
+socket.on("tournament:matchResult", ({ result, message, tournamentId }: { result: string, message: string, tournamentId?: string }) => {
+    console.log("tournament:matchResult", result, message, tournamentId);
+    // Simple UI: modal/overlay
+    let el = document.getElementById('tournamentResultOverlay');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'tournamentResultOverlay';
+        el.style.position = 'fixed';
+        el.style.top = '30%';
+        el.style.left = '50%';
+        el.style.transform = 'translate(-50%,-50%)';
+        el.style.background = '#222';
+        el.style.color = '#fff';
+        el.style.padding = '12px';
+        el.style.borderRadius = '8px';
+        el.style.zIndex = '10000';
+        el.style.textAlign = 'center';
+        document.body.appendChild(el);
+    }
+    el.style.opacity = '1';
+    el.style.transition = 'opacity 600ms ease';
+    el.textContent = message || (result === 'win' ? 'You won — waiting for next opponent' : 'You lost');
+    el.style.display = 'block';
+
+    if (result === 'loss') {
+        setTimeout(() => {
+            el!.style.opacity = '0';
+            setTimeout(() => { el!.style.display = 'none'; location.hash = 'dashboard'; }, 650);
+        }, 3500);
+        return;
+    }
+
+    setTimeout(() => {
+        try {
+            el!.style.opacity = '0';
+            setTimeout(() => { if (el) el.style.display = 'none'; }, 700);
+        } catch (e) { if (el) el.style.display = 'none'; }
+    }, 2200);
 });
 
 // Global invite banner for users not in a room (or when chat UI isn't mounted)
@@ -290,6 +459,30 @@ socket.on('chat:new', (msg: any) => {
         showDMToastGlobal(name, msg.text || '');
     }
 });
+
+// When the route changes (e.g. user returns to dashboard), hide the tournament result overlay
+window.addEventListener('hashchange', () => {
+    try {
+        const el = document.getElementById('tournamentResultOverlay');
+        if (!el) return;
+        // If we're not in the multiplayer flow or a game, hide the overlay
+        if (location.hash !== '#multiplayer' && !location.hash.startsWith('#pong')) {
+            el.style.opacity = '0';
+            setTimeout(() => { el.style.display = 'none'; }, 650);
+        }
+    } catch (e) { /**/ }
+});
+
+// One-time sanity: if overlay exists on load and we're not in tournament/game, hide it
+(function() {
+    try {
+        const el = document.getElementById('tournamentResultOverlay');
+        if (!el) return;
+        if (location.hash !== '#multiplayer' && !location.hash.startsWith('#pong')) {
+            el.style.display = 'none';
+        }
+    } catch (e) { /**/ }
+})();
 
 socket.on('chat:inviteError', ({ message }: any) => {
     console.log('Invite error:', message);

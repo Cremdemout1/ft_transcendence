@@ -542,15 +542,15 @@ export class GameMath {
   private paddle_speed()
   {
 	this.paddles.forEach((element, idx) => {
-		console.log(element);
-		console.log(idx);
+		//console.log(element);
+		//console.log(idx);
 		if(element.active)
 		{
 			this.paddles[idx].speed=1.5;
 			this.paddles[idx].max_speed=2.2;
 			console.log(this.paddles[idx].speed);
 		}
-		console.log(this.paddles[idx].speed);
+		//console.log(this.paddles[idx].speed);
 	});
   }
 

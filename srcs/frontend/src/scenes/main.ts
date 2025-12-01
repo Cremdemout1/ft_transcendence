@@ -102,9 +102,11 @@ function camera_setup(
   camera.layerMask = 0xffffffff; //everything shows up on the main camera
   camera2.layerMask = 0x10000000; //only the arena and paddles show up on the ortographic ones
   camera3.layerMask = 0x10000000;
-  scene.activeCameras!.push(camera);
-  scene.activeCameras!.push(camera2);
-  scene.activeCameras!.push(camera3);
+  // Ensure activeCameras array exists before pushing cameras (can be null/undefined)
+  if (!scene.activeCameras) scene.activeCameras = [] as BABYLON.Camera[];
+  scene.activeCameras.push(camera);
+  scene.activeCameras.push(camera2);
+  scene.activeCameras.push(camera3);
 }
 
 async function import_meshes(
@@ -122,10 +124,19 @@ async function import_meshes(
       model,
       scene
     ); //imports the arena, paddles and ball
+    if (scene.isDisposed) {
+      console.warn('import_meshes: scene disposed after arena load');
+      throw new Error('Scene disposed during arena import');
+    }
     const mainMesh = arena_meshes.meshes[0]; //mesh 0 which i name mainMesh here is a root mesh that contains all 3 mentioned above
     if (mainMesh) mainMesh.scaling = new BABYLON.Vector3(-1, 1, -1);
   } catch (error) {
     console.error("Failed to load arena model:", error);
+    // If the scene was disposed while loading meshes, surface a clearer error
+    if (scene.isDisposed || (error && /disposed/i.test(String(error)))) {
+      console.warn('import_meshes: aborting because scene was disposed');
+      throw new Error('Scene disposed during mesh import');
+    }
     throw error;
   }
   arena_meshes.meshes.forEach((mesh) => {
@@ -154,6 +165,10 @@ async function import_meshes(
       city,
       scene
     ); //importing city model, i want it to be animated later on but first i need to figure out a way to get the materials to look at least close to how they do in blender
+    if (scene.isDisposed) {
+      console.warn('import_meshes: scene disposed after city load');
+      throw new Error('Scene disposed during city import');
+    }
     const cityRoot = cityscene.meshes[0]; //root mesh
     if (cityRoot) {
       cityRoot.scaling.addInPlace(new BABYLON.Vector3(5, 5, 5));
@@ -161,6 +176,10 @@ async function import_meshes(
     }
   } catch (error) {
     console.error("Failed to load city model:", error);
+    if (scene.isDisposed || (error && /disposed/i.test(String(error)))) {
+      console.warn('import_meshes: aborting because scene was disposed');
+      throw new Error('Scene disposed during mesh import');
+    }
     throw error;
   }
   try {
@@ -170,6 +189,10 @@ async function import_meshes(
       score,
       scene
     ); //importing score sign
+    if (scene.isDisposed) {
+      console.warn('import_meshes: scene disposed after score load');
+      throw new Error('Scene disposed during score import');
+    }
     const scoreRoot = score_sign.meshes[0]; //root
     if (scoreRoot) {
       meshes.score_title = scoreRoot as BABYLON.Mesh;
@@ -179,6 +202,10 @@ async function import_meshes(
     }
   } catch (error) {
     console.error("Failed to load score title sign model:", error);
+    if (scene.isDisposed || (error && /disposed/i.test(String(error)))) {
+      console.warn('import_meshes: aborting because scene was disposed');
+      throw new Error('Scene disposed during mesh import');
+    }
     throw error;
   }
 
@@ -196,6 +223,10 @@ async function import_meshes(
       AImodel,
       scene
     );
+    if (scene.isDisposed) {
+      console.warn('import_meshes: scene disposed after AI model load');
+      throw new Error('Scene disposed during AI import');
+    }
     const AIMesh = AI_meshes.meshes[0];
     if (AIMesh) {
 		AIMesh.scaling = new BABYLON.Vector3(150, 150, 150);
@@ -204,6 +235,10 @@ async function import_meshes(
 	}
   } catch (error) {
     console.error("Failed to load AI model:", error);
+    if (scene.isDisposed || (error && /disposed/i.test(String(error)))) {
+      console.warn('import_meshes: aborting because scene was disposed');
+      throw new Error('Scene disposed during mesh import');
+    }
     throw error;
   }
   }
@@ -564,16 +599,16 @@ export async function createGameScene( //function that makes all the visuals (up
     if (!serverGameState) {
       // no-op when server sends null/empty state
       // keeps previous visuals intact until next valid update
-      console.log("IT'S JOEVER");
+      //console.log("IT'S JOEVER");
       return;
     }
-    console.log("WINNER: " + serverGameState.winner);
+    //console.log("WINNER: " + serverGameState.winner);
     update_ball(meshes, serverGameState);
     reset = update_reset(meshes, serverGameState, trail, reset, player_nbr);
     update_paddles(meshes, serverGameState);
     if (serverGameState.hit) {
-      console.log("hit!");
-      console.log(serverGameState);
+      //console.log("hit!");
+      //console.log(serverGameState);
       const hitPoint = new BABYLON.Vector3(
         serverGameState.hitPoint.pos.x,
         serverGameState.hitPoint.pos.y,
@@ -616,8 +651,8 @@ export async function createGameScene( //function that makes all the visuals (up
         serverGameState.ball.velocity.y*serverGameState.dt,
         serverGameState.ball.velocity.z*serverGameState.dt
       ).length();
-      console.log("speed: ", speed);
-      console.log("ball vel: ", serverGameState.ball.velocity);
+      //console.log("speed: ", speed);
+      //console.log("ball vel: ", serverGameState.ball.velocity);
       counter = 0.5;
     }
     if (newnewMesh) {
@@ -693,5 +728,19 @@ export async function createGameScene( //function that makes all the visuals (up
   );
   BABYLON.SceneOptimizer.OptimizeAsync(scene, optimizerOptions);
   await scene.whenReadyAsync();
+
+  // Notify server that this client is ready to receive the final's start/state
+  try {
+    const roomCode = sessionStorage.getItem('roomCode');
+    const tournamentId = sessionStorage.getItem('tournamentId');
+    // Only emit readiness for finals when this client is actually in a tournament room
+    if (roomCode && tournamentId && tournamentId !== 'null') {
+      socket.emit('tournament:readyForFinal', { code: roomCode });
+      console.log('Emitted tournament:readyForFinal', roomCode);
+    }
+  } catch (e) {
+    console.warn('Failed to emit tournament:readyForFinal', e);
+  }
+
   return scene;
 }
