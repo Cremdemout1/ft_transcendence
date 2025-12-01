@@ -1132,6 +1132,18 @@ function handleDisconnect(socket: Socket): void {
           break;
         }
       }
+      if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4) || (room.numPlayers === 6 && room.players.length< 6))) {
+          const winnerName = "everyone else";
+          console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
+          // Emit matchOver so clients follow the normal end-of-match flow
+          io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'Everyone wins by forfeit!' });
+          // Ensure room is no longer in progress and clear resources
+          room.inProgress = false;
+          clearRoomResources(room);
+          // Cleanup the room after awarding the win
+          cleanupRoom(code);
+          break;
+        }
 
       // Clean up empty room
       cleanupRoom(code);

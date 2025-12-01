@@ -26,7 +26,6 @@ function showMultiplayerMenu(push = true) {
 	app.innerHTML = `
     <h2 class="terminal-title">MULTIPLAYER HUB</h2>
     <div id="multiplayerMenu" class="terminal-menu">
-        <button class="neon-btn" id="quickplayBtn">QUICKPLAY</button>
         <button class="neon-btn" id="createGameBtn">CREATE GAME</button>
         <div id="createGameOptions" class="create-options">
             <button class="neon-subbtn" data-players="2">2 PLAYERS</button>

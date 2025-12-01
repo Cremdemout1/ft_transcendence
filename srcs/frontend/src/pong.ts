@@ -34,8 +34,6 @@ async function renderPong() {
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
 
 			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
-				<button class="neon-btn" id="pauseBtn">PAUSE</button>
-				<button class="neon-btn" id="restartBtn">RESTART</button>
 				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
 			</div>
 		</div>
@@ -49,8 +47,6 @@ async function renderPong() {
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
 
 			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
-				<button class="neon-btn" id="pauseBtn">PAUSE</button>
-				<button class="neon-btn" id="restartBtn">RESTART</button>
 				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
 			</div>
 			<div id="chatContainer" style="position:absolute; right: 16px; top: 80px; z-index:10;"></div>
