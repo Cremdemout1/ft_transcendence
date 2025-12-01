@@ -15,7 +15,8 @@
 
 <script>
 const playlist = ["/song1.mp3", "/song2.mp3"];
-let currentTrack = 0;
+// Start with a random track so each visitor may hear either song
+let currentTrack = Math.floor(Math.random() * playlist.length);
 
 const music = document.getElementById('bgMusic');
 const musicSource = document.getElementById('musicSource');

@@ -3,14 +3,14 @@
 #                                                         :::      ::::::::    #
 #    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+         #
+#    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/11/28 16:19:02 by luiberna         ###   ########.fr        #
+#    Updated: 2025/11/29 17:32:46 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-DOCKER_COMPOSE = docker-compose
+DOCKER_COMPOSE = docker compose
 YML 		   = ./srcs/docker-compose.yml
 
 DEV_DB_DIR	   = /home/transcendence/Desktop/Data/sqlite-data
