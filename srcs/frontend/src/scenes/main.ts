@@ -636,7 +636,8 @@ export async function createGameScene( //function that makes all the visuals (up
         materialToUse: orbmaterial,
       });
       boxCSG.dispose();
-      boxCSG = BABYLON.CSG2.FromMesh(newMesh);
+      if(newMesh)
+        boxCSG = BABYLON.CSG2.FromMesh(newMesh);
       if (booleanCSG2) booleanCSG2.dispose();
       booleanCSG2 = boxCSG.subtract(sphereCSG2);
       if (newnewMesh) newnewMesh.dispose();
