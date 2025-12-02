@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/30 12:40:24 by gcapa-pe         ###   ########.fr       */
+/*   Updated: 2025/12/02 23:10:09 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,9 +86,10 @@ class TournamentManager {
     const raw = (alias || '').toString().trim();
     const safeAlias = raw.substring(0, 24);
     const aliasLower = safeAlias.toLowerCase();
-
-    if (this.waitingPlayers.has(socketId)) return;
-
+	console.log("is this it?");
+    if (this.waitingPlayers.has(socketId)) 
+		this.waitingPlayers.delete(socketId);
+	console.log("join tourn")
     // alias duplicadoss
     for (const p of this.waitingPlayers.values()) {
       if ((p.alias || '').toString().toLowerCase() === aliasLower) {
@@ -123,7 +124,7 @@ class TournamentManager {
       } catch (e) {
       }
     }
-
+	console.log("stillllll join tourn")
     this.waitingPlayers.set(socketId, { alias: safeAlias });
     this.io.emit("tournamentQueueUpdate", {
       waitingCount: this.waitingPlayers.size,
@@ -327,6 +328,8 @@ class TournamentManager {
         const finalRoomCode = generateRoomCode();
         rooms[finalRoomCode] = {
           code: finalRoomCode,
+		  isSinglePlayer: 0,
+		  vanilla: 0,
           numPlayers: 2,
           players: [],
           playerUsernames: new Map(),
@@ -718,7 +721,8 @@ function handleCreateRoom(socket: Socket, numPlayers: number, alias: string): vo
     chat: { messages: [] },
     announced: {},
     isSinglePlayer: 0,
-    vanilla: 0
+    vanilla: 0,
+	inProgress: false
   };
   rooms[code].playerUsernames.set(socket.id, alias);
   activateRoomPaddles(rooms[code]);
@@ -1132,7 +1136,7 @@ function handleDisconnect(socket: Socket): void {
           break;
         }
       }
-      if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4) || (room.numPlayers === 6 && room.players.length< 6))) {
+      if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4 && room.inProgress==true) || (room.numPlayers === 6 && room.players.length< 6 && room.inProgress==true))) {
           const winnerName = "everyone else";
           console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
           // Emit matchOver so clients follow the normal end-of-match flow
@@ -1145,8 +1149,6 @@ function handleDisconnect(socket: Socket): void {
           break;
         }
 
-      // Clean up empty room
-      cleanupRoom(code);
       break;
     }
   }
@@ -1394,6 +1396,7 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("joinTournament", (alias: string) => {
+	console.log("inside on");
     tournamentManager.joinTournament(socket.id, alias);
   });
 

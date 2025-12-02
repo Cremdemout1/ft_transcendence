@@ -187,33 +187,7 @@ socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: {
 socket.on("gameState", ({ gameState }: { gameState: any }) => {
     try {
         if (!location.hash.startsWith('#pong')) {
-            console.log('Received gameState while not on #pong — navigating to #pong');
-            // Ensure UI state matches an active game
-            document.body.classList.add('game-active');
-            sessionStorage.setItem('isSinglePlayer', String(gameState?.isSinglePlayer || 0));
-            sessionStorage.setItem('vanilla', String(gameState?.vanilla || 0));
-            // Make sure the main app container is visible and hide overlays
-            try { const app = document.getElementById('app'); if (app) app.style.display = ''; } catch (e) {}
-            try { hideOverlaysExceptApp(); } catch (e) {}
-            // navigate to pong view so the scene mounts and will register its own gameState handler
-            const navTs2 = parseInt(sessionStorage.getItem('navigatingToPongTS') || '0', 10) || 0;
-                // If a matchOver was just received (forfeit/win), avoid immediately navigating back to #pong
-                const lastMatchAt = parseInt(sessionStorage.getItem('lastMatchAt') || '0', 10) || 0;
-                const nowCheck = Date.now();
-                const suppressNav = lastMatchAt && (nowCheck - lastMatchAt) < 4000; // 4s grace window
-                if (suppressNav) {
-                    console.log('Suppressing gameState -> #pong navigation due to recent matchOver', { lastMatchAt, nowCheck });
-                }
-            const now2 = Date.now();
-            const navigating2 = (now2 - navTs2) < 3000;
-            if (!location.hash.startsWith('#pong') && !navigating2 && !suppressNav) {
-                console.log('Navigating to #pong (gameState fallback)');
-                sessionStorage.setItem('navigatingToPongTS', String(now2));
-                try { location.hash = '#pong'; window.dispatchEvent(new Event('hashchange')); } catch (e) { location.href = '/#pong'; }
-                setTimeout(() => sessionStorage.removeItem('navigatingToPongTS'), 3000);
-            } else {
-                console.log('Skipping navigation (already navigating recently or in #pong)', { navigating2, navTs2 });
-            }
+			location.hash='dashboard';
         }
     } catch (e) {
         console.warn('gameState fallback error', e);
@@ -239,11 +213,12 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
 // ver isto melhor
 function renderTournamentQueue(waitingPlayers: string[]) {
     const app = document.getElementById('app');
-    if (!app) return;
+    if (!app || !sessionStorage.getItem('inTournament')) return;
+	console.log("lalala");
     // Only show the tournament queue UI when the multiplayer/tournament UI is present
     const multiplayerVisible = !!document.getElementById('multiplayerMenu') || !!document.getElementById('tournamentAliasModal') || location.hash === '#multiplayer';
     if (!multiplayerVisible) return;
-
+	console.log(location.hash);
     let queueDiv = document.getElementById('tournamentQueue');
     if (!queueDiv) {
         queueDiv = document.createElement('div');
@@ -511,4 +486,4 @@ function ensureConnected(timeoutMs: number = 3000): Promise<void> {
     });
 }
 
-export { startSinglePlayerGame, start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket };
+export { startSinglePlayerGame, start2PlayerGame, start4PlayerGame, start6PlayerGame, joinGame, socket, };

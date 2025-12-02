@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   play.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 20:30:00 by gcapa-pe          #+#    #+#             */
-/*   Updated: 2025/11/30 12:25:42 by gcapa-pe         ###   ########.fr       */
+/*   Updated: 2025/12/02 22:09:37 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,10 +104,18 @@ function showMultiplayerMenu(push = true) {
 	const confirmBtn = document.getElementById('tournamentAliasConfirm');
 	const cancelBtn = document.getElementById('tournamentAliasCancel');
 	if (confirmBtn) confirmBtn.onclick = () => {
+		console.log("is this thing on?");
+		console.log("socket connected?", socket.connected);
+
 		const input = document.getElementById('tournamentAliasInput') as HTMLInputElement;
 		const alias = input?.value?.trim() || getUsernameFromJwt() || 'Player';
+		console.log("alias: "+ alias);
 		if (alias.length < 1) return;
-		(socket as any).emit('joinTournament', alias);
+		if (!socket.connected)
+			try { socket.connect(); } catch {}
+		sessionStorage.setItem('inTournament', '1');
+		socket.emit('joinTournament', alias);
+		console.log("below emit")
 		const modal = document.getElementById('tournamentAliasModal');
 		if (modal) modal.style.display = 'none';
 	};
@@ -115,7 +123,7 @@ function showMultiplayerMenu(push = true) {
 		const modal = document.getElementById('tournamentAliasModal');
 		if (modal) modal.style.display = 'none';
 	};
-
+		
 	// Back button
 	document.getElementById('backBtn')?.addEventListener('click', () => {
 		history.back();
