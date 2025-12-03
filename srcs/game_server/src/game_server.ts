@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/03 11:36:57 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 21:11:30 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,15 @@ type ChatMessage = {
 const socketUsername: Record<string, string> = {};
 const onlineUsers: Record<string, string> = {};
 const blockMap: Record<string, Set<string>> = {};
+
+function shuffleArray<T>(array: Array<T>) : T[] {
+  const length = array.length;
+  for (let i = length - 1; i > 0; i--) {
+    const random = Math.floor(Math.random() * (i + 1));
+    [array[i], array[random]] = [array[random], array[i]];
+  }
+  return array;
+}
 
 //----------------------------- Tournament Manager -----------------------------
 class TournamentManager {
@@ -178,6 +187,7 @@ class TournamentManager {
     }
     // Pairings for round 1
     const entries: [string, { alias: string }][] = Array.from(tournament.players.entries());
+    shuffleArray(entries); // shuffle players
     const pairs: Array<[[string, { alias: string }], [string, { alias: string }]]> = [
       [entries[0], entries[1]],
       [entries[2], entries[3]]
@@ -1482,7 +1492,7 @@ io.on("connection", (socket: Socket) => {
   tournamentManager.handleDisconnect(socket.id);
   // Then perform the regular room cleanup
   handleDisconnect(socket);
-  // clean username mapping
+2  // clean username mapping
   delete socketUsername[socket.id];
   delete onlineUsers[socket.id];
   delete blockMap[socket.id];

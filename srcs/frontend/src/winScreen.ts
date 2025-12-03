@@ -1,4 +1,3 @@
-import { checkLoginState } from "./dashboard";
 import { getUsernameFromJwt } from "./chat";
 
 async function renderWinScreen() { // playerIDX is undefined

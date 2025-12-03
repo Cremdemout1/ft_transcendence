@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   profile.ts                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/01 12:52:55 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/28 14:55:08 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/12/03 20:30:08 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ async function renderProfile() {
     const info = sessionStorage.getItem('jwt');
     const userInfo = info ? decodeJwt(info) : null;
 
-    console.log("hi: ", userInfo);
+    // console.log("hi: ", userInfo);
     app.innerHTML = `
         <div id="profileContainer" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
             <button class="neon-btn exit-btn" id="backBtn">BACK</button>

@@ -65,6 +65,7 @@ import { renderchangePassword } from './src/changePassword';
 import {renderWinScreen } from './src/winScreen';
 import { socket } from './src/matchmaking'
 import { getUsernameFromJwt } from './src/chat';
+import renderHelpScreen from './src/help';
 
 
 const app = document.getElementById('app');
@@ -76,7 +77,8 @@ const routes = {
     pong: renderPong,
     me: renderProfile,
     twoFA: verify2faCode,
-    endgame: renderWinScreen
+    endgame: renderWinScreen,
+    help: renderHelpScreen
 };
 
 const routeStr = [
@@ -86,7 +88,8 @@ const routeStr = [
     "pong",
     "me",
     "twoFA",
-    "endgame"
+    "endgame",
+    "help"
 ]
 
 function renderLogin() {
@@ -126,6 +129,7 @@ function renderDashboard() {
         <div class="menu-container">
             <button id="profileBtn" class="neon-btn">Profile</button>
             <button id="playBtn" class="neon-btn">Play</button>
+            <button id="helpBtn" class="neon-btn">Help</button>
             <button id="logoutBtn" class="neon-btn">Log out</button>
             <div id ="message"></div>
         </div>
@@ -134,15 +138,18 @@ function renderDashboard() {
     logout();
     play();
     me();
-    // endGame();
     const playBtn = document.getElementById('playBtn');
-    if (!playBtn)
+    const helpBtn = document.getElementById('helpBtn');
+    if (!playBtn || !helpBtn)
         return ;
     playBtn.addEventListener('click', () => {
         musicSource.src = playlist[currentTrack];
         music.load();
         music.play().catch(e => console.log("Autoplay prevented:", e));
     });
+    helpBtn.addEventListener("click", () => {
+        location.hash = "help";
+    })
 }
 
 function router() {
@@ -165,14 +172,6 @@ function router() {
         location.hash = rightPath;
     }
     const render = routes[firstSegment] || renderLogin;
-
-    // console.log("hash: ", hash);
-    // console.log("path: ", path);
-    // console.log("querystring: ", queryString);
-    // console.log("params: ", params);
-    // console.log("firstSegment: ", firstSegment);
-    // console.log("render: ", render);
-    // console.log("HERE");
 
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
@@ -298,18 +297,6 @@ drawCyberPunkBG();
             console.log("outside of pong");
         }
         else {
-            console.log("inside pong");
-            //const roomCode = window.sessionStorage.getItem('roomCode');
-            // if (!roomCode)
-            // window.sessionStorage.removeItem('roomCode');
-            // window.sessionStorage.removeItem('vanilla');
-            // window.sessionStorage.removeItem('isSinglePlayer');
-            // window.sessionStorage.removeItem('numPlayers');
-            // window.location.hash = 'dashboard';
-            // else
-            //     socket.emit('joinRoom', { code: roomCode, alias: getUsernameFromJwt() });
-
-console.log("REFRESHER");
             const roomCode = window.sessionStorage.getItem("roomCode");
             window.sessionStorage.setItem('numPlayers', '-700');
         }

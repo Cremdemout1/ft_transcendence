@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signup.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/28 16:29:30 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/12/03 20:17:37 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ async function backendSignup() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
         try {checkregex(username, firstname, lastname, email, password);}
-        catch(error) {messageDiv.textContent = `Sign up failed: ${error || 'Unknown error}'}`;return;}
+        catch(error) {messageDiv!.textContent = `Sign up failed: ${error || 'Unknown error}'}`;return;}
         try {
             const res = await fetch("/api/signup",
             {

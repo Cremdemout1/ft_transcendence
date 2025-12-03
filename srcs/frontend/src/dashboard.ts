@@ -3,33 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/12/03 00:05:00 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 20:58:50 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { socket } from "./matchmaking";
 
-async function checkLoginState(path:string) {
+async function checkLoginState(path: string | null) {
     const token = sessionStorage.getItem('jwt');
     if (!token) {
         return location.hash = '/#login';
     }
-    const res = await fetch(path, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-    const data = await res.json();
-    if (res.ok) {
-        //display user info correctly later
-        console.log(data);
-    } else {
-        console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
-        sessionStorage.removeItem("jwt");
-        return location.hash = '/#login';
+    if (path) {
+        const res = await fetch(path, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        const data = await res.json();
+        if (res.ok) {
+            //display user info correctly later
+            console.log(data);
+        } else {
+            console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
+            sessionStorage.removeItem("jwt");
+            return location.hash = '/#login';
+        }
     }
 }
 
