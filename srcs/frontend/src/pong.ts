@@ -13,7 +13,7 @@
 import { checkLoginState } from "./dashboard";
 import { initBabylon } from "./game";
 import { showMultiplayerMenu } from "./play";
-import { mountChat } from "./chat";
+import { mountChat, unmountChat, setChatMode, hideChatUI } from "./chat";
 import { startSinglePlayerGame, startLocalGame, socket } from "./matchmaking";
 import { getUsernameFromJwt } from "./chat";
 
@@ -23,17 +23,19 @@ async function renderPong() {
 	const app = document.getElementById("app");
 	if (!app) return;
 	console.log("RENDER PONG");
-	const isSinglePlayer = Boolean(sessionStorage.getItem("isSinglePlayer"));
+	const isSinglePlayer = sessionStorage.getItem("isSinglePlayer") === '1';
 	app.innerHTML = isSinglePlayer ? `
 		<div id="pongMenu" class="terminal-menu">
 			<h2 class="terminal-title">PONG SIMULATION</h2>
 			<button class="neon-subbtn" id="backToDashboard">BACK</button>
 		</div>
 
-		<div id="pongGameWrapper">
+		<div id="pongGameWrapper" style="position: relative;">
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
 
 			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
+				<button class="neon-btn" id="pauseBtn">PAUSE</button>
+				<button class="neon-btn" id="restartBtn">RESTART</button>
 				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
 			</div>
 		</div>
@@ -43,10 +45,12 @@ async function renderPong() {
 			<button class="neon-subbtn" id="backToDashboard">BACK</button>
 		</div>
 
-		<div id="pongGameWrapper">
+		<div id="pongGameWrapper" style="position: relative;">
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
 
 			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
+				<button class="neon-btn" id="pauseBtn">PAUSE</button>
+				<button class="neon-btn" id="restartBtn">RESTART</button>
 				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
 			</div>
 			<div id="chatContainer" style="position:absolute; right: 16px; top: 80px; z-index:10;"></div>
@@ -61,9 +65,37 @@ async function renderPong() {
 	else
 		initBabylon();
 	const chatMount= document.getElementById('chatContainer');
-	if (chatMount) {
-		console.log("urmom");
-		mountChat(chatMount); 
+	// Disable chat for local/singleplayer or explicit disable flag; only enable when in an online room
+	const isLocal = window.sessionStorage.getItem('isLocalGame') === '1';
+	const isSingle = window.sessionStorage.getItem('isSinglePlayer') === '1';
+	const disableChat = window.sessionStorage.getItem('disableChat') === '1';
+	const hasRoom = Boolean(window.sessionStorage.getItem('roomCode'));
+	if (!isLocal && !isSingle && !disableChat && hasRoom && chatMount) {
+		mountChat(chatMount);
+		// Move chat inside game canvas area for gameplay and set in-game mode
+		const wrapper = document.getElementById('pongGameWrapper');
+		if (wrapper && chatMount.parentElement !== wrapper) {
+			wrapper.appendChild(chatMount);
+			chatMount.style.position = 'absolute';
+			chatMount.style.right = '16px';
+			chatMount.style.top = '10px';
+			chatMount.style.zIndex = '10';
+		}
+		setChatMode('ingame');
+		hideChatUI();
+	} else if (!isLocal && !isSingle && !disableChat && hasRoom) {
+		// Fallback: ensure chat appears during gameplay even if container was removed
+		const fallback = document.createElement('div');
+		fallback.id = 'chatContainer';
+		fallback.style.position = 'absolute';
+		fallback.style.right = '24px';
+		fallback.style.top = '40px';
+		fallback.style.zIndex = '10';
+		const wrapper = document.getElementById('pongGameWrapper');
+		(wrapper || document.body).appendChild(fallback);
+		mountChat(fallback);
+		setChatMode('ingame');
+		hideChatUI();
 	}
 	backToDashboard();
 }
@@ -128,19 +160,35 @@ function showGameModeMenu() {
 			if (!AI)
 				return ;
 			console.log(AI);
+			// Mark singleplayer so chat remains disabled
+			window.sessionStorage.setItem('isSinglePlayer', '1');
+			// Explicitly disable chat for Yohai (ai-type=2) regardless of room state
+			if (AI === '2') {
+				window.sessionStorage.setItem('disableChat', '1');
+			}
 			startSinglePlayerGame(Number(AI), username!);
 		});
 	});
 
 	document.getElementById("localGameBtn")?.addEventListener("click", () => {
+		// Mark local game so chat remains disabled
+		window.sessionStorage.setItem('isLocalGame', '1');
 		startLocalGame();
 	})
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {
+		// Ensure singleplayer flag is cleared when switching to multiplayer
+		window.sessionStorage.removeItem('isSinglePlayer');
+		window.sessionStorage.removeItem('disableChat');
 		showMultiplayerMenu();
 	});
 
 	document.getElementById("backBtn")?.addEventListener("click", () => {
+		// Clear local game flag when backing out
+		window.sessionStorage.removeItem('isLocalGame');
+		// Clear singleplayer flag when backing out
+		window.sessionStorage.removeItem('isSinglePlayer');
+		window.sessionStorage.removeItem('disableChat');
 		history.back();
 	});
 }
@@ -153,6 +201,17 @@ async function backToDashboard() {
 	const btn = document.getElementById("backToDashboard");
 	if (btn) {
 		btn.addEventListener("click", () => {
+			// Clear local game flag when leaving to dashboard
+			window.sessionStorage.removeItem('isLocalGame');
+			// Clear singleplayer flag when leaving to dashboard
+			window.sessionStorage.removeItem('isSinglePlayer');
+			window.sessionStorage.removeItem('disableChat');
+			// Leave game room and unmount chat when returning to dashboard
+			const code = window.sessionStorage.getItem('roomCode');
+			if (code) {
+				socket.emit('leaveGame', { code });
+			}
+			unmountChat();
 			location.href = "/#dashboard";
 		});
 	}

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   chat.ts                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/03 21:05:41 by gude-cas          #+#    #+#             */
+/*   Updated: 2025/12/03 21:05:41 by gude-cas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import { socket } from "./matchmaking";
 
 let mounted = false;
@@ -6,12 +18,16 @@ let listEl: HTMLUListElement | null = null;
 let formEl: HTMLFormElement | null = null;
 let inputEl: HTMLInputElement | null = null;
 let headerEl: HTMLElement | null = null;
+let closeBtnEl: HTMLButtonElement | null = null;
+let showBtnEl: HTMLButtonElement | null = null;
 let rosterEl: HTMLUListElement | null = null;
 let contextMenuEl: HTMLDivElement | null = null;
 let dmBadgeEl: HTMLDivElement | null = null;
+let profileCardEl: HTMLDivElement | null = null;
 let dmTarget: { id: string; name: string } | null = null;
 let blocked = new Set<string>();
 let lastRoster: Array<{ id: string; name: string }> = [];
+let headerInjected = false;
 
 function decodeJwt(token: string) {
   try {
@@ -30,41 +46,70 @@ export function getUsernameFromJwt(): string | null {
   return payload?.username || null;
 }
 
+function getRoomCode(): string {
+  // Try sessionStorage, URL search params, and a socket-attached value if present
+  const fromSession = sessionStorage.getItem('roomCode');
+  if (fromSession && fromSession !== 'undefined' && fromSession !== 'null') return fromSession;
+  try {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    if (code) return code;
+  } catch {}
+  try {
+    const maybe = (socket as any)?.roomCode;
+    if (maybe) return String(maybe);
+  } catch {}
+  return '';
+}
+
 function ensureDOM(target: HTMLElement) {
-  // Styling: rightmost column, white background, black border
+  // Styling: rightmost column, dark background with neon-cyan accents to match game
   target.innerHTML = `
-    <div id="roomChat" style="position:fixed; top:0; right:0; height:100vh; width:320px; background:#fff; color:#000; border:1px solid #000; box-sizing:border-box; padding:10px; font:14px/1.3 system-ui, sans-serif; display:flex; flex-direction:column; gap:8px;">
-      <div style="display:flex; align-items:center; justify-content:space-between;">
-        <strong id="roomChatTitle">ROOM </strong>
-        <small id="roomChatHint" style="opacity:.7;">Press Enter to send</small>
+    <button id="roomChatShowBtn" style="display:none; position:fixed; right:16px; top:80px; z-index:11; padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px; font:14px 'Courier New', monospace;">Show chat</button>
+    <div id="roomChat" style="position:fixed; top:0; right:0; height:100vh; width:320px; background:#0b0f14; color:#d7ffff; border:2px solid rgba(0,255,255,0.3); box-shadow:0 0 10px rgba(0,255,255,0.2); border-radius:8px; box-sizing:border-box; padding:10px; font:14px/1.3 'Courier New', monospace; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+        <small id="roomChatHint" style="opacity:.7; color:#8fd7d7;">Press Enter to send</small>
+        <button id="roomChatClose" aria-label="Close chat" title="Close chat" style="padding:2px 8px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; border-radius:6px; font-size:20px; line-height:1;">×</button>
       </div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <div style="font-weight:600;">Players</div>
-        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:1px solid #000; height:120px; overflow:auto; background:#fafafa;"></ul>
+      <div id="roomRosterSection" style="display:flex; flex-direction:column; gap:6px;">
+        <div style="font-weight:600; color:#00ffff; text-shadow:0 0 6px #00ffff;">Online players:</div>
+        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:2px solid rgba(0,255,255,0.25); max-height:140px; overflow:auto; background:#0e141b;"></ul>
       </div>
-      <ul id="roomChatList" style="list-style:none; margin:0; padding:0; flex:1; overflow-y:auto; border:1px solid #000; background:#fafafa;"></ul>
-      <div id="inviteBanner" style="display:none; border:1px solid #000; padding:6px; background:#eef; color:#000;">
+      <ul id="roomChatList" style="list-style:none; margin:0; padding:8px; flex:1; overflow-y:auto; border:2px solid rgba(0,255,255,0.25); background:#0e141b;"></ul>
+      <div id="inviteBanner" style="display:none; border:2px solid rgba(0,255,255,0.35); padding:6px; background:#0d1620; color:#cfffff; box-shadow:0 0 8px rgba(0,255,255,0.15);">
         <span id="inviteText"></span>
-        <button id="inviteAccept" style="margin-left:6px; border:1px solid #000; background:#fff; color:#000;">Join</button>
-        <button id="inviteDecline" style="margin-left:6px; border:1px solid #000; background:#fff; color:#000;">Decline</button>
+        <button id="inviteAccept" style="margin-left:6px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 8px; border-radius:4px;">Join</button>
+        <button id="inviteDecline" style="margin-left:6px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; padding:4px 8px; border-radius:4px;">Decline</button>
       </div>
-      <div id="dmBadge" style="display:none; font-size:12px; color:#0047ab;">
+      <div id="dmBadge" style="display:none; font-size:12px; color:#7fd9ff;">
         DM to <span id="dmName"></span>
-        <button id="dmClear" style="margin-left:6px; border:1px solid #000; background:#fff; color:#000; padding:0 6px;">x</button>
+        <button id="dmClear" style="margin-left:6px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#cfffff; padding:0 6px; border-radius:4px;">x</button>
       </div>
       
       <form id="roomChatForm" style="display:flex; gap:6px;">
-        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:4px; border:1px solid #000; background:#fff; color:#000;" />
-        <button type="submit" style="padding:6px 10px; border:1px solid #000; background:#fff; color:#000;">Send</button>
+        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:4px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#cfffff;" />
+        <button type="submit" style="padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:4px;">Send</button>
       </form>
-      <div id="chatContextMenu" style="display:none; position:absolute; z-index:9999; background:#fff; border:1px solid #000; box-shadow:2px 2px 0 rgba(0,0,0,.1);">
+      <div id="chatContextMenu" style="display:none; position:absolute; z-index:9999; background:#0b0f14; border:2px solid rgba(0,255,255,0.35); box-shadow:0 0 10px rgba(0,255,255,0.2);">
         <ul style="list-style:none; margin:0; padding:4px;">
-          <li data-action="dm" style="padding:4px 8px; cursor:pointer;">DM</li>
-          <li data-action="invite" style="padding:4px 8px; cursor:pointer;">Invite to room</li>
-          <li data-action="toggleBlock" style="padding:4px 8px; cursor:pointer;">Block</li>
-          <li data-action="viewProfile" style="padding:4px 8px; cursor:pointer;">View profile</li>
-          <li data-action="reply" style="display:none; padding:4px 8px; cursor:pointer;">Reply</li>
+          <li data-action="dm" style="padding:4px 8px; cursor:pointer; color:#cfffff;">DM</li>
+          <li data-action="invite" style="padding:4px 8px; cursor:pointer; color:#cfffff;">Invite to room</li>
+          <li data-action="toggleBlock" style="padding:4px 8px; cursor:pointer; color:#ff9e9e;">Block</li>
+          <li data-action="viewProfile" style="padding:4px 8px; cursor:pointer; color:#cfffff;">View profile</li>
+          <li data-action="reply" style="display:none; padding:4px 8px; cursor:pointer; color:#7fd9ff;">Reply</li>
         </ul>
+      </div>
+      <div id="miniProfileCard" style="display:none; position:absolute; z-index:10000; background:#0b0f14; color:#d7ffff; border:2px solid rgba(0,255,255,0.35); box-shadow:0 0 10px rgba(0,255,255,0.2); border-radius:8px; padding:10px; width:240px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <strong style="color:#00ffff; text-shadow:0 0 6px #00ffff;">Profile</strong>
+          <button id="miniProfileClose" style="border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; border-radius:6px; font-size:16px; line-height:1; padding:0 6px;">×</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div><span style="opacity:.8;">Username:</span> <span id="miniProfileUsername">—</span></div>
+          <div><span style="opacity:.8;">Firstname:</span> <span id="miniProfileFirstname">—</span></div>
+          <div><span style="opacity:.8;">Lastname:</span> <span id="miniProfileLastname">—</span></div>
+          <div><span style="opacity:.8;">Email:</span> <span id="miniProfileEmail">—</span></div>
+        </div>
       </div>
     </div>
   `;
@@ -76,11 +121,42 @@ function ensureDOM(target: HTMLElement) {
   rosterEl = target.querySelector('#roomRoster');
   contextMenuEl = target.querySelector('#chatContextMenu');
   dmBadgeEl = target.querySelector('#dmBadge');
+  profileCardEl = target.querySelector('#miniProfileCard');
+  closeBtnEl = target.querySelector('#roomChatClose') as HTMLButtonElement | null;
+  showBtnEl = target.querySelector('#roomChatShowBtn') as HTMLButtonElement | null;
 
-  // Fill room code in header
-  const code = sessionStorage.getItem('roomCode') || '';
-  if (headerEl) headerEl.textContent = `ROOM ${code}`;
+  // Inject header item into the list and set code
+  injectOrUpdateHeader();
 }
+
+function injectOrUpdateHeader() {
+  // Requirement: completely remove the ROOM: XXXXX header from the chat UI.
+  // If a header exists from a previous render, remove it; do not re-create.
+  if (!listEl) return;
+  const header = listEl.querySelector('#roomChatTitle') as HTMLElement | null;
+  if (header) {
+    header.remove();
+    headerInjected = false;
+  }
+}
+
+function hideChat() {
+  const panel = document.getElementById('roomChat');
+  if (!panel) return;
+  panel.style.display = 'none';
+  closeContextMenu();
+  if (showBtnEl) showBtnEl.style.display = 'inline-block';
+}
+
+function showChat() {
+  const panel = document.getElementById('roomChat');
+  if (!panel) return;
+  panel.style.display = 'flex';
+  if (showBtnEl) showBtnEl.style.display = 'none';
+}
+
+export function hideChatUI() { hideChat(); }
+export function showChatUI() { showChat(); }
 
 function appendMessage(msg: { id: string; from: string; text: string; ts: number; system?: boolean }) {
   if (!listEl) return;
@@ -93,13 +169,14 @@ function appendMessage(msg: { id: string; from: string; text: string; ts: number
   const mm = ("0" + time.getMinutes().toString()).slice(-2);
   const tag = msg.system ? 'system' : ((msg as any).fromName || msg.from.slice(0, 6));
   li.style.margin = '4px 0';
-  li.style.opacity = msg.system ? '0.8' : '1';
+  li.style.opacity = msg.system ? '0.85' : '1';
   li.style.whiteSpace = 'pre-wrap';
   li.style.wordBreak = 'break-word';
   (li.style as any).overflowWrap = 'anywhere';
   const isDM = !!(msg as any).dm;
   li.innerText = `[${hh}:${mm}] ${tag}: ${msg.text}`;
-  if (isDM) li.style.color = '#0047ab';
+  if (isDM) li.style.color = '#7fd9ff';
+  if (msg.system) li.style.color = '#8fd7d7';
   // Attach metadata for context menu
   (li as any).__meta = { id: (msg as any).from, name: (msg as any).fromName, isDM };
   li.addEventListener('contextmenu', (e) => {
@@ -120,6 +197,8 @@ function bindSocketOnce() {
   socket.on('chat:history', ({ messages }: { messages: any[] }) => {
     if (!listEl) return;
     listEl.innerHTML = '';
+    // keep header at top
+    injectOrUpdateHeader();
     messages.forEach(appendMessage);
   });
   socket.on('chat:roster', ({ players, online }: { players: Array<{id: string; name: string}>, online: Array<{id: string; name: string}> }) => {
@@ -146,6 +225,46 @@ function bindSocketOnce() {
   });
 }
 
+export function setChatMode(mode: 'default' | 'ingame') {
+  const panel = document.getElementById('roomChat') as HTMLElement | null;
+  const showBtn = document.getElementById('roomChatShowBtn') as HTMLElement | null;
+  const rosterSection = document.getElementById('roomRosterSection') as HTMLElement | null;
+  if (!panel) return;
+  if (mode === 'ingame') {
+    panel.style.position = 'absolute';
+    panel.style.height = '25vh';
+    panel.style.width = '320px';
+    panel.style.top = '0';
+    panel.style.right = '0';
+    panel.style.zIndex = '10';
+    panel.style.fontSize = '11px';
+    if (rosterSection) rosterSection.style.display = 'none';
+    if (showBtn) {
+      showBtn.style.position = 'absolute';
+      showBtn.style.right = '0';
+      showBtn.style.top = '-24px';
+      showBtn.style.zIndex = '11';
+      (showBtn.style as any).whiteSpace = 'nowrap';
+      (showBtn.style as any).fontSize = '11px';
+    }
+  } else {
+    panel.style.position = 'fixed';
+    panel.style.top = '0';
+    panel.style.right = '0';
+    panel.style.height = '100vh';
+    panel.style.width = '320px';
+    panel.style.fontSize = '14px';
+    if (rosterSection) rosterSection.style.display = 'flex';
+    if (showBtn) {
+      showBtn.style.position = 'fixed';
+      showBtn.style.right = '16px';
+      showBtn.style.top = '80px';
+      (showBtn.style as any).whiteSpace = 'nowrap';
+      (showBtn.style as any).fontSize = '12px';
+    }
+  }
+}
+
 export function mountChat(target: HTMLElement) {
   ensureDOM(target);
   // load blocked list
@@ -162,6 +281,8 @@ export function mountChat(target: HTMLElement) {
   if (username) socket.emit('chat:identify', { username });
   // request current history for this room
   socket.emit('chat:history');
+  // in case code becomes available later, attempt update on roster/hints
+  setTimeout(() => injectOrUpdateHeader(), 100);
   // bind form
   if (formEl && inputEl) {
     formEl.addEventListener('submit', onSubmit);
@@ -170,11 +291,21 @@ export function mountChat(target: HTMLElement) {
       e.stopPropagation();
     });
   }
+  // close / show chat toggles
+  closeBtnEl?.addEventListener('click', hideChat);
+  showBtnEl?.addEventListener('click', showChat);
   // clear dm
   const clearBtn = containerEl?.querySelector('#dmClear') as HTMLButtonElement | null;
   clearBtn?.addEventListener('click', () => setDMTarget(null));
   // global close of context menu
   document.addEventListener('click', () => closeContextMenu());
+  document.addEventListener('click', (e) => {
+    if (!profileCardEl) return;
+    const targetEl = e.target as HTMLElement;
+    if (profileCardEl.style.display !== 'none' && profileCardEl && !profileCardEl.contains(targetEl) && targetEl.closest('#chatContextMenu') === null) {
+      closeProfileCard();
+    }
+  });
 
   // removed inline invite; use context menu Invite instead
 }
@@ -196,6 +327,8 @@ function onSubmit(e: Event) {
   if (!text) return;
   if (dmTarget) {
     socket.emit('chat:dm', { to: dmTarget.id, text });
+    // After sending a DM, return to normal chat mode
+    setDMTarget(null);
   } else {
     socket.emit('chat:send', { text });
   }
@@ -216,6 +349,15 @@ function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean
     });
     rosterEl!.appendChild(li);
   });
+  // Dynamic roster height based on number of players; cap to keep box compact
+  try {
+    const rows = players.length;
+    const rowHeight = 22; // approximate per-item height
+    const maxPx = 140;
+    const desired = Math.min(rows * rowHeight, maxPx);
+    (rosterEl as HTMLElement).style.maxHeight = desired + 'px';
+    (rosterEl as HTMLElement).style.overflowY = rows * rowHeight > maxPx ? 'auto' : 'hidden';
+  } catch {}
 }
 
 function openContextMenu(x: number, y: number, id: string, name?: string, isDM?: boolean, inRoom: boolean = true) {
@@ -276,8 +418,7 @@ function onContextAction(e: Event) {
   } else if (action === 'toggleBlock') {
     toggleBlock(target.id);
   } else if (action === 'viewProfile') {
-    // cosmetic for now
-    alert(`Viewing profile: ${target.name || target.id.slice(0, 6)}`);
+    openProfileCard(target.id, target.name);
   }
   closeContextMenu();
 }
@@ -345,3 +486,58 @@ socket.on('chat:inviteError', ({ message }: any) => {
 socket.on('chat:inviteSent', ({ toName }: any) => {
   appendSystem(`Invite sent to ${toName}.`);
 });
+
+async function openProfileCard(id: string, name?: string) {
+  if (!profileCardEl) return;
+  const panel = document.getElementById('roomChat');
+  let left = 20;
+  let top = 20;
+  if (contextMenuEl && contextMenuEl.style.display !== 'none') {
+    const rect = contextMenuEl.getBoundingClientRect();
+    left = rect.left + 8;
+    top = rect.bottom + 8;
+    if (panel) {
+      const pRect = panel.getBoundingClientRect();
+      left = rect.left - pRect.left + 8;
+      top = rect.bottom - pRect.top + 8;
+    }
+  }
+  profileCardEl.style.left = left + 'px';
+  profileCardEl.style.top = top + 'px';
+  setProfileFields({ username: name || '—', firstname: '—', lastname: '—', email: '—' });
+  profileCardEl.style.display = 'block';
+  try {
+    // Prefer lookup by username if provided; else fallback to /api/me for self
+    const uname = name || '';
+    const url = uname ? `/api/profile/${encodeURIComponent(uname)}` : '/api/me';
+    const res = await fetch(url, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      const payload = data?.user || data;
+      // Try common field names and fallbacks
+      const firstname = payload?.firstname || payload?.firstName || payload?.profile?.firstname || payload?.profile?.firstName || '—';
+      const lastname = payload?.lastname || payload?.lastName || payload?.profile?.lastname || payload?.profile?.lastName || '—';
+      const usernameVal = payload?.username || payload?.name || payload?.profile?.username || (name || '—');
+      const email = payload?.email || payload?.profile?.email || '—';
+      setProfileFields({ username: usernameVal, firstname, lastname, email });
+    }
+  } catch {}
+  const closeBtn = profileCardEl.querySelector('#miniProfileClose') as HTMLButtonElement | null;
+  closeBtn?.addEventListener('click', () => closeProfileCard(), { once: true });
+}
+
+function setProfileFields({ firstname, lastname, username, email }: { firstname: string; lastname: string; username: string; email: string }) {
+  const fn = document.getElementById('miniProfileFirstname');
+  const ln = document.getElementById('miniProfileLastname');
+  const un = document.getElementById('miniProfileUsername');
+  const em = document.getElementById('miniProfileEmail');
+  if (fn) fn.textContent = firstname;
+  if (ln) ln.textContent = lastname;
+  if (un) un.textContent = username;
+  if (em) em.textContent = email;
+}
+
+function closeProfileCard() {
+  if (!profileCardEl) return;
+  profileCardEl.style.display = 'none';
+}
