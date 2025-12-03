@@ -59,7 +59,7 @@ export function addMatrixVec(matrix: number[][], vector: number[]) {
   return outputs;
 }
 
-function calculateHitpoint(p_: Vec3, v_: Vec3) {
+export function calculateHitpoint(p_: Vec3, v_: Vec3) {
 
     let p = { ...p_ };
     let v = { ...v_ };
@@ -341,7 +341,7 @@ export class Optimizer_SGD {
 
 export function LoadWeights(layer1: Layer_Dense, layer2: Layer_Dense, layer3: Layer_Dense)
 {
-	const raw = fs.readFileSync("/home/game_server/src/AI/momentum.json", "utf8");
+	const raw = fs.readFileSync("/home/game_server/src/AI/new_w.json", "utf8");
 const saved = JSON.parse(raw);
 
 layer1.weights = saved.layer1.weights;

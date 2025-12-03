@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/03 00:28:02 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 11:36:57 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@ import { Server, Socket } from "socket.io";
 import { GameMath } from "./game/pong/pong_logic";
 import * as dotenv from "dotenv";
 import { neural_intercept, state_intercept, neural_ai, state } from "./AI/yohai";
-import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet } from "./AI/phantai";
+import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet, calculateHitpoint } from "./AI/phantai";
 
 import { reactive_model } from "./AI/urmom";
 
@@ -812,11 +812,20 @@ function getTimeToHold(room: Room, ai_type: number) {
 
   let timeToHold = 0;
   let state=room.game.getState();
-  let distX = (-state.ball.pos.z)-state.paddles[1].x;
-  let distY = state.ball.pos.y-state.paddles[1].y;
-  let distZ = (-room.game.getState().ball.pos.x)-50;
-  let true_dist = Math.sqrt(Math.pow(distX, 2)+Math.pow(distY, 2)+Math.pow(distZ, 2));
-  let norm_dist=true_dist*10; // 10 comes from 1000 / 100
+//   let distX = (-state.ball.pos.z)-state.paddles[1].x;
+//   let distY = state.ball.pos.y-state.paddles[1].y;
+//   let distZ = (-room.game.getState().ball.pos.x)-50;
+//   let true_dist = Math.sqrt(Math.pow(distX, 2)+Math.pow(distY, 2)+Math.pow(distZ, 2));
+//   let norm_dist=true_dist*10; // 10 comes from 1000 / 100
+	
+let p_= { x:-(state.ball.pos.z), y:state.ball.pos.y, z:-(state.ball.pos.x) };
+let v_ = { x:-(state.ball.velocity.z), y: state.ball.velocity.y, z: -(state.ball.velocity.x) };
+let hp= calculateHitpoint(p_, v_);
+let distX = hp!.x-state.paddles[1].x;
+let distY = hp!.y-state.paddles[1].y;
+let true_dist = Math.sqrt(Math.pow(distX, 2)+Math.pow(distY, 2));
+console.log("TRUE DIST: "+ true_dist);
+let norm_dist=true_dist*14.2857;//1000/70
   let MAX_TIME = 0;
   let k = 0;
   if (ai_type === 2) { //yohai
@@ -824,7 +833,7 @@ function getTimeToHold(room: Room, ai_type: number) {
     k = 0.01; // curve strength
   }
   else { //phantai
-    MAX_TIME = 800;
+    MAX_TIME = 900;
     k = 0.001; // curve strength
   }
   timeToHold = MAX_TIME * (1 - Math.exp(-k * norm_dist));

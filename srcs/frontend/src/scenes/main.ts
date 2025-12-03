@@ -63,8 +63,8 @@ function camera_setup(
   if(vanilla==1){
 	camera.inputs.remove(camera.inputs.attached.keyboard);
 	camera.fov=0.7;
-	  camera.lowerRadiusLimit = 100; //how close to the target the camera can get
-  	camera.upperRadiusLimit = 300; //and how far
+	  camera.lowerRadiusLimit = 200; //how close to the target the camera can get
+  	camera.upperRadiusLimit = 700; //and how far
   }
 
   const ratio = canvas.height / canvas.width;
@@ -390,7 +390,7 @@ export async function createGameScene( //function that makes all the visuals (up
     environmentTexture: desert,
   });
 
-  const axes = new BABYLON.AxesViewer(scene, 10); //this just shows the world axes, y green, x red, z blue
+  //const axes = new BABYLON.AxesViewer(scene, 10); //this just shows the world axes, y green, x red, z blue
   //   scene.environmentTexture = desert;
   //   scene.createDefaultSkybox(sky, true, 100000);
 

@@ -1,7 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { GameMeshes } from "../scenes/main";
 import score_unit from "@/assets/models/score_unit.glb"; //score digit
-import counter from "@/assets/models/digital_clock_anim.glb"; //score counter
+import counter from "@/assets/models/digital_clock_new.glb"; //score counter
 import pfp from "../../assets/tex/profile_pic.jpg";
 import { glow_score_digits } from "./babylonUtils";
 import { GameMath } from "../../../game_server/src/game/pong/pong_logic";
@@ -68,14 +68,14 @@ export async function score_counter(player_nbr:number, scene: BABYLON.Scene, mes
 	  counter,
 	  scene
 	); //importing score counter
-	const anims=score_counter.animationGroups;
-	let animation = [];
-	anims.forEach(item => {if(item.name.includes("lift")){
-		item.play(true);
-	}
-	});
+	// const anims=score_counter.animationGroups;
+	// let animation = [];
+	// anims.forEach(item => {if(item.name.includes("lift")){
+	// 	item.play(true);
+	// }
+	// });
 
-	console.log(anims);
+	// console.log(anims);
 	const counterRoot = score_counter.meshes[0]; //root
 	if (counterRoot) {
 	  meshes.score_counter?.push(counterRoot as BABYLON.Mesh);
