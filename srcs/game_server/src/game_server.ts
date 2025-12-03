@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 18:59:03 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/02 23:10:09 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 00:28:02 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,17 @@ class TournamentManager {
       });
       this.startTournament(entries);
     }
+  }
+
+  removeFromTournament(socketId : string){
+	console.log("remove from tournament")
+	if (this.waitingPlayers.has(socketId)) 
+		this.waitingPlayers.delete(socketId);
+	this.io.emit("tournamentQueueUpdate", {
+      waitingCount: this.waitingPlayers.size,
+      waitingPlayers: Array.from(this.waitingPlayers.values()).map(p => p.alias)
+    });
+	console.log("after tqu emit");
   }
 
   async startTournament(playerEntries: [string, { alias: string }][]) {
@@ -1398,6 +1409,11 @@ io.on("connection", (socket: Socket) => {
   socket.on("joinTournament", (alias: string) => {
 	console.log("inside on");
     tournamentManager.joinTournament(socket.id, alias);
+  });
+
+  socket.on("removeFromTournament", () => {
+	console.log("inside remove");
+    tournamentManager.removeFromTournament(socket.id);
   });
 
   // Client notifies server it is ready to receive the final's start/state

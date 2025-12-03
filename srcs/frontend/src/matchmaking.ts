@@ -213,6 +213,7 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
 // ver isto melhor
 function renderTournamentQueue(waitingPlayers: string[]) {
     const app = document.getElementById('app');
+	console.log("wah")
     if (!app || !sessionStorage.getItem('inTournament')) return;
 	console.log("lalala");
     // Only show the tournament queue UI when the multiplayer/tournament UI is present
@@ -228,6 +229,7 @@ function renderTournamentQueue(waitingPlayers: string[]) {
         queueDiv.style.marginTop = '8px';
         app.appendChild(queueDiv);
     }
+	console.log("everything")
     queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/4)</h3>` +
         `<ol>${waitingPlayers.map(alias => `<li>${alias}</li>`).join('')}</ol>`;
 }
