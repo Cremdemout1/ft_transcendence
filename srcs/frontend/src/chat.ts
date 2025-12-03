@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   chat.ts                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/12/03 21:05:41 by gude-cas          #+#    #+#             */
+/*   Updated: 2025/12/03 21:05:41 by gude-cas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import { socket } from "./matchmaking";
 
 let mounted = false;
@@ -118,24 +130,14 @@ function ensureDOM(target: HTMLElement) {
 }
 
 function injectOrUpdateHeader() {
+  // Requirement: completely remove the ROOM: XXXXX header from the chat UI.
+  // If a header exists from a previous render, remove it; do not re-create.
   if (!listEl) return;
-  let header = listEl.querySelector('#roomChatTitle') as HTMLElement | null;
-  if (!header) {
-    header = document.createElement('li');
-    header.id = 'roomChatTitle';
-    header.style.position = 'sticky';
-    header.style.top = '0';
-    header.style.background = '#0e141b';
-    header.style.padding = '6px 8px';
-    header.style.marginBottom = '6px';
-    header.style.borderBottom = '2px solid rgba(0,255,255,0.25)';
-    header.style.color = '#00ffff';
-    (header.style as any).textShadow = '0 0 6px #00ffff';
-    listEl.insertBefore(header, listEl.firstChild);
-    headerInjected = true;
+  const header = listEl.querySelector('#roomChatTitle') as HTMLElement | null;
+  if (header) {
+    header.remove();
+    headerInjected = false;
   }
-  const code = getRoomCode();
-  header!.textContent = `ROOM: ${code || '—'}`;
 }
 
 function hideChat() {
