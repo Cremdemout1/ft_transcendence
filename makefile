@@ -11,7 +11,7 @@
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
-YML 		   = ./srcs/docker-compose.yml
+YML 		   = ./docker-compose.yml
 
 DEV_DB_DIR	   = /home/transcendence/Desktop/Data/sqlite-data
 DEV_DB_PATH	   = file:/home/transcendence/Desktop/Data/sqlite-data/database.sqlite
@@ -24,12 +24,8 @@ DEV_DB_PATH	   = file:/home/transcendence/Desktop/Data/sqlite-data/database.sqli
 PROD_DB_PATH   = file:/data/database.sqlite
 
 
-all: upd front
+all: upd
 
-front:
-	@cd srcs/frontend && npm install && npm run dev
-build:
-	@cd srcs/frontend && npm install && npm run build && npx serve -s -l 3000 dist
 up:
 # 	@cd srcs/backend && npm install && cd ../..
 # 	@cd srcs/game_server && npm install && cd ../..

@@ -6,7 +6,7 @@ import {
   Scene
 } from "@babylonjs/core";
 import  {createGameScene } from "./scenes/main";
-import { GameMath } from "../../game_server/src/game/pong/pong_logic";
+//import { GameMath } from "../../game_server/src/game/pong/pong_logic";
 
 enum State {
   START = 0,
@@ -131,8 +131,7 @@ export class Game {
       case State.START:
         //return await createStartScene(this._engine);
       case State.GAME:
-		const gameMath = new GameMath();
-        return await createGameScene(this._engine, this._canvas, gameMath);
+        return await createGameScene(this._engine, this._canvas);
       case State.LOSE:
         //return await createLoseScene(this._engine);
       case State.CUTSCENE:

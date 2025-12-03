@@ -3,9 +3,9 @@ services:
   sqlite:
     container_name: sqliteDB
     restart: always
-    env_file: ../.env
+    env_file: ./.env
     build:
-      context: ./sqlite
+      context: ./srcs/sqlite
       dockerfile: Dockerfile
     volumes:
       - sqlite-vol:/data
@@ -21,9 +21,9 @@ services:
   backend:
     container_name: backend
     restart: always
-    env_file: ../.env
+    env_file: ./.env
     build:
-      context: ./backend
+      context: ./srcs/backend
       dockerfile: Dockerfile
     volumes:
       - sqlite-vol:/data
@@ -40,7 +40,7 @@ services:
   game_server:
     container_name: game_server
     build:
-      context: ./game_server
+      context: ./srcs/game_server
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
@@ -49,19 +49,21 @@ services:
     depends_on:
       backend:
         condition: service_started
-    env_file: ../.env
+    env_file: ./.env
 
-  # frontend:
-  #   container_name: frontend
-  #   restart: always
-  #   env_file: ../.env
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   networks:
-  #     - transcendence
-  #   depends_on:
-  #     - backend
+  frontend:
+    container_name: frontend
+    restart: always
+    env_file: ./.env
+    build:
+      context: ./srcs/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    networks:
+      - transcendence
+    depends_on:
+      - backend
 
   redis:
     container_name: redis

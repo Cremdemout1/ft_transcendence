@@ -286,8 +286,7 @@ function arena_orientation(
 
 export async function createGameScene( //function that makes all the visuals (updates are at the bottom), it takes the engine, the html canvas and the backend calculations object as parameters
   engine: BABYLON.Engine,
-  canvas: HTMLCanvasElement,
-  gameMath: GameMath
+  canvas: HTMLCanvasElement
 ): Promise<BABYLON.Scene> {
   //returns a babylon js scene
   const scene = new BABYLON.Scene(engine);

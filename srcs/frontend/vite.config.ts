@@ -19,16 +19,22 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     https: true,
+    port: 5173,
+    hmr: {
+      host: `${process.env.VITE_IP}`,
+      protocol: 'https',
+      port: 5173,
+    },
     proxy: {
       '/api': { //For every request to /api, meaning every call of /api on the frontend/src files
-        target: 'http://10.12.242.233:8080', //Forward it to backend server with the right ip, dont need to change every /api call to the right ip
+        target: `http://${process.env.VITE_IP}:8080`, //Forward it to backend server with the right ip, dont need to change every /api call to the right ip
         changeOrigin: true, //Needed for our type of sites (virtual hosted)
         secure: false, //Allows proxying to HTTP een though the server is HTTPS
       },
       //Needed for socket.io to correctly proxy websocker requests
       //to wws instad of ws. Otherwise gets blocked and gives mixed content error.
       '/socket.io': {
-        target: 'http://10.12.242.233:8081',
+        target: `http://${process.env.VITE_IP}:8081`,
         changeOrigin: true,
         ws: true, //Enable websockets proxying
         secure: false, //Allows proxying to HTTP een though the serve is HTTPS
