@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/28 15:33:09 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/12/03 19:41:49 by gcapa-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,8 @@ async function verify2faCode () {
     <div id='2FA-verification'>
         <p>We've sent a code to "${email}". Please enter the code in the email below</p>
         <h3>Enter code here: </h3>
-        <input id='twoFA' placeholder='code'></input>
-        <button type='submit' id="enter2FA">enter</button>
+        <input class="input" id='twoFA' placeholder='code' />
+        <button class="btn" type='submit' id="enter2FA">enter</button>
         <p id="error-msg"></p>
     </div>`;
     send2FA();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/12/03 00:05:00 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 19:24:45 by gcapa-pe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ async function checkLoginState(path:string) {
 }
 
 async function fetchDashboard() {
+    
     checkLoginState("/api/dashboard");
     sessionStorage.removeItem("isSinglePlayer");
     sessionStorage.removeItem("numPlayers");

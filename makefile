@@ -6,15 +6,15 @@
 #    By: gcapa-pe <gcapa-pe@student.42lisboa.com    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/11/29 17:32:46 by gcapa-pe         ###   ########.fr        #
+#    Updated: 2025/12/03 19:13:09 by gcapa-pe         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE = docker-compose
 YML 		   = ./srcs/docker-compose.yml
 
-DEV_DB_DIR	   = /home/transcendence/Desktop/Data/sqlite-data
-DEV_DB_PATH	   = file:/home/transcendence/Desktop/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/capa/transcendence/Desktop/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/capa/transcendence/Desktop/Data/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 # DEV_DB_DIR	   = /home/yohan/ft_transcendence/sqlite-data
