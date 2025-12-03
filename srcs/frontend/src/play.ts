@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/16 20:30:00 by gcapa-pe          #+#    #+#             */
-/*   Updated: 2025/12/03 00:52:35 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/03 01:01:00 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,10 @@ function showMultiplayerMenu(push = true) {
 		sessionStorage.setItem('inTournament', '1');
 		socket.emit('joinTournament', alias);
 		console.log("below emit")
+		const create = document.getElementById('createGameBtn');
+		if (create) create.style.display = 'none';
+		const join = document.getElementById('joinGameBtn');
+		if (join) join.style.display = 'none';
 		const modal = document.getElementById('tournamentAliasModal');
 		if (modal) modal.style.display = 'none';
 	};
