@@ -40,6 +40,25 @@ async function profile(fastify: FastifyInstance)
         console.log(user);
         return reply.send({message:'User profile', user});
     })
+
+    // Public profile lookup by username for mini-profile cards
+    fastify.get('/api/profile/:username', async (request: myRequest, reply: any) => {
+        try {
+            const { username } = request.params as any;
+            if (!username) return reply.code(400).send({ error: 'username required' });
+            const info = orm.getUserByUsername(username);
+            if (!info) return reply.code(404).send({ error: 'user not found' });
+            const account = orm.getUserByID(info.id);
+            return reply.send({
+                username: info.username,
+                firstname: info.firstname,
+                lastname: info.lastname,
+                email: account?.email ?? null,
+            });
+        } catch (e) {
+            return reply.code(500).send({ error: 'profile lookup failed' });
+        }
+    });
 }
 
 async function changeUsername(fastify: FastifyInstance)
