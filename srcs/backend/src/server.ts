@@ -22,7 +22,7 @@ import fastifyRedis from '@fastify/redis';
 
 import { dashboard } from './routes/dashboard';
 import SignUp from './routes/signup';
-import { login, verify2fa } from './routes/login';
+import { login, verify2fa, logout } from './routes/login';
 import { pong } from './routes/pong';
 import { profile, changeUsername, changeFirstname, changeLastname, toggle2FA } from './routes/profile';
 import { changePassword, changePasswordLogic } from './routes/changePassword';
@@ -88,6 +88,7 @@ async function registerAll(fastify:FastifyInstance)
   fastify.register(dashboard);
   fastify.register(login);
   fastify.register(verify2fa);
+  fastify.register(logout);
   fastify.register(SignUp);
   fastify.register(pong);
   fastify.register(profile);

@@ -145,6 +145,7 @@ async function SignUp(fastify: FastifyInstance) {
                 expiresIn: '1h'
             }
             )
+            await fastify.redis.set(`${email}`, '1', 'EX', 3600);
             return reply.send({ user: user, token: token });
         }
         else

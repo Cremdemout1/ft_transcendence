@@ -12,6 +12,7 @@
 
 
 import {emitPresence} from './presence';
+import { decodeJwt } from './profile';
 import {checkregex} from './signup'
 
 async function backendLogin() {
@@ -63,8 +64,30 @@ async function backendLogin() {
 
 async function logout() {
    const btn = document.getElementById('logoutBtn');
+   const messageDiv = document.querySelector("#message");
+   const jwt = decodeJwt(sessionStorage.getItem('jwt'));
+   const email = jwt.email;
     if (btn) {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async() => {
+        try {
+            const res = await fetch("/api/logout",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                });
+            const data = await res.json();
+            if (!res.ok) {
+                if (messageDiv) {
+                    messageDiv.textContent = `Logout failed: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
+                }
+            }
+            else
+                console.log(data.message);
+        }
+        catch(err) {
+            console.log("Error connecting to backend:", err);
+        }
         sessionStorage.removeItem('jwt');
         sessionStorage.removeItem('twoFA');
         location.href = '/#login';

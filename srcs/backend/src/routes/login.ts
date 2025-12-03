@@ -92,6 +92,36 @@ const verificationCode =
         }
 }
 
+const logoutOpts = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['email'],  // Ensures 'email' is required in the body
+            properties: {
+                email: { 
+                    type: 'string', 
+                    format: 'email'  // Validates that the email is in the correct format
+                }
+            }
+        },
+        response: {
+            200: {
+                type: 'object',
+                properties: {
+                    message: { type: 'string' }
+                }
+            },
+            400: {
+                type: 'object',
+                properties: {
+                    error: { type: 'string' }
+                }
+            },
+        }
+    }
+};
+
+
 async function login(fastify: FastifyInstance)
 {
     fastify.post('/api/login', loginOpts, async (request: ReqBody<loginBody>, reply: any) =>
@@ -105,6 +135,9 @@ async function login(fastify: FastifyInstance)
         console.log("user_id: ", idx);
         const userInfo = orm.getUserInfoTable(idx);
         console.log(userInfo);
+        const isLoggedIn = await fastify.redis.get(`${email}`);
+        if (isLoggedIn)
+            return reply.code(401).send({ error: 'User already logged in' });
         if (user)
         {
             const twoFa = user ? user.twoFactorAuth : null;
@@ -140,12 +173,33 @@ async function login(fastify: FastifyInstance)
                             expiresIn: '1h'
                         }
                     )
+                await fastify.redis.set(`${email}`, '1', 'EX', 3600);
                 return reply.send({ user: user, token: token, twoFA: 0 });
             }
         }
         else
             return reply.code(401).send({ error: 'Invalid email or password' });
     })
+}
+
+async function logout(fastify: FastifyInstance) {
+    fastify.post('/api/logout', logoutOpts, async (request: ReqBody<{ email: string }>, reply: any) => {
+        const { email } = request.body;
+        
+        console.log("Logging out user with email:", email);
+        
+        if (!email) {
+            return reply.code(400).send({ error: 'Email is required' });
+        }
+
+        try {
+            await fastify.redis.del(`${email}`);
+            return reply.send({ message: 'Logged out successfully' });
+        } catch (error) {
+            console.error('Error during logout:', error);
+            return reply.code(500).send({ error: 'Internal server error' });
+        }
+    });
 }
 
 async function verify2fa(fastify: FastifyInstance) {
@@ -183,6 +237,7 @@ async function verify2fa(fastify: FastifyInstance) {
                     expiresIn: '1h'
                 }
                 )
+                await fastify.redis.set(`${email}`, '1', 'EX', 3600);
                 return reply.send({ user: user, token: token });
             }
             else
@@ -193,4 +248,4 @@ async function verify2fa(fastify: FastifyInstance) {
     });
 }
 
-export { login, verify2fa };
+export { login, verify2fa, logout };
