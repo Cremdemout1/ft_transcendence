@@ -6,7 +6,7 @@
 /*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 21:05:41 by gude-cas          #+#    #+#             */
-/*   Updated: 2025/12/04 15:57:53 by gude-cas         ###   ########.fr       */
+/*   Updated: 2025/12/04 20:37:20 by gude-cas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,23 +63,22 @@ function getRoomCode(): string {
 }
 
 function ensureDOM(target: HTMLElement) {
-  // Styling: rightmost column, dark background with neon-cyan accents to match game
   target.innerHTML = `
-    <button id="roomChatShowBtn" style="display:none; position:fixed; right:16px; top:80px; z-index:11; padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px; font:14px 'Courier New', monospace;">Show chat</button>
-    <div id="roomChat" style="position:fixed; top:0; right:0; height:100vh; width:320px; background:#0b0f14; color:#d7ffff; border:2px solid rgba(0,255,255,0.3); box-shadow:0 0 10px rgba(0,255,255,0.2); border-radius:8px; box-sizing:border-box; padding:10px; font:14px/1.3 'Courier New', monospace; display:flex; flex-direction:column; gap:8px;">
+    <button id="roomChatShowBtn" style="display:none; position:fixed; right:10px; top:calc(50% - 35vh); z-index:11; padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px; font:14px 'Courier New', monospace;">Show chat</button>
+    <div id="roomChat" style="position:fixed; top:50%; right:10px; transform:translateY(-50%); height:70vh; width:320px; background:#0a0f16; color:#cfefff; border:2px solid rgba(0,255,255,0.45); box-shadow:0 0 12px rgba(0,255,255,0.25); border-radius:10px; box-sizing:border-box; padding:10px; font:14px/1.3 'Courier New', monospace; display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
         <small id="roomChatHint" style="opacity:.7; color:#8fd7d7;">Press Enter to send</small>
         <button id="roomChatClose" aria-label="Close chat" title="Close chat" style="padding:2px 8px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; border-radius:6px; font-size:20px; line-height:1;">×</button>
       </div>
       <div id="roomRosterSection" style="display:flex; flex-direction:column; gap:6px;">
-        <div style="font-weight:600; color:#00ffff; text-shadow:0 0 6px #00ffff;">Online players:</div>
-        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:2px solid rgba(0,255,255,0.25); max-height:140px; overflow:auto; background:#0e141b;"></ul>
+        <div style="font-weight:600; color:#00ffff; text-shadow:0 0 6px #00ffff;">Currently Online Players:</div>
+        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:2px solid rgba(0,255,255,0.35); height:156px; overflow:auto; background:#0c131a;"></ul>
       </div>
-      <ul id="roomChatList" style="list-style:none; margin:0; padding:8px; flex:1; overflow-y:auto; border:2px solid rgba(0,255,255,0.25); background:#0e141b;"></ul>
+      <ul id="roomChatList" style="list-style:none; margin:0; padding:8px; flex:1; overflow-y:auto; border:2px solid rgba(0,255,255,0.35); background:#0c131a;"></ul>
       <div id="inviteBanner" style="display:none; border:2px solid rgba(0,255,255,0.35); padding:6px; background:#0d1620; color:#cfffff; box-shadow:0 0 8px rgba(0,255,255,0.15);">
         <span id="inviteText"></span>
-        <button id="inviteAccept" style="margin-left:6px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 8px; border-radius:4px;">Join</button>
-        <button id="inviteDecline" style="margin-left:6px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; padding:4px 8px; border-radius:4px;">Decline</button>
+        <button id="inviteAccept" style="margin-left:6px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 8px; border-radius:6px;">Join</button>
+        <button id="inviteDecline" style="margin-left:6px; border:2px solid rgba(255,100,100,0.45); background:#0a0f16; color:#ff9e9e; padding:4px 8px; border-radius:6px;">Decline</button>
       </div>
       <div id="dmBadge" style="display:none; font-size:12px; color:#7fd9ff;">
         DM to <span id="dmName"></span>
@@ -87,8 +86,8 @@ function ensureDOM(target: HTMLElement) {
       </div>
       
       <form id="roomChatForm" style="display:flex; gap:6px;">
-        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:4px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#cfffff;" />
-        <button type="submit" style="padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:4px;">Send</button>
+        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:6px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#cfefff;" />
+        <button type="submit" style="padding:6px 10px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px;">Send</button>
       </form>
       <div id="chatContextMenu" style="display:none; position:absolute; z-index:9999; background:#0b0f14; border:2px solid rgba(0,255,255,0.35); box-shadow:0 0 10px rgba(0,255,255,0.2);">
         <ul style="list-style:none; margin:0; padding:4px;">
@@ -241,6 +240,8 @@ export function setChatMode(mode: 'default' | 'ingame') {
   if (!panel) return;
   if (mode === 'ingame') {
     panel.style.position = 'absolute';
+    // Ensure waiting-room centering styles are cleared in-game
+    (panel.style as any).transform = '';
     panel.style.height = '25vh';
     panel.style.width = '320px';
     panel.style.top = '0';
@@ -258,16 +259,17 @@ export function setChatMode(mode: 'default' | 'ingame') {
     }
   } else {
     panel.style.position = 'fixed';
-    panel.style.top = '0';
-    panel.style.right = '0';
-    panel.style.height = '100vh';
+    panel.style.top = '50%';
+    (panel.style as any).transform = 'translateY(-50%)';
+    panel.style.right = '10px';
+    panel.style.height = '70vh';
     panel.style.width = '320px';
     panel.style.fontSize = '14px';
     if (rosterSection) rosterSection.style.display = 'flex';
     if (showBtn) {
       showBtn.style.position = 'fixed';
-      showBtn.style.right = '16px';
-      showBtn.style.top = '80px';
+      showBtn.style.right = '10px';
+      showBtn.style.top = 'calc(50% - 35vh)';
       (showBtn.style as any).whiteSpace = 'nowrap';
       (showBtn.style as any).fontSize = '12px';
     }
@@ -344,12 +346,12 @@ function onSubmit(e: Event) {
   inputEl.value = '';
 }
 
-function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean}>) {
+function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean; inGame?: boolean}>) {
   if (!rosterEl) return;
   rosterEl.innerHTML = '';
   players.forEach((p) => {
     const li = document.createElement('li');
-    li.textContent = p.name;
+    li.textContent = p.name + (p.inGame ? ' (in-game)' : '');
     li.style.padding = '2px 4px';
     if (blocked.has(p.id)) li.style.opacity = '0.5';
     li.addEventListener('contextmenu', (e) => {
@@ -360,12 +362,10 @@ function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean
   });
   // Dynamic roster height based on number of players; cap to keep box compact
   try {
-    const rows = players.length;
-    const rowHeight = 22; // approximate per-item height
-    const maxPx = 140;
-    const desired = Math.min(rows * rowHeight, maxPx);
-    (rosterEl as HTMLElement).style.maxHeight = desired + 'px';
-    (rosterEl as HTMLElement).style.overflowY = rows * rowHeight > maxPx ? 'auto' : 'hidden';
+    // Waiting room requirement: always reserve space for 6 names
+    const fixedHeight = 24 * 6;
+    (rosterEl as HTMLElement).style.height = fixedHeight + 'px';
+    (rosterEl as HTMLElement).style.overflowY = 'auto';
   } catch {}
 }
 

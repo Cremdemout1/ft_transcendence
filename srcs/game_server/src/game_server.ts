@@ -6,7 +6,7 @@
 /*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/12/04 15:38:53 by gude-cas         ###   ########.fr       */
+/*   Updated: 2025/12/04 20:08:06 by gude-cas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -573,11 +573,18 @@ function cleanupRoom(roomCode: string): void {
 function rosterFor(room: Room) {
   // Prefer in-room alias mapping when available (tournaments/local aliases)
   const players = room.players.map((sid) => ({ id: sid, name: room.playerUsernames.get(sid) || socketUsername[sid] || sid.slice(0, 6) }));
-  // online but not in this room
-  const online: Array<{ id: string; name: string }> = [];
+  // online but not in this room; annotate whether they are currently in a game (any room)
+  const online: Array<{ id: string; name: string; inGame?: boolean }> = [];
   for (const [sid, name] of Object.entries(onlineUsers)) {
     if (!room.players.includes(sid)) {
-      online.push({ id: sid, name: name || sid.slice(0, 6) });
+      let inGame = false;
+      try {
+        for (const code of Object.keys(rooms)) {
+          const r = rooms[code];
+          if (r.players.includes(sid)) { inGame = true; break; }
+        }
+      } catch {}
+      online.push({ id: sid, name: name || sid.slice(0, 6), inGame });
     }
   }
   return { players, online };
