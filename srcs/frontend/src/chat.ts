@@ -6,7 +6,7 @@
 /*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 21:05:41 by gude-cas          #+#    #+#             */
-/*   Updated: 2025/12/03 21:05:41 by gude-cas         ###   ########.fr       */
+/*   Updated: 2025/12/04 15:57:53 by gude-cas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,15 @@ function bindSocketOnce() {
     const txt = /blocked you/i.test(message) ? 'this user has blocked you' : (message || 'DM could not be delivered');
     appendSystem(txt);
   });
+  // Explicit chat reset (e.g., at tournament round transitions)
+  socket.on('chat:reset', () => {
+    try {
+      if (listEl) {
+        listEl.innerHTML = '';
+        injectOrUpdateHeader();
+      }
+    } catch {}
+  });
 }
 
 export function setChatMode(mode: 'default' | 'ingame') {
@@ -382,6 +391,7 @@ function openContextMenu(x: number, y: number, id: string, name?: string, isDM?:
   if (blockItem) blockItem.textContent = blocked.has(id) ? 'Unblock' : 'Block';
   const dmItem = contextMenuEl.querySelector('li[data-action="dm"]') as HTMLElement | null;
   const inviteItem = contextMenuEl.querySelector('li[data-action="invite"]') as HTMLElement | null;
+  const viewProfileItem = contextMenuEl.querySelector('li[data-action="viewProfile"]') as HTMLElement | null;
   // Disable DM/Block (and Reply) when right-clicking yourself or system
   const isSystem = !id || id === 'system';
   const self = !!(socket as any)?.id && (socket as any).id === id;
@@ -391,6 +401,8 @@ function openContextMenu(x: number, y: number, id: string, name?: string, isDM?:
   if (inviteItem) inviteItem.style.display = hideActions ? 'none' : 'block';
   if (blockItem) blockItem.style.display = hideActions ? 'none' : 'block';
   if (replyItem && hideActions) replyItem.style.display = 'none';
+  // View Profile should NOT be possible on system messages; allow for self and others
+  if (viewProfileItem) viewProfileItem.style.display = isSystem ? 'none' : 'block';
   // Bind clicks
   contextMenuEl.querySelectorAll('li').forEach((li) => {
     li.addEventListener('click', onContextAction, { once: true });
@@ -507,19 +519,54 @@ async function openProfileCard(id: string, name?: string) {
   setProfileFields({ username: name || '—', firstname: '—', lastname: '—', email: '—' });
   profileCardEl.style.display = 'block';
   try {
-    // Prefer lookup by username if provided; else fallback to /api/me for self
-    const uname = name || '';
-    const url = uname ? `/api/profile/${encodeURIComponent(uname)}` : '/api/me';
-    const res = await fetch(url, { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-      const payload = data?.user || data;
-      // Try common field names and fallbacks
-      const firstname = payload?.firstname || payload?.firstName || payload?.profile?.firstname || payload?.profile?.firstName || '—';
-      const lastname = payload?.lastname || payload?.lastName || payload?.profile?.lastname || payload?.profile?.lastName || '—';
-      const usernameVal = payload?.username || payload?.name || payload?.profile?.username || (name || '—');
-      const email = payload?.email || payload?.profile?.email || '—';
-      setProfileFields({ username: usernameVal, firstname, lastname, email });
+    // Resolve username prioritizing self (JWT), else by socket id
+    let usernameForLookup: string | null = null;
+    if (id && id !== 'system') {
+      const selfUsername = getUsernameFromJwt();
+      const isSelf = !!(socket as any)?.id && (socket as any).id === id;
+      if (isSelf && selfUsername) {
+        usernameForLookup = selfUsername;
+      } else {
+        usernameForLookup = await new Promise<string | null>((resolve) => {
+        const handler = ({ id: respId, username }: { id: string; username: string | null }) => {
+          if (respId === id) {
+            (socket as any).off('profile:username', handler);
+            resolve(username || null);
+          }
+        };
+        (socket as any).on('profile:username', handler);
+        (socket as any).emit('profile:getUsername', { id });
+        // Timeout safety
+        setTimeout(() => { (socket as any).off('profile:username', handler); resolve(null); }, 1200);
+        });
+      }
+    }
+    // Prefer explicit username lookup; fallback to /api/me for self
+    const self = !!(socket as any)?.id && (socket as any).id === id;
+    const url = usernameForLookup ? `/api/profile/${encodeURIComponent(usernameForLookup)}` : (self ? '/api/me' : '');
+    if (url) {
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const payload = data?.user || data;
+        const firstname = payload?.firstname || payload?.firstName || payload?.profile?.firstname || payload?.profile?.firstName || '—';
+        const lastname = payload?.lastname || payload?.lastName || payload?.profile?.lastname || payload?.profile?.lastName || '—';
+        const usernameVal = payload?.username || payload?.name || payload?.profile?.username || usernameForLookup || selfUsername || (name || '—');
+        const email = payload?.email || payload?.profile?.email || '—';
+        setProfileFields({ username: usernameVal, firstname, lastname, email });
+      } else {
+        // Fallback to JWT for minimal info if API fails
+        const selfUsername2 = getUsernameFromJwt();
+        if (self && selfUsername2) {
+          setProfileFields({ username: selfUsername2, firstname: '—', lastname: '—', email: '—' });
+        }
+      }
+    } else if (self) {
+      // Last fallback: populate from JWT if no URL could be determined
+      const selfUsername3 = getUsernameFromJwt();
+      if (selfUsername3) {
+        setProfileFields({ username: selfUsername3, firstname: '—', lastname: '—', email: '—' });
+      }
     }
   } catch {}
   const closeBtn = profileCardEl.querySelector('#miniProfileClose') as HTMLButtonElement | null;
