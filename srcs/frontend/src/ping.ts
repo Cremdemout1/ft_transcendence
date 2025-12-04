@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 05:44:25 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/04 14:01:51 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 14:39:58 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ export function startPing() {
         } catch (err) {
             console.error("ping network error", err);
         }
-    }, 30000); // every 30 seconds
+    }, 15000); // every 15 seconds
 }
 
 export function stopPing() {
