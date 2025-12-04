@@ -21,25 +21,25 @@ export function checkregexBackend(username: string | null, firstname: string | n
 {
     let regexUsername= /^[a-zA-Z0-9_]{1,15}$/;
     let regexNames= /^[a-zA-Z0-9]{1,20}$/;
-    let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    let regexPassword= /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9!@#$%^&*]{6,20}$/
     let regexEmail= /^[a-zA-Z0-9._]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{2,}$/;
     
     if(username)
     {
         if(!regexUsername.test(username))
-            throw new Error("username has an invalid format/characters");
+            throw new Error("username has an invalid format/characters (max 15 chars, only alphanumeric or _)");
     }
     if(firstname){
         if(!regexNames.test(firstname))
-            throw new Error("first name has an invalid format/characters");
+            throw new Error("first name has an invalid format/characters (max 20 chars, only alphanumeric)");
     }
     if(lastname){
         if(!regexNames.test(lastname))
-            throw new Error("last name has an invalid format/characters");
+            throw new Error("last name has an invalid format/characters (max 20 chars, only alphanumeric)");
     }
     if(password){
         if(!regexPassword.test(password))
-            throw new Error("password has an invalid format/characters");
+            throw new Error("password has an invalid format/characters (6-20 chars, must contain 1 lowercase + 1 uppercase letter, 1 digit, and 1 special character from this set - [! @ # $ % ^ & *]");
     }
     if(email){
         if(!regexEmail.test(email))

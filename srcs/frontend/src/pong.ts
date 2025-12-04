@@ -178,6 +178,8 @@ function showGameModeMenu() {
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {
 		// Ensure singleplayer flag is cleared when switching to multiplayer
+		if (!socket.connected)
+			try { socket.connect(); } catch {}
 		window.sessionStorage.removeItem('isSinglePlayer');
 		window.sessionStorage.removeItem('disableChat');
 		showMultiplayerMenu();

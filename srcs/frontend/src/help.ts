@@ -19,8 +19,10 @@ export default function renderHelpScreen() {
     if (!app) return;
     app.innerHTML = `
         <div class="menu-container">
-            <h2 class="uppercase text-center">3D controls</h2>
+            <h2 class="uppercase text-center">Controls</h2>
             <ul class="text-center list-disc list-inside mb-6">
+				<li class="text-sm">Click on the game canvas to bind</li>
+				<li class="text-sm">[wasd] to move paddle (be sure to turn CAPS LOCK off)</li>
                 <li class="text-sm">Use mouse to look around</li>
                 <li class="text-sm">Use wheel to zoom</li>
                 <li class="text-sm">Esc to unbind mouse</li>
@@ -28,16 +30,9 @@ export default function renderHelpScreen() {
 
             <h2 class="uppercase text-center mt-4">Local Games</h2>
             <ul class="text-center list-disc list-inside mb-6">
-                <li class="text-sm">Player 1 (red): W-A-S-D</li>
+                <li class="text-sm">Player 1 (red): [wasd]</li>
                 <li class="text-sm">Player 2 (blue): Arrow keys</li>
             </ul>
-
-            <h2 class="uppercase text-center mt-4">Other gamemode</h2>
-            <ul class="text-center list-disc list-inside mb-6">
-                <li class="text-sm">Move Paddle: W-A-S-D</li>
-                <li class="text-sm">Move Camera: Arrows / mouse</li>
-            </ul>
-
             <button class="neon-btn mt-4" id="backBtn">Back to Dashboard</button>
         </div>
     `;

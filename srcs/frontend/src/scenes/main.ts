@@ -606,6 +606,7 @@ export async function createGameScene( //function that makes all the visuals (up
     reset = update_reset(meshes, serverGameState, trail, reset, player_nbr);
     update_paddles(meshes, serverGameState);
     if (serverGameState.hit) {
+		try{
       //console.log("hit!");
       //console.log(serverGameState);
       const hitPoint = new BABYLON.Vector3(
@@ -654,6 +655,7 @@ export async function createGameScene( //function that makes all the visuals (up
       //console.log("speed: ", speed);
       //console.log("ball vel: ", serverGameState.ball.velocity);
       counter = 0.5;
+	}catch(err){}
     }
     if (newnewMesh) {
 		speed = new BABYLON.Vector3(
