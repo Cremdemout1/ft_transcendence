@@ -6,14 +6,14 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 20:13:12 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/03 20:58:22 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:19:59 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { checkLoginState } from "./dashboard";
 
 export default function renderHelpScreen() {
-    checkLoginState();
+    checkLoginState(null);
     const app = document.getElementById("app");
 
     if (!app) return;

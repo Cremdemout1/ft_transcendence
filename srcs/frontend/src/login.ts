@@ -6,14 +6,14 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/12/04 13:47:29 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:22:52 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 import {emitPresence} from './presence';
 import { decodeJwt } from './profile';
-import {checkregex} from './signup';
+// import {checkregex} from './signup';
 import { startPing } from './ping';
 
 
@@ -31,7 +31,7 @@ async function backendLogin() {
         const email = (document.querySelector("input[name='email']") as HTMLInputElement).value;
         const password = (document.querySelector("input[name='password']") as HTMLInputElement).value;
         
-        checkregex(null, null, null, email, password);
+        // checkregex(null, null, null, email, password);
         try {
             const res = await fetch("/api/login",
                 {

@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/06 15:40:36 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 11:33:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:48:18 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,8 @@ async function SignUp(fastify: FastifyInstance) {
         if (orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID) == -1)
             return reply.status(422).send({ error: 'email or password contains invalid characters' });
         const user = await orm.getProtectedUser(email, password);
+        if (user === -1)
+            return reply.status(422).send({ error: 'email or password contains invalid characters' });
         const idx = user ? user.user_id : null;
         const userInformation = orm.getUserInfoTable(idx);
         if (user)

@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:32:46 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/03 20:10:57 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:51:03 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,12 @@ export default class ORM { //pass hashed password here
     }
 
     public getUserByEmail(email: string): any {
-
+        try{
+            checkregexBackend(null, null, null, email, null);
+        }
+        catch(error) {
+            return -1;
+        }
         return this.db.prepare(`SELECT * FROM ${process.env.DB_USER_TABLE} WHERE email = ?`).get(email);
     }
 
@@ -126,8 +131,16 @@ export default class ORM { //pass hashed password here
     }
     //protected getter
     public async getProtectedUser(email:string, password:string) {
+        try{checkregexBackend(null, null, null, email, password);}
+        catch(err) {
+            return -1;
+        }
         const user = orm.getUserByEmail(email);
         console.log("inside get protected user");
+        if (user === -1)
+            return user;
+        if (!user)
+            return (null);
         console.log(user);
         const userPassword = user ? user.password : null;
         console.log(userPassword);

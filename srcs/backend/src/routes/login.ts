@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/04 05:20:48 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:48:33 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,10 @@ async function login(fastify: FastifyInstance)
         
         // const user = await getUser(email, password);
         const user = await orm.getProtectedUser(email, password);
+        if (user === -1)
+            return reply.status(422).send({ error: 'email or password contains invalid characters' });
+        else if (user === null)
+            return reply.code(401).send({ error: 'Invalid email or password' });
         console.log(user);
         const idx = user ? user.user_id : null;
         console.log("user_id: ", idx);

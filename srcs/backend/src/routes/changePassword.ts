@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 17:01:21 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/08 23:09:05 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 15:46:16 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,8 @@ async function changePasswordLogic(fastify: FastifyInstance)
         const { oldPassword, newPassword } = request.body as passwordChangeBody;
         
         const user = orm.getUserByEmail(userData.email);
+        if (user === -1)
+            return reply.status(422).send({ error: 'Email contains invalid characters' });
         if (!user)
             return reply.status(404).send({ error: 'User not found' });
         else if (!user.password)

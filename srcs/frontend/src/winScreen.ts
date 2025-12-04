@@ -1,6 +1,8 @@
 import { getUsernameFromJwt } from "./chat";
+import { checkLoginState } from "./dashboard";
 
 async function renderWinScreen() { // playerIDX is undefined
+    await checkLoginState(null);
     const winner = sessionStorage.getItem("lastMatchWinner");
     let self;
     if (sessionStorage.getItem("vanilla") === "1") {
