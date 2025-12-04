@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.ts                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 17:45:59 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/26 16:51:57 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/04 13:45:30 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ import { profile, changeUsername, changeFirstname, changeLastname, toggle2FA } f
 import { changePassword, changePasswordLogic } from './routes/changePassword';
 import fastifySocketIO from 'fastify-socket.io';
 import ORM from './db/db_queries';
+import authenticatePing from './routes/ping';
 
 dotenv.config();
 const fastify = Fastify({ logger: true });
@@ -98,6 +99,7 @@ async function registerAll(fastify:FastifyInstance)
   fastify.register(changePassword);
   fastify.register(toggle2FA);
   fastify.register(changePasswordLogic);
+  fastify.register(authenticatePing);
 }
 
 async function init() {

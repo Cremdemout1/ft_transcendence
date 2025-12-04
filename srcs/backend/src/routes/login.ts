@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:01:19 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/15 12:22:01 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 05:20:48 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ async function login(fastify: FastifyInstance)
                             expiresIn: '1h'
                         }
                     )
-                await fastify.redis.set(`${email}`, '1', 'EX', 3600);
+                await fastify.redis.set(`${email}`, '1', 'EX', 30);
                 return reply.send({ user: user, token: token, twoFA: 0 });
             }
         }
@@ -237,7 +237,7 @@ async function verify2fa(fastify: FastifyInstance) {
                     expiresIn: '1h'
                 }
                 )
-                await fastify.redis.set(`${email}`, '1', 'EX', 3600);
+                await fastify.redis.set(`${email}`, '1', 'EX', 30);
                 return reply.send({ user: user, token: token });
             }
             else

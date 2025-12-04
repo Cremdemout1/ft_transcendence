@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 12:33:23 by yohan             #+#    #+#             */
-/*   Updated: 2025/08/21 08:50:06 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/04 05:36:10 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@ import { FastifyRequest, FastifyInstance } from "fastify";
 import { orm } from "../server";
 
 
-function decodeJwt(token: string | null) {
+export function decodeJwt(token: string | null) {
     if (token === null)
     {
         location.hash = "#login";

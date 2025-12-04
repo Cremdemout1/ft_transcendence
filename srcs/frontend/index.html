@@ -370,32 +370,32 @@ drawCyberPunkBG();
 
     // sessionStorage.setItem('pageLoadTime', Date.now());
     // const isReload = performance.navigation.type === performance.navigation.TYPE_RELOAD;
-    window.addEventListener("beforeunload", (event) => {
-        // const navType = performance.getEntriesByType("navigation")[0]?.type || "navigate";
-        // console.log(`nav: ${navType}`);
-        // if (navType === "reload")
-        //     return ;
-        // const hash = window.location.hash.replace("#", "") || "login";
-        // const firstSegment = hash.split('?')[0].toLowerCase();
+    // window.addEventListener("beforeunload", (event) => {
+    //     // const navType = performance.getEntriesByType("navigation")[0]?.type || "navigate";
+    //     // console.log(`nav: ${navType}`);
+    //     // if (navType === "reload")
+    //     //     return ;
+    //     // const hash = window.location.hash.replace("#", "") || "login";
+    //     // const firstSegment = hash.split('?')[0].toLowerCase();
         
-        // // Only cleanup if we're logged in (not on login/signup pages)
-        // if (firstSegment !== "login" && firstSegment !== "signup") {
+    //     // // Only cleanup if we're logged in (not on login/signup pages)
+    //     // if (firstSegment !== "login" && firstSegment !== "signup") {
 
 
-        // if (isReload)
-        //     console.log("this is a reload")
-        // else
-        //      console.log("this is nooooot a reload")
-        // const lastLoadTime = parseInt(sessionStorage.getItem('pageLoadTime') || '0');
-        // const now = Date.now();
-        // const isLikelyRefresh = (now - lastLoadTime) < 5000;
+    //     // if (isReload)
+    //     //     console.log("this is a reload")
+    //     // else
+    //     //      console.log("this is nooooot a reload")
+    //     // const lastLoadTime = parseInt(sessionStorage.getItem('pageLoadTime') || '0');
+    //     // const now = Date.now();
+    //     // const isLikelyRefresh = (now - lastLoadTime) < 5000;
 
-        // if (!isLikelyRefresh)
-            sendCleanup();
+    //     // if (!isLikelyRefresh)
+    //         sendCleanup();
 
-                // const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
-        // }
-    });
+    //             // const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
+    //     // }
+    // });
 
 </script>
 </body>

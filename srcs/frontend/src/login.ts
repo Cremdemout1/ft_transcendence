@@ -3,17 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   login.ts                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 17:36:10 by ycantin           #+#    #+#             */
-/*   Updated: 2025/11/28 15:33:09 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/12/04 13:47:29 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 import {emitPresence} from './presence';
 import { decodeJwt } from './profile';
-import {checkregex} from './signup'
+import {checkregex} from './signup';
+import { startPing } from './ping';
+
 
 async function backendLogin() {
 
@@ -48,6 +50,7 @@ async function backendLogin() {
                 {
                     sessionStorage.setItem('jwt', data.token);
                     emitPresence();
+                    startPing();
                     location.href = '/#dashboard';
                 }
             } else {
@@ -144,6 +147,7 @@ async function send2FA() {
                 errorMsg.textContent = '';
             sessionStorage.setItem('jwt', data.token);
             emitPresence();
+            startPing();
             sessionStorage.removeItem('pendingEmail');
             window.location.hash = '#dashboard';
         } catch (err) {

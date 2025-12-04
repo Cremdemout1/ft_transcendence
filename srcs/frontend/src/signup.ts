@@ -6,11 +6,12 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/10 13:22:49 by ycantin           #+#    #+#             */
-/*   Updated: 2025/12/03 20:17:37 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/04 13:47:35 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import {emitPresence} from './presence';
+import { startPing } from './ping';
 
 export function checkregex(username: string | null, firstname: string | null, lastname:string | null, email: string | null, password: string | null)
 {
@@ -76,6 +77,7 @@ async function backendSignup() {
                     messageDiv.textContent = "Successful signup!";
                 }
                 emitPresence();
+                startPing();
                 location.hash = '#dashboard';
             } else {
                 if (messageDiv) {
