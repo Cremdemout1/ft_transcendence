@@ -6,7 +6,7 @@
 /*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 17:32:46 by yohan             #+#    #+#             */
-/*   Updated: 2025/07/04 09:43:07 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/03 20:10:57 by yohan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,32 +16,6 @@ import dotenv from 'dotenv';
 import { orm } from '../server';
 
 dotenv.config();
-// CREATE TABLE IF NOT EXISTS $DB_USER_INFO_TABLE (
-//   id INTEGER PRIMARY KEY AUTOINCREMENT,
-//   firstname TEXT NOT NULL,
-//   lastname TEXT NOT NULL,
-//   username TEXT UNIQUE NOT NULL
-// );
-
-// 		-- We declare login_type as TEXT but restrict values
-// 		-- We allow empty password when login is handled by third party Oauth
-
-// CREATE TABLE IF NOT EXISTS users (
-//   id INTEGER PRIMARY KEY AUTOINCREMENT,
-//   user_id INTEGER NOT NULL,
-//   provider_id TEXT NOT NULL,
-//   login_type TEXT NOT NULL CHECK (login_type IN ('google', '42', 'local')),
-//   password TEXT,
-//   email TEXT NOT NULL,
-//   twoFactorAuth INTEGER DEFAULT 0,
-//   UNIQUE (login_type, provider_id),
-//   UNIQUE (email, login_type),
-//   FOREIGN KEY (user_id) REFERENCES user_info(id) ON DELETE CASCADE,
-//   CHECK (
-//     (login_type = 'local' AND password IS NOT NULL AND password <> '')
-//     OR login_type <> 'local'
-//   )
-// );
 
 export function checkregexBackend(username: string | null, firstname: string | null, lastname:string | null, email: string | null, password: string | null)
 {

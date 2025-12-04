@@ -76,10 +76,10 @@ services:
 volumes:
   sqlite-vol:
     name: transcendence_sqlite_db
-    driver_opts:
-      type: none
-      device: /home/transcendence/Desktop/Data/sqlite-data
-      o: bind
+    # driver_opts:
+    #   type: none
+    #   device: /home/transcendence/Desktop/Data/sqlite-data
+    #   o: bind
 
 networks:
   transcendence:
