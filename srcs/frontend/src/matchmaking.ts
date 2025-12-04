@@ -213,9 +213,9 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
 // ver isto melhor
 function renderTournamentQueue(waitingPlayers: string[]) {
     const app = document.getElementById('app');
-	console.log("wah")
+	// console.log("wah")
     if (!app || !sessionStorage.getItem('inTournament')) return;
-	console.log("lalala");
+	// console.log("lalala");
     // Only show the tournament queue UI when the multiplayer/tournament UI is present
     const multiplayerVisible = !!document.getElementById('multiplayerMenu') || !!document.getElementById('tournamentAliasModal') || location.hash === '#multiplayer';
     if (!multiplayerVisible) return;

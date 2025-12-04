@@ -68,6 +68,7 @@ import { getUsernameFromJwt } from './src/chat';
 import renderHelpScreen from './src/help';
 
 
+
 const app = document.getElementById('app');
 
 const routes = {
@@ -286,7 +287,24 @@ drawCyberPunkBG();
     window.addEventListener("hashchange", byeCRT);
 </script>
 <script>
-    const UnloadHandler = (event) => {
+        function decodeJwt(token) {
+            if (token === null)
+            {
+                location.hash = "#login";
+                throw new Error("jwt is null");
+            }
+            try {
+                const payloadBase64Url = token.split('.')[1];
+                const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const payloadJson = atob(payloadBase64);
+                return JSON.parse(payloadJson);
+            } catch (e) {
+                console.error('Invalid JWT token', e);
+                return null;
+            }
+        }
+        const protectedRoutes = ["dashboard", "pong", "me", "twoFA", "endgame", "help"];
+        const UnloadHandler = (event) => {
     
         const hash = window.location.hash || 'login';
         const [path, queryString] = hash.slice(1).split('?');
@@ -300,9 +318,85 @@ drawCyberPunkBG();
             const roomCode = window.sessionStorage.getItem("roomCode");
             window.sessionStorage.setItem('numPlayers', '-700');
         }
+
+        // if (performance.getEntriesByType("navigation")[0].type  === "reload") {
+        //     console.log("refreshing");
+            // return ;
+        // }
+        // const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
+        
+        // // Only cleanup if leaving a protected page
+        // if (protectedRoutes.includes(currentRoute)) {
+        //     sendCleanup();
+        // }
         event.returnValue = '';
     };
     window.addEventListener("unload", UnloadHandler);
+
+    // now is about page destroy or navigation to login or signup to maek sure I remove the redis email
+    let lastRoute = window.location.hash.replace("#", "") || "login";
+
+    function sendCleanup() {
+
+        const jwt = sessionStorage.getItem('jwt');
+        if (!jwt) return; // nothing to cleanup
+
+        const email = decodeJwt(jwt).email;
+        const blob = new Blob([JSON.stringify({ email })], { type: 'application/json' });
+
+        const sent = navigator.sendBeacon("/api/logout", blob);
+        console.log('Cleanup beacon sent:', sent, 'for email:', email);
+
+        // Optional: remove session storage items
+        sessionStorage.removeItem('jwt');
+        sessionStorage.removeItem('twoFA');
+    }
+
+    // function isRefresh() {
+    //     const navType = performance.getEntriesByType("navigation")[0]?.type || "navigate";
+    //     console.log(`nav: ${navType}`);
+    //     return navType === "reload";
+    // }
+
+
+    // Handle navigation for navigation
+    window.addEventListener("hashchange", () => {
+        const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
+        // Cleanup only if navigating to login/signup **from a protected route**
+        if ((currentRoute === "login" || currentRoute === "signup") && protectedRoutes.includes(lastRoute))
+            sendCleanup();
+        lastRoute = currentRoute;
+    });
+
+    // sessionStorage.setItem('pageLoadTime', Date.now());
+    // const isReload = performance.navigation.type === performance.navigation.TYPE_RELOAD;
+    window.addEventListener("beforeunload", (event) => {
+        // const navType = performance.getEntriesByType("navigation")[0]?.type || "navigate";
+        // console.log(`nav: ${navType}`);
+        // if (navType === "reload")
+        //     return ;
+        // const hash = window.location.hash.replace("#", "") || "login";
+        // const firstSegment = hash.split('?')[0].toLowerCase();
+        
+        // // Only cleanup if we're logged in (not on login/signup pages)
+        // if (firstSegment !== "login" && firstSegment !== "signup") {
+
+
+        // if (isReload)
+        //     console.log("this is a reload")
+        // else
+        //      console.log("this is nooooot a reload")
+        // const lastLoadTime = parseInt(sessionStorage.getItem('pageLoadTime') || '0');
+        // const now = Date.now();
+        // const isLikelyRefresh = (now - lastLoadTime) < 5000;
+
+        // if (!isLikelyRefresh)
+            sendCleanup();
+
+                // const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
+        // }
+    });
+
 </script>
 </body>
 </html>
