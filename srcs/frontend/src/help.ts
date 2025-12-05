@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   help.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 20:13:12 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/04 15:19:59 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/05 01:25:50 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,12 @@ export default function renderHelpScreen() {
             <ul class="text-center list-disc list-inside mb-6">
                 <li class="text-sm">Player 1 (red): [wasd]</li>
                 <li class="text-sm">Player 2 (blue): Arrow keys</li>
+            </ul>
+			<h2 class="uppercase text-center mt-4">Score System</h2>
+            <ul class="text-center list-disc list-inside mb-6">
+                <li class="text-sm">Hitting the ball before it scores = 2 points</li>
+                <li class="text-sm">Getting scored on = -1 point</li>
+				<li class="text-sm">First to 5 wins the game!</li>
             </ul>
             <button class="neon-btn mt-4" id="backBtn">Back to Dashboard</button>
         </div>

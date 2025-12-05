@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/12/05 00:54:34 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/05 01:57:46 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,41 +25,26 @@ async function renderPong() {
 	console.log("RENDER PONG");
 	const isSinglePlayer = sessionStorage.getItem("isSinglePlayer") === '1';
 	app.innerHTML = isSinglePlayer ? `
-		<div id="pongMenu" class="terminal-menu">
-			<h2 class="terminal-title">PONG SIMULATION</h2>
-			<button class="neon-subbtn" id="backToDashboard">BACK</button>
-		</div>
 
 		<div id="pongGameWrapper" style="position: relative;">
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
-
-			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
-				<button class="neon-btn" id="pauseBtn">PAUSE</button>
-				<button class="neon-btn" id="restartBtn">RESTART</button>
-				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
-			</div>
 		</div>
 	` : `
-		<div id="pongMenu" class="terminal-menu">
-			<h2 class="terminal-title">PONG SIMULATION</h2>
-			<button class="neon-subbtn" id="backToDashboard">BACK</button>
-		</div>
-
 		<div id="pongGameWrapper" style="position: relative;">
 			<canvas id="pongCanvas" width="1520" height="700" style="border: 2px solid rgba(0,255,255,0.3); box-shadow: 0 0 10px rgba(0,255,255,0.3); border-radius: 8px;"></canvas>
 
-			<div id="pong-controls" class="terminal-menu" style="margin-top: 1rem;">
-				<button class="neon-btn" id="pauseBtn">PAUSE</button>
-				<button class="neon-btn" id="restartBtn">RESTART</button>
-				<p id="score" style="color:#00ffff; text-shadow:0 0 6px #00ffff; font-family:'Courier New', monospace;">SCORE: 0</p>
-			</div>
 			<div id="chatContainer" style="position:absolute; right: 16px; top: 80px; z-index:10;"></div>
 		</div>
 	`;
+	const el = document.getElementById("bgCanvas");
+	if (el) {
+  el.style.display = "none";
+}
 	if(window.sessionStorage.getItem('numPlayers')=='-700' || !window.sessionStorage.getItem('roomCode'))
 	{
 		console.log("killing myselffff");
 		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
+		el!.style.display = "block";
 		location.hash='dashboard';
 	}
 	else
