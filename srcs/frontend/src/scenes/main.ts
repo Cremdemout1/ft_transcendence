@@ -289,6 +289,7 @@ export async function createGameScene( //function that makes all the visuals (up
   canvas: HTMLCanvasElement
 ): Promise<BABYLON.Scene> {
   //returns a babylon js scene
+  BABYLON.Logger.LogLevels = BABYLON.Logger.NoneLogLevel;
   const scene = new BABYLON.Scene(engine);
 
   //initial call to the API to fetch game information such as how many players there are will go here
@@ -372,21 +373,22 @@ export async function createGameScene( //function that makes all the visuals (up
     setTimeout(() => resolve(0), 2000);
   });
 
-  let sky = BABYLON.CubeTexture.CreateFromPrefilteredData(
-    "../../assets/hdris/night_sky2.env",
-    scene
-  );
-  let desert = BABYLON.CubeTexture.CreateFromPrefilteredData(
-    "../../assets/hdris/kiara.env",
-    scene
-  );
-  let helper = scene.createDefaultEnvironment({
-    //this creates the skybox, environment texture etc
+const skyTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+  "../../assets/hdris/night_sky2.env",
+  scene
+);
+
+const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+  "../../assets/hdris/kiara.env",
+  scene
+);
+
+  const helper = scene.createDefaultEnvironment({
     groundOpacity: 0,
     createSkybox: true,
-    skyboxTexture: sky,
+    skyboxTexture: skyTexture,
     skyboxSize: 10000,
-    environmentTexture: desert,
+    environmentTexture: envTexture,
   });
 
   //const axes = new BABYLON.AxesViewer(scene, 10); //this just shows the world axes, y green, x red, z blue

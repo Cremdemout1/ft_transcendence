@@ -1154,11 +1154,15 @@ function handleDisconnect(socket: Socket): void {
       broadcastRoster(code);
 
       // Special case: regular 1v1 non-tournament match — award win by forfeit
-      if (!room.tournamentId && room.numPlayers === 2) {
+      if (!room.tournamentId && room.numPlayers === 2 && room.inProgress==true) {
         // If exactly one player remains, award them the win by forfeit
         if (room.players.length === 1) {
           const winnerId = room.players[0];
-          const winnerName = room.playerUsernames.get(winnerId) || socketUsername[winnerId] || winnerId.substring(0,6);
+          let winnerName;
+		  if(room.winnerUser)
+			winnerName =room.winnerUser;
+		  else
+			winnerName = room.playerUsernames.get(winnerId) || socketUsername[winnerId] || winnerId.substring(0,6);
           console.log(`Player ${socket.id} disconnected from 1v1 room ${code}; awarding forfeit win to ${winnerId}`);
           // Emit matchOver so clients follow the normal end-of-match flow
 		  room.inProgress = false;
@@ -1171,7 +1175,11 @@ function handleDisconnect(socket: Socket): void {
         }
       }
       if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4 && room.inProgress==true) || (room.numPlayers === 6 && room.players.length< 6 && room.inProgress==true))) {
-          const winnerName = "everyone else";
+          let winnerName;
+		  if(room.winnerUser)
+			winnerName =room.winnerUser;
+		  else
+			winnerName = "everyone else";
           console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
           // Emit matchOver so clients follow the normal end-of-match flow
 		  room.inProgress = false;
