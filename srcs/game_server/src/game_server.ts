@@ -583,7 +583,8 @@ function rosterFor(room: Room) {
       try {
         for (const code of Object.keys(rooms)) {
           const r = rooms[code];
-          if (r.players.includes(sid)) { inGame = true; break; }
+          // Mark as in-game only if the room is currently in progress
+          if (r.players.includes(sid)) { inGame = !!r.inProgress; break; }
         }
       } catch {}
       online.push({ id: sid, name: name || sid.slice(0, 6), inGame });
@@ -1369,6 +1370,22 @@ function handleChatInvite(socket: Socket, payload: { to?: string; username?: str
     socket.emit("chat:inviteError", { message: "User not found or offline." });
     return;
   }
+  // Disallow inviting players who are already in a game (any room)
+  try {
+    for (const code of Object.keys(rooms)) {
+      const r = rooms[code];
+      if (r && Array.isArray(r.players) && r.players.includes(targetId)) {
+        // If the room is not yet in progress, treat as waiting room; otherwise in-game
+        if (!r.inProgress) {
+          socket.emit("chat:inviteError", { message: "Player is currently in a waiting room." });
+          return;
+        } else {
+          socket.emit("chat:inviteError", { message: "Player is already in a game." });
+          return;
+        }
+      }
+    }
+  } catch {}
   if (room.players.includes(targetId)) {
     socket.emit("chat:inviteError", { message: "User is already in this room." });
     return;
