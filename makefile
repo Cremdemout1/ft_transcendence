@@ -6,15 +6,15 @@
 #    By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/03 09:42:38 by yohan             #+#    #+#              #
-#    Updated: 2025/12/05 00:13:07 by phantasiae       ###   ########.fr        #
+#    Updated: 2025/12/03 21:17:06 by yohan            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 DOCKER_COMPOSE = docker compose
 YML 		   = ./docker-compose.yml
 
-DEV_DB_DIR	   = /home/phantasiae/Data/sqlite-data
-DEV_DB_PATH	   = file:/home/phantasiae/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/rfontes-/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/rfontes-/Desktop/Data/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /Users/yohan/Data/sqlite-data

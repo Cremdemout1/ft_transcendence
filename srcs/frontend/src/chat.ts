@@ -6,7 +6,7 @@
 /*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/03 21:05:41 by gude-cas          #+#    #+#             */
-/*   Updated: 2025/12/03 21:05:41 by gude-cas         ###   ########.fr       */
+/*   Updated: 2025/12/04 20:37:20 by gude-cas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,23 +63,22 @@ function getRoomCode(): string {
 }
 
 function ensureDOM(target: HTMLElement) {
-  // Styling: rightmost column, dark background with neon-cyan accents to match game
   target.innerHTML = `
-    <button id="roomChatShowBtn" style="display:none; position:fixed; right:16px; top:80px; z-index:11; padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px; font:14px 'Courier New', monospace;">Show chat</button>
-    <div id="roomChat" style="position:fixed; top:0; right:0; height:100vh; width:320px; background:#0b0f14; color:#d7ffff; border:2px solid rgba(0,255,255,0.3); box-shadow:0 0 10px rgba(0,255,255,0.2); border-radius:8px; box-sizing:border-box; padding:10px; font:14px/1.3 'Courier New', monospace; display:flex; flex-direction:column; gap:8px;">
+    <button id="roomChatShowBtn" style="display:none; position:fixed; right:10px; top:calc(50% - 35vh); z-index:11; padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px; font:14px 'Courier New', monospace;">Show chat</button>
+    <div id="roomChat" style="position:fixed; top:50%; right:10px; transform:translateY(-50%); height:70vh; width:320px; background:#0a0f16; color:#cfefff; border:2px solid rgba(0,255,255,0.45); box-shadow:0 0 12px rgba(0,255,255,0.25); border-radius:10px; box-sizing:border-box; padding:10px; font:14px/1.3 'Courier New', monospace; display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
         <small id="roomChatHint" style="opacity:.7; color:#8fd7d7;">Press Enter to send</small>
         <button id="roomChatClose" aria-label="Close chat" title="Close chat" style="padding:2px 8px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; border-radius:6px; font-size:20px; line-height:1;">×</button>
       </div>
       <div id="roomRosterSection" style="display:flex; flex-direction:column; gap:6px;">
-        <div style="font-weight:600; color:#00ffff; text-shadow:0 0 6px #00ffff;">Online players:</div>
-        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:2px solid rgba(0,255,255,0.25); max-height:140px; overflow:auto; background:#0e141b;"></ul>
+        <div style="font-weight:600; color:#00ffff; text-shadow:0 0 6px #00ffff;">Currently Online Players:</div>
+        <ul id="roomRoster" style="list-style:none; margin:0; padding:0; border:2px solid rgba(0,255,255,0.35); height:156px; overflow:auto; background:#0c131a;"></ul>
       </div>
-      <ul id="roomChatList" style="list-style:none; margin:0; padding:8px; flex:1; overflow-y:auto; border:2px solid rgba(0,255,255,0.25); background:#0e141b;"></ul>
+      <ul id="roomChatList" style="list-style:none; margin:0; padding:8px; flex:1; overflow-y:auto; border:2px solid rgba(0,255,255,0.35); background:#0c131a;"></ul>
       <div id="inviteBanner" style="display:none; border:2px solid rgba(0,255,255,0.35); padding:6px; background:#0d1620; color:#cfffff; box-shadow:0 0 8px rgba(0,255,255,0.15);">
         <span id="inviteText"></span>
-        <button id="inviteAccept" style="margin-left:6px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 8px; border-radius:4px;">Join</button>
-        <button id="inviteDecline" style="margin-left:6px; border:2px solid rgba(255,100,100,0.35); background:#0b0f14; color:#ff9e9e; padding:4px 8px; border-radius:4px;">Decline</button>
+        <button id="inviteAccept" style="margin-left:6px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 8px; border-radius:6px;">Join</button>
+        <button id="inviteDecline" style="margin-left:6px; border:2px solid rgba(255,100,100,0.45); background:#0a0f16; color:#ff9e9e; padding:4px 8px; border-radius:6px;">Decline</button>
       </div>
       <div id="dmBadge" style="display:none; font-size:12px; color:#7fd9ff;">
         DM to <span id="dmName"></span>
@@ -87,8 +86,8 @@ function ensureDOM(target: HTMLElement) {
       </div>
       
       <form id="roomChatForm" style="display:flex; gap:6px;">
-        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:4px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#cfffff;" />
-        <button type="submit" style="padding:6px 10px; border:2px solid rgba(0,255,255,0.35); background:#0b0f14; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:4px;">Send</button>
+        <input id="roomChatInput" type="text" placeholder="Type a message" maxlength="300" style="flex:1; padding:6px; border-radius:6px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#cfefff;" />
+        <button type="submit" style="padding:6px 10px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#00ffff; text-shadow:0 0 6px #00ffff; border-radius:6px;">Send</button>
       </form>
       <div id="chatContextMenu" style="display:none; position:absolute; z-index:9999; background:#0b0f14; border:2px solid rgba(0,255,255,0.35); box-shadow:0 0 10px rgba(0,255,255,0.2);">
         <ul style="list-style:none; margin:0; padding:4px;">
@@ -223,6 +222,15 @@ function bindSocketOnce() {
     const txt = /blocked you/i.test(message) ? 'this user has blocked you' : (message || 'DM could not be delivered');
     appendSystem(txt);
   });
+  // Explicit chat reset (e.g., at tournament round transitions)
+  socket.on('chat:reset', () => {
+    try {
+      if (listEl) {
+        listEl.innerHTML = '';
+        injectOrUpdateHeader();
+      }
+    } catch {}
+  });
 }
 
 export function setChatMode(mode: 'default' | 'ingame') {
@@ -232,6 +240,8 @@ export function setChatMode(mode: 'default' | 'ingame') {
   if (!panel) return;
   if (mode === 'ingame') {
     panel.style.position = 'absolute';
+    // Ensure waiting-room centering styles are cleared in-game
+    (panel.style as any).transform = '';
     panel.style.height = '25vh';
     panel.style.width = '320px';
     panel.style.top = '0';
@@ -249,16 +259,17 @@ export function setChatMode(mode: 'default' | 'ingame') {
     }
   } else {
     panel.style.position = 'fixed';
-    panel.style.top = '0';
-    panel.style.right = '0';
-    panel.style.height = '100vh';
+    panel.style.top = '50%';
+    (panel.style as any).transform = 'translateY(-50%)';
+    panel.style.right = '10px';
+    panel.style.height = '70vh';
     panel.style.width = '320px';
     panel.style.fontSize = '14px';
     if (rosterSection) rosterSection.style.display = 'flex';
     if (showBtn) {
       showBtn.style.position = 'fixed';
-      showBtn.style.right = '16px';
-      showBtn.style.top = '80px';
+      showBtn.style.right = '10px';
+      showBtn.style.top = 'calc(50% - 35vh)';
       (showBtn.style as any).whiteSpace = 'nowrap';
       (showBtn.style as any).fontSize = '12px';
     }
@@ -335,12 +346,12 @@ function onSubmit(e: Event) {
   inputEl.value = '';
 }
 
-function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean}>) {
+function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean; inGame?: boolean}>) {
   if (!rosterEl) return;
   rosterEl.innerHTML = '';
   players.forEach((p) => {
     const li = document.createElement('li');
-    li.textContent = p.name;
+    li.textContent = p.name + (p.inGame ? ' (in-game)' : '');
     li.style.padding = '2px 4px';
     if (blocked.has(p.id)) li.style.opacity = '0.5';
     li.addEventListener('contextmenu', (e) => {
@@ -351,12 +362,10 @@ function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean
   });
   // Dynamic roster height based on number of players; cap to keep box compact
   try {
-    const rows = players.length;
-    const rowHeight = 22; // approximate per-item height
-    const maxPx = 140;
-    const desired = Math.min(rows * rowHeight, maxPx);
-    (rosterEl as HTMLElement).style.maxHeight = desired + 'px';
-    (rosterEl as HTMLElement).style.overflowY = rows * rowHeight > maxPx ? 'auto' : 'hidden';
+    // Waiting room requirement: always reserve space for 6 names
+    const fixedHeight = 24 * 6;
+    (rosterEl as HTMLElement).style.height = fixedHeight + 'px';
+    (rosterEl as HTMLElement).style.overflowY = 'auto';
   } catch {}
 }
 
@@ -382,6 +391,7 @@ function openContextMenu(x: number, y: number, id: string, name?: string, isDM?:
   if (blockItem) blockItem.textContent = blocked.has(id) ? 'Unblock' : 'Block';
   const dmItem = contextMenuEl.querySelector('li[data-action="dm"]') as HTMLElement | null;
   const inviteItem = contextMenuEl.querySelector('li[data-action="invite"]') as HTMLElement | null;
+  const viewProfileItem = contextMenuEl.querySelector('li[data-action="viewProfile"]') as HTMLElement | null;
   // Disable DM/Block (and Reply) when right-clicking yourself or system
   const isSystem = !id || id === 'system';
   const self = !!(socket as any)?.id && (socket as any).id === id;
@@ -391,6 +401,8 @@ function openContextMenu(x: number, y: number, id: string, name?: string, isDM?:
   if (inviteItem) inviteItem.style.display = hideActions ? 'none' : 'block';
   if (blockItem) blockItem.style.display = hideActions ? 'none' : 'block';
   if (replyItem && hideActions) replyItem.style.display = 'none';
+  // View Profile should NOT be possible on system messages; allow for self and others
+  if (viewProfileItem) viewProfileItem.style.display = isSystem ? 'none' : 'block';
   // Bind clicks
   contextMenuEl.querySelectorAll('li').forEach((li) => {
     li.addEventListener('click', onContextAction, { once: true });
@@ -507,19 +519,54 @@ async function openProfileCard(id: string, name?: string) {
   setProfileFields({ username: name || '—', firstname: '—', lastname: '—', email: '—' });
   profileCardEl.style.display = 'block';
   try {
-    // Prefer lookup by username if provided; else fallback to /api/me for self
-    const uname = name || '';
-    const url = uname ? `/api/profile/${encodeURIComponent(uname)}` : '/api/me';
-    const res = await fetch(url, { credentials: 'include' });
-    if (res.ok) {
-      const data = await res.json();
-      const payload = data?.user || data;
-      // Try common field names and fallbacks
-      const firstname = payload?.firstname || payload?.firstName || payload?.profile?.firstname || payload?.profile?.firstName || '—';
-      const lastname = payload?.lastname || payload?.lastName || payload?.profile?.lastname || payload?.profile?.lastName || '—';
-      const usernameVal = payload?.username || payload?.name || payload?.profile?.username || (name || '—');
-      const email = payload?.email || payload?.profile?.email || '—';
-      setProfileFields({ username: usernameVal, firstname, lastname, email });
+    // Resolve username prioritizing self (JWT), else by socket id
+    let usernameForLookup: string | null = null;
+    if (id && id !== 'system') {
+      const selfUsername = getUsernameFromJwt();
+      const isSelf = !!(socket as any)?.id && (socket as any).id === id;
+      if (isSelf && selfUsername) {
+        usernameForLookup = selfUsername;
+      } else {
+        usernameForLookup = await new Promise<string | null>((resolve) => {
+        const handler = ({ id: respId, username }: { id: string; username: string | null }) => {
+          if (respId === id) {
+            (socket as any).off('profile:username', handler);
+            resolve(username || null);
+          }
+        };
+        (socket as any).on('profile:username', handler);
+        (socket as any).emit('profile:getUsername', { id });
+        // Timeout safety
+        setTimeout(() => { (socket as any).off('profile:username', handler); resolve(null); }, 1200);
+        });
+      }
+    }
+    // Prefer explicit username lookup; fallback to /api/me for self
+    const self = !!(socket as any)?.id && (socket as any).id === id;
+    const url = usernameForLookup ? `/api/profile/${encodeURIComponent(usernameForLookup)}` : (self ? '/api/me' : '');
+    if (url) {
+      const res = await fetch(url, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        const payload = data?.user || data;
+        const firstname = payload?.firstname || payload?.firstName || payload?.profile?.firstname || payload?.profile?.firstName || '—';
+        const lastname = payload?.lastname || payload?.lastName || payload?.profile?.lastname || payload?.profile?.lastName || '—';
+        const usernameVal = payload?.username || payload?.name || payload?.profile?.username || usernameForLookup || selfUsername || (name || '—');
+        const email = payload?.email || payload?.profile?.email || '—';
+        setProfileFields({ username: usernameVal, firstname, lastname, email });
+      } else {
+        // Fallback to JWT for minimal info if API fails
+        const selfUsername2 = getUsernameFromJwt();
+        if (self && selfUsername2) {
+          setProfileFields({ username: selfUsername2, firstname: '—', lastname: '—', email: '—' });
+        }
+      }
+    } else if (self) {
+      // Last fallback: populate from JWT if no URL could be determined
+      const selfUsername3 = getUsernameFromJwt();
+      if (selfUsername3) {
+        setProfileFields({ username: selfUsername3, firstname: '—', lastname: '—', email: '—' });
+      }
     }
   } catch {}
   const closeBtn = profileCardEl.querySelector('#miniProfileClose') as HTMLButtonElement | null;
