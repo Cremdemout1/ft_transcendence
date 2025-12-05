@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/12/03 21:17:13 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/05 00:44:12 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -674,8 +674,8 @@ if(room.vanilla==1)
     const winnerSocketId = room.players[winnerIdx] || null;
     console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}`);
     const username = room.playerUsernames.get(winnerSocketId!);
+	room.inProgress = false;
     io.to(roomCode).emit("matchOver", { username, tournamentId: room.tournamentId });
-    room.inProgress = false;
     // notify tournament manager if this room belongs to a tournament
     if (room.tournamentId) {
       console.log("inside tournament for match over");
@@ -1158,9 +1158,9 @@ function handleDisconnect(socket: Socket): void {
           const winnerName = room.playerUsernames.get(winnerId) || socketUsername[winnerId] || winnerId.substring(0,6);
           console.log(`Player ${socket.id} disconnected from 1v1 room ${code}; awarding forfeit win to ${winnerId}`);
           // Emit matchOver so clients follow the normal end-of-match flow
+		  room.inProgress = false;
           io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'You won by forfeit!' });
           // Ensure room is no longer in progress and clear resources
-          room.inProgress = false;
           clearRoomResources(room);
           // Cleanup the room after awarding the win
           cleanupRoom(code);
@@ -1171,9 +1171,10 @@ function handleDisconnect(socket: Socket): void {
           const winnerName = "everyone else";
           console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
           // Emit matchOver so clients follow the normal end-of-match flow
+		  room.inProgress = false;
+		  console.log("SENDING WINNER: "+ winnerName);
           io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'Everyone wins by forfeit!' });
           // Ensure room is no longer in progress and clear resources
-          room.inProgress = false;
           clearRoomResources(room);
           // Cleanup the room after awarding the win
           cleanupRoom(code);

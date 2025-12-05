@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   dashboard.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yohan <yohan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/19 11:21:57 by ycantin           #+#    #+#             */
-/*   Updated: 2025/12/03 20:58:50 by yohan            ###   ########.fr       */
+/*   Updated: 2025/12/05 01:13:19 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,13 @@ async function fetchDashboard() {
     checkLoginState("/api/dashboard");
     sessionStorage.removeItem("isSinglePlayer");
     sessionStorage.removeItem("numPlayers");
-    sessionStorage.removeItem("lastMatchWinner");
     sessionStorage.removeItem("vanilla");
 	sessionStorage.removeItem('inTournament');
     window.addEventListener("popstate", () => {
         if (window.location.hash !== "#pong") {
             // console.log("found someone going away from game")
             // console.log(window.location.hash)
+			console.log("FETCH dashboard");
 			if(sessionStorage.getItem('roomCode'))
             	socket.emit("leaveGame", { code: sessionStorage.getItem('roomCode') });
         }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pong.ts                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: luiberna <luiberna@student.42.fr>          +#+  +:+       +#+        */
+/*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/30 15:21:27 by yohan             #+#    #+#             */
-/*   Updated: 2025/11/28 16:29:51 by luiberna         ###   ########.fr       */
+/*   Updated: 2025/12/05 00:54:34 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,6 +211,7 @@ async function backToDashboard() {
 			// Leave game room and unmount chat when returning to dashboard
 			const code = window.sessionStorage.getItem('roomCode');
 			if (code) {
+				console.log("backto dashboard");
 				socket.emit('leaveGame', { code });
 			}
 			unmountChat();
