@@ -304,7 +304,12 @@ export function mountChat(target: HTMLElement) {
   }
   // close / show chat toggles
   closeBtnEl?.addEventListener('click', hideChat);
-  showBtnEl?.addEventListener('click', showChat);
+  // Bind (or re-bind) Show Chat click defensively
+  try {
+    const btn = document.getElementById('roomChatShowBtn') as HTMLButtonElement | null;
+    btn?.removeEventListener('click', showChat as any);
+    btn?.addEventListener('click', showChat);
+  } catch {}
   // clear dm
   const clearBtn = containerEl?.querySelector('#dmClear') as HTMLButtonElement | null;
   clearBtn?.addEventListener('click', () => setDMTarget(null));
@@ -318,7 +323,6 @@ export function mountChat(target: HTMLElement) {
     }
   });
 
-  // removed inline invite; use context menu Invite instead
 }
 
 export function unmountChat() {

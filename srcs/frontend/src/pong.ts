@@ -51,12 +51,15 @@ async function renderPong() {
 		initBabylon();
 	const chatMount= document.getElementById('chatContainer');
 	// Disable chat for local/singleplayer or explicit disable flag; only enable when in an online room
-	const isLocal = window.sessionStorage.getItem('isLocalGame') === '1';
+	const isLocal = window.sessionStorage.getItem("vanilla") === '1';
 	const isSingle = window.sessionStorage.getItem('isSinglePlayer') === '1';
 	const disableChat = window.sessionStorage.getItem('disableChat') === '1';
 	const hasRoom = Boolean(window.sessionStorage.getItem('roomCode'));
+	console.log("Chat conditions:", { isLocal, isSingle, disableChat, hasRoom, chatMount });
 	if (!isLocal && !isSingle && !disableChat && hasRoom && chatMount) {
+		console.log("Mounting chat for multiplayer game");
 		mountChat(chatMount);
+		console.log("Chat mounted:", chatMount);
 		// Move chat inside game canvas area for gameplay and set in-game mode
 		const wrapper = document.getElementById('pongGameWrapper');
 		if (wrapper && chatMount.parentElement !== wrapper) {
