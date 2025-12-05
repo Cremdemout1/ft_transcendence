@@ -13,8 +13,8 @@
 DOCKER_COMPOSE = docker compose
 YML 		   = ./docker-compose.yml
 
-DEV_DB_DIR	   = /home/phantasiae/Data/sqlite-data
-DEV_DB_PATH	   = file:/home/phantasiae/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/rfontes-/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/rfontes-/Data/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /home/capa/Documents/ft_transcendence/sqlite-data
 #DEV_DB_PATH	   = file:/home/capa/Documents/ft_transcendence/sqlite-data/database.sqlite
 #DEV_DB_DIR	   = /Users/yohan/Data/sqlite-data

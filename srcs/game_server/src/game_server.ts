@@ -52,6 +52,7 @@ type Room = {
   chat?: {
     messages: ChatMessage[];
   };
+  winnerUser?: string;
   announced?: Record<string, boolean>; // socketId -> announced join system msg
 };
 
@@ -672,10 +673,12 @@ if(room.vanilla==1)
   if (typeof state.winner === "number" && state.winner >= 0) {
     const winnerIdx = state.winner;
     const winnerSocketId = room.players[winnerIdx] || null;
+	const username = room.playerUsernames.get(winnerSocketId!);
+	if(username && !room.winnerUser)
+		room.winnerUser=username;
     console.log(`Match over in room ${roomCode}. Winner idx=${winnerIdx}, socket=${winnerSocketId}`);
-    const username = room.playerUsernames.get(winnerSocketId!);
 	room.inProgress = false;
-    io.to(roomCode).emit("matchOver", { username, tournamentId: room.tournamentId });
+    io.to(roomCode).emit("matchOver", { username: room.winnerUser, tournamentId: room.tournamentId });
     // notify tournament manager if this room belongs to a tournament
     if (room.tournamentId) {
       console.log("inside tournament for match over");
