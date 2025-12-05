@@ -145,6 +145,32 @@ function attachUsernameChange() {
                 sessionStorage.setItem('jwt', data.token);
                 document.getElementById('username')!.textContent = `Username: ${newUsername}`;
                 input.value = '';
+                    // Show bottom-right refresh prompt so changes take effect everywhere
+                    try {
+                        let prompt = document.getElementById('refreshPrompt');
+                        if (!prompt) {
+                            prompt = document.createElement('div');
+                            prompt.id = 'refreshPrompt';
+                            prompt.style.position = 'fixed';
+                            prompt.style.right = '10px';
+                            prompt.style.bottom = '10px';
+                            prompt.style.zIndex = '1000';
+                            prompt.style.border = '2px solid rgba(0,255,255,0.35)';
+                            prompt.style.padding = '8px 10px';
+                            prompt.style.background = '#0d1620';
+                            prompt.style.color = '#cfffff';
+                            prompt.style.boxShadow = '0 0 8px rgba(0,255,255,0.15)';
+                            prompt.style.borderRadius = '8px';
+                            prompt.style.fontSize = '13px';
+                            prompt.innerHTML = `
+                                <span>Please refresh in order for changes to take effect</span>
+                                <button id="refreshPromptBtn" style="margin-left:8px; border:2px solid rgba(0,255,255,0.45); background:#0a0f16; color:#00ffff; text-shadow:0 0 6px #00ffff; padding:4px 10px; border-radius:6px;">Refresh</button>
+                            `;
+                            document.body.appendChild(prompt);
+                            const btn = document.getElementById('refreshPromptBtn');
+                            btn?.addEventListener('click', () => { window.location.reload(); });
+                        }
+                    } catch {}
             }
             else
                 throw new Error(data.error);
