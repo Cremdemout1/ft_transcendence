@@ -6,7 +6,7 @@
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
-/*   Updated: 2025/12/05 00:44:12 by phantasiae       ###   ########.fr       */
+/*   Updated: 2025/12/06 02:48:05 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@ import { Server, Socket } from "socket.io";
 import { GameMath } from "./game/pong/pong_logic";
 import * as dotenv from "dotenv";
 import { neural_intercept, state_intercept, neural_ai, state } from "./AI/yohai";
-import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet, calculateHitpoint } from "./AI/phantai";
-
+//import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet, calculateHitpoint } from "./AI/phantai";
+import { calculateHitpoint } from "./AI/phantai";
+import { sample_data, Layer_Dense, relu, tanh, LoadWeights } from "./AI/regression";
 import { reactive_model } from "./AI/urmom";
 
 export let urmom: state_intercept;
@@ -46,6 +47,7 @@ type Room = {
   ai_bot?: reactive_model;
   phantai?: number | null;
   ai_timer?: NodeJS.Timeout | null;
+  ai_paddle?: number [] | null;
   actionTimer?: NodeJS.Timeout | null;
   interval?: number | null;
   vanilla?: number | null;
@@ -655,6 +657,23 @@ if(room.vanilla==1)
     paddle.right = input2.right;
   }
   }
+
+  if(room.ai_paddle && room.game.paddles[1].active){
+	room.game.paddles[1].right=0;
+	room.game.paddles[1].left=0;
+	room.game.paddles[1].up=0;
+	room.game.paddles[1].down=0;
+	
+	if(room.game.paddles[1].x<room.ai_paddle[0])
+		room.game.paddles[1].right=1;
+	else if(room.game.paddles[1].x>room.ai_paddle[0])
+		room.game.paddles[1].left=1;
+	if(room.game.paddles[1].y<room.ai_paddle[1])
+		room.game.paddles[1].up=1;
+	else if(room.game.paddles[1].y>room.ai_paddle[1])
+		room.game.paddles[1].down=1;
+	console.log("moveeee: D-"+room.game.paddles[1].right+", A-"+room.game.paddles[1].left+", W-"+room.game.paddles[1].up+", S-"+room.game.paddles[1].down);
+  }
   
   //Update game state
   await room.game.update(room.isSinglePlayer!);
@@ -854,9 +873,58 @@ let norm_dist=true_dist*14.2857;//1000/70
   room.interval = timeToHold;
 }
 
-export async function run_phantai(room: Room) {
-  const AIidx = room.players.indexOf("AI-" + room.code);
-  const AI_Paddle = room.game.paddles[AIidx];
+// export async function run_phantai(room: Room) {
+//   const AIidx = room.players.indexOf("AI-" + room.code);
+//   const AI_Paddle = room.game.paddles[AIidx];
+//   // await setTimer(room, AI_Paddle);
+//   room.ai_timer = setInterval(() => {
+//     if(!room.inProgress) {
+//       if (room.ai_timer)
+//         clearInterval(room.ai_timer);
+//       room.ai_timer = null;
+//       return ;
+//     }
+//     const curState = room.game.getState();
+//     if (!room.phantai)
+//       return ;
+//     getTimeToHold(room, 1);
+//     if (!room.interval)
+//         room.interval = 100;
+//     // set timer(variable)
+//     setTimer(room, AI_Paddle);
+//     let samples = sample_data(0, curState);
+//     let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+// 	  if(idx<3 || idx > 5) return nbr/50;
+// 	  else return nbr/0.5;
+//     }));
+//     let layer1 = new Layer_Dense(8, 64, relu);
+//     let layer2 = new Layer_Dense(64, 32, relu);
+//     let layer3 = new Layer_Dense(32, 9, softmax);
+//     LoadWeights(layer1, layer2, layer3);
+//     layer1.forward(fixed);
+// 	  layer2.forward(layer1.output);
+// 	  layer3.forward(layer2.output);
+//     let action= oheToDiscreet(layer3.output);
+//     let move:number=8;
+// 	  action.map((item, idx) => {
+// 		if(item==1)
+//       move=idx;
+// 	  });
+//     const actions = ["up", "up-left", "left", "left-down", "down", "right-down", "right", "up-right", "none"];
+    
+//     if (AI_Paddle && AI_Paddle.active) {
+//       AI_Paddle.up = actions[move].includes('up') ? 1 : 0;
+//       AI_Paddle.down = actions[move].includes('down') ? 1 : 0;
+//       AI_Paddle.left = actions[move].includes('left') ? 1 : 0;
+//       AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
+//     }
+//     console.log("paddle AI update", action);
+//     }, 1000);
+// }
+
+export async function run_phantai2(room: Room) {
+  //const AIidx = room.players.indexOf("AI-" + room.code);
+  //const AI_Paddle = room.game.paddles[AIidx];
   // await setTimer(room, AI_Paddle);
   room.ai_timer = setInterval(() => {
     if(!room.inProgress) {
@@ -868,38 +936,36 @@ export async function run_phantai(room: Room) {
     const curState = room.game.getState();
     if (!room.phantai)
       return ;
-    getTimeToHold(room, 1);
+    //getTimeToHold(room, 1);
     if (!room.interval)
         room.interval = 100;
     // set timer(variable)
-    setTimer(room, AI_Paddle);
+    //setTimer(room, AI_Paddle);
     let samples = sample_data(0, curState);
-    let fixed= samples[0].map((input) => input.map((nbr, idx) => {
-	  if(idx<3 || idx > 5) return nbr/50;
-	  else return nbr/0.5;
-    }));
-    let layer1 = new Layer_Dense(8, 64, relu);
-    let layer2 = new Layer_Dense(64, 32, relu);
-    let layer3 = new Layer_Dense(32, 9, softmax);
+let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+	if(idx<3 || idx > 5) return nbr/50;
+	else return nbr/1.1;
+}));
+let layer1 = new Layer_Dense(8, 64, relu);
+let layer2 = new Layer_Dense(64, 32, relu);
+let layer3 = new Layer_Dense(32, 2, tanh);
     LoadWeights(layer1, layer2, layer3);
     layer1.forward(fixed);
 	  layer2.forward(layer1.output);
 	  layer3.forward(layer2.output);
-    let action= oheToDiscreet(layer3.output);
-    let move:number=8;
-	  action.map((item, idx) => {
-		if(item==1)
-      move=idx;
-	  });
-    const actions = ["up", "up-left", "left", "left-down", "down", "right-down", "right", "up-right", "none"];
-    
-    if (AI_Paddle && AI_Paddle.active) {
-      AI_Paddle.up = actions[move].includes('up') ? 1 : 0;
-      AI_Paddle.down = actions[move].includes('down') ? 1 : 0;
-      AI_Paddle.left = actions[move].includes('left') ? 1 : 0;
-      AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
-    }
-    console.log("paddle AI update", action);
+
+	  room.ai_paddle= [];
+	  room.ai_paddle?.push(layer3.output[0][0]*50);//x
+	  room.ai_paddle?.push(layer3.output[0][1]*50);//y
+	  console.log("ai paddle: ");
+    console.log(room.ai_paddle);
+    // if (AI_Paddle && AI_Paddle.active) {
+    //   AI_Paddle.up = actions[move].includes('up') ? 1 : 0;
+    //   AI_Paddle.down = actions[move].includes('down') ? 1 : 0;
+    //   AI_Paddle.left = actions[move].includes('left') ? 1 : 0;
+    //   AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
+    // }
+    // console.log("paddle AI update", action);
     }, 1000);
 }
 
@@ -926,7 +992,8 @@ function handleSinglePlayerRoom(socket: Socket, ai_type: number, alias: string):
     rooms[code].playerUsernames.set(rooms[code].players[1], "BOSS_PHANTAI");
     rooms[code].phantai = 1;
     if(rooms[code].phantai) {
-      run_phantai(rooms[code]);
+      //run_phantai(rooms[code]);
+	  run_phantai2(rooms[code]);
     }
   }
   else {
