@@ -100,7 +100,8 @@ async function play() {
 function showGameModeMenu() {
 	const app = document.getElementById("app");
 	if (!app) return;
-
+	if (!socket.connected)
+		try { socket.connect(); } catch {}
 	app.innerHTML = `
 		<div id="gameModeMenu" class="terminal-menu">
 			<h2 class="terminal-title">SELECT MODE</h2>

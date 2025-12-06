@@ -543,6 +543,9 @@ function activateRoomPaddles(room: Room): void {
 // Clear timers, AI intervals and other transient resources for a room
 function clearRoomResources(room: Room | undefined): void {
   if (!room) return;
+  if(room.isSinglePlayer==0) return;
+
+  console.log("ROOM IN CLEAR ROOM RESOURCE: "+ room.code!+ ", interval id: ",+room.ai_timer! );
   try {
     if (room.ai_timer) {
       clearInterval(room.ai_timer as any);
@@ -566,9 +569,10 @@ function clearRoomResources(room: Room | undefined): void {
 
 function cleanupRoom(roomCode: string): void {
   const room = rooms[roomCode];
+  console.log("ROOM IN CLEANUP ROOM: "+ room);
   if (room) {
     console.log(`Deleting empty room: ${roomCode}`);
-    clearRoomResources(room);
+	clearRoomResources(room);
     delete rooms[roomCode];
   }
 }
@@ -949,6 +953,7 @@ export async function run_phantai(room: Room) {
       AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
     }
     console.log("paddle AI update", action);
+	console.log("ROOM IN PHANTAI: "+ room.code!+ ", interval id: ",+room.ai_timer! );
     }, 1000);
 }
 
@@ -1178,12 +1183,12 @@ function handleDisconnect(socket: Socket): void {
     const playerIndex = room.players.indexOf(socket.id);
 
     console.log("outsidee")
-    if (rooms[code].isSinglePlayer) {
-      console.log("insidee")
-      clearInterval(room.actionTimer!);
-      clearInterval(room.ai_timer!);
-      // window.location.hash = 'dashboard';
-    }
+    // if (rooms[code].isSinglePlayer) {
+    //   console.log("insidee")
+    //   clearInterval(room.actionTimer!);
+    //   clearInterval(room.ai_timer!);
+    //   // window.location.hash = 'dashboard';
+    // }
 
     if (playerIndex !== -1) {
       room.players.splice(playerIndex, 1);

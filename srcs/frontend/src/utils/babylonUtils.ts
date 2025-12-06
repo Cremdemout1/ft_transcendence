@@ -45,7 +45,7 @@ export function createTrail(ball: BABYLON.Mesh | undefined, scene: BABYLON.Scene
   //this function creates a trail such as the one on the ball
   let options = {
 	diameter: diameter,
-	length: 25,
+	length: 15,
 	segments: 10,
 	sections: 4,
 	doNotTaper: false,

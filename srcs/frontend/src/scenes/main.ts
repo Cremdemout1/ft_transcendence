@@ -274,7 +274,7 @@ function arena_orientation(
       amount = -Math.PI / 2;
       break;
   }
-  if(vanilla==1) amount=Math.PI / 2;
+  if(vanilla==1) amount=-Math.PI / 2;
   meshes.arena?.rotateAround(simmetrical_vec(0), axis, amount);
   if (player_id == 5)
     meshes.arena?.rotateAround(

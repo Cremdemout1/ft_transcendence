@@ -36,12 +36,14 @@ export class GameMath {
     radius: number;
     reset: number;
 	last_hit_by: number |null;
+	accel_fac:number;
   } = {
     pos: { x: 0, y: 0, z: 0 },
     velocity: { x: 10, y: 20, z: -10 },
     radius: 3.25,
     reset: 1, //flag for when the ball has just been reset (to tell client to reset the trail)
-	last_hit_by: null
+	last_hit_by: null,
+	accel_fac:1.02
   };
   private tmp_ball: {
     pos: Vec3;
@@ -125,6 +127,7 @@ export class GameMath {
 	if(this.first==0 && AI!=0){
 		this.paddle_speed();
 	this.first=1;
+	this.ball.accel_fac=1.08;
 	console.log(this.first);
   	}
 	const now = Date.now();
@@ -149,8 +152,8 @@ export class GameMath {
       //console.log(this.ball.velocity)
       this.paddles.map((item, idx) => {if(item.score<0) item.score=0;
 		if(item.score>4) this.winner=idx;
-	  });//do i need to add active safeguard?
-	  if(this.collision==1) this.ball.velocity=this.scale_vec3(1.1,this.ball.velocity);
+	  });
+	  if(!this.ball.reset && (this.collision==1 || this.wall_collision==1)) this.ball.velocity=this.scale_vec3(this.ball.accel_fac,this.ball.velocity);
     if (this.collision || this.ball.reset || this.wall_collision) this.raycast();
   }
 
@@ -535,7 +538,8 @@ export class GameMath {
       },
       radius: this.ball.radius,
       reset: 1,
-	  last_hit_by: null
+	  last_hit_by: null,
+	  accel_fac: this.ball.accel_fac
     };
   }
 
