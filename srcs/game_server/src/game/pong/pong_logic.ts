@@ -555,6 +555,7 @@ export class GameMath {
   }
 
   public getState() {
+	//console.log(this.ball.velocity);
     return {
       ball: { ...this.ball },
       paddles: { ...this.paddles },

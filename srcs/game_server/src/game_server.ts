@@ -3,9 +3,11 @@
 /*                                                        :::      ::::::::   */
 /*   game_server.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
+/*   By: gude-cas <gude-cas@student.42.fr>          +#+  +:+       +#+        */
 /*   By: phantasiae <phantasiae@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: Invalid date        by                   #+#    #+#             */
+/*   Updated: 2025/12/04 20:08:06 by gude-cas         ###   ########.fr       */
 /*   Updated: 2025/12/05 00:44:12 by phantasiae       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -298,6 +300,18 @@ class TournamentManager {
           message: "You won the round. Waiting for your next opponent...",
           tournamentId: tid,
         });
+        // Send a private system chat message to the winner while they wait
+        try {
+          winnerSocket.emit("chat:new", {
+            id: genMsgId(),
+            from: "system",
+            text: "awaiting next round...",
+            ts: Date.now(),
+            system: true,
+          });
+        } catch (e) {
+          console.warn('Failed to emit private awaiting message', e);
+        }
       }
       loserSockets.forEach((ls: Socket | undefined) => {
         if (ls) {
@@ -420,6 +434,32 @@ class TournamentManager {
           }
         }
 
+        // Reset chat history/viewport for finalists at start of round 2
+        try {
+          io.to(finalRoomCode).emit("chat:reset");
+        } catch (e) {
+          console.warn('Failed to emit chat:reset for final room', e);
+        }
+
+        // After reset, emit system join messages for each finalist
+        try {
+          const r = rooms[finalRoomCode];
+          if (r && Array.isArray(r.players)) {
+            r.players.forEach((pid) => {
+              const alias = r.playerUsernames.get(pid) || socketUsername[pid] || pid.substring(0,6);
+              pushAndBroadcastChat(finalRoomCode, {
+                id: genMsgId(),
+                from: "system",
+                text: `Player ${alias} joined`,
+                ts: Date.now(),
+                system: true,
+              });
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to emit system join messages after chat reset', e);
+        }
+
         // mesmo que vá primeiro para joined game, garantir o start
         setTimeout(() => ensureStartRoom(finalRoomCode), 250);
         // se ambos os vencedoresa se juntarem mas 
@@ -534,12 +574,21 @@ function cleanupRoom(roomCode: string): void {
 }
 
 function rosterFor(room: Room) {
-  const players = room.players.map((sid) => ({ id: sid, name: socketUsername[sid] || sid.slice(0, 6) }));
-  // online but not in this room
-  const online: Array<{ id: string; name: string }> = [];
+  // Prefer in-room alias mapping when available (tournaments/local aliases)
+  const players = room.players.map((sid) => ({ id: sid, name: room.playerUsernames.get(sid) || socketUsername[sid] || sid.slice(0, 6) }));
+  // online but not in this room; annotate whether they are currently in a game (any room)
+  const online: Array<{ id: string; name: string; inGame?: boolean }> = [];
   for (const [sid, name] of Object.entries(onlineUsers)) {
     if (!room.players.includes(sid)) {
-      online.push({ id: sid, name: name || sid.slice(0, 6) });
+      let inGame = false;
+      try {
+        for (const code of Object.keys(rooms)) {
+          const r = rooms[code];
+          // Mark as in-game only if the room is currently in progress
+          if (r.players.includes(sid)) { inGame = !!r.inProgress; break; }
+        }
+      } catch {}
+      online.push({ id: sid, name: name || sid.slice(0, 6), inGame });
     }
   }
   return { players, online };
@@ -1224,12 +1273,13 @@ function handleChatSend(socket: Socket, payload: { text: string }) {
     // enforce max length
     return;
   }
-  const { roomCode } = findPlayerRoom(socket.id);
-  if (!roomCode) return;
+  const { roomCode, room } = findPlayerRoom(socket.id);
+  if (!roomCode || !room) return;
   const msg: ChatMessage = {
     id: genMsgId(),
     from: socket.id,
-    fromName: socketUsername[socket.id],
+    // Prefer alias inside room when available (tournament/local aliases)
+    fromName: room.playerUsernames.get(socket.id) || socketUsername[socket.id],
     text,
     ts: Date.now(),
   };
@@ -1254,10 +1304,12 @@ function handleChatIdentify(socket: Socket, payload: { username?: string }) {
     room.announced = room.announced || {};
     if (!room.announced[socket.id]) {
       room.announced[socket.id] = true;
+      // Use tournament/local alias if available, else fallback to username
+      const displayName = room.playerUsernames.get(socket.id) || safe;
       pushAndBroadcastChat(roomCode, {
         id: genMsgId(),
         from: "system",
-        text: `Player ${safe} joined`,
+        text: `Player ${displayName} joined`,
         ts: Date.now(),
         system: true,
       });
@@ -1290,10 +1342,12 @@ function handleChatDM(socket: Socket, payload: { to: string; text: string }) {
     socket.emit('chat:dmError', { message: 'This user has blocked you.' });
     return;
   }
+  const { room } = findPlayerRoom(socket.id);
   const msg: ChatMessage = {
     id: genMsgId(),
     from: socket.id,
-    fromName: socketUsername[socket.id],
+    // Prefer alias inside room when available
+    fromName: room?.playerUsernames.get(socket.id) || socketUsername[socket.id],
     to,
     text,
     ts: Date.now(),
@@ -1327,6 +1381,22 @@ function handleChatInvite(socket: Socket, payload: { to?: string; username?: str
     socket.emit("chat:inviteError", { message: "User not found or offline." });
     return;
   }
+  // Disallow inviting players who are already in a game (any room)
+  try {
+    for (const code of Object.keys(rooms)) {
+      const r = rooms[code];
+      if (r && Array.isArray(r.players) && r.players.includes(targetId)) {
+        // If the room is not yet in progress, treat as waiting room; otherwise in-game
+        if (!r.inProgress) {
+          socket.emit("chat:inviteError", { message: "Player is currently in a waiting room." });
+          return;
+        } else {
+          socket.emit("chat:inviteError", { message: "Player is already in a game." });
+          return;
+        }
+      }
+    }
+  } catch {}
   if (room.players.includes(targetId)) {
     socket.emit("chat:inviteError", { message: "User is already in this room." });
     return;
@@ -1436,6 +1506,16 @@ io.on("connection", (socket: Socket) => {
     if (!tgt || tgt === socket.id) return;
     if (!blockMap[socket.id]) blockMap[socket.id] = new Set<string>();
     if (doBlock) blockMap[socket.id].add(tgt); else blockMap[socket.id].delete(tgt);
+  });
+
+  // Resolve a username for a given socket id so frontend can fetch profile
+  socket.on('profile:getUsername', ({ id }: { id: string }) => {
+    try {
+      const uname = socketUsername[id] || null;
+      socket.emit('profile:username', { id, username: uname });
+    } catch (e) {
+      socket.emit('profile:username', { id, username: null });
+    }
   });
 
   socket.on("joinTournament", (alias: string) => {
