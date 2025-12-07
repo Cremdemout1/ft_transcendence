@@ -49,17 +49,15 @@ async function renderPong() {
 	}
 	else
 		initBabylon();
-	const chatMount= document.getElementById('chatContainer');
+	const chatMount = document.getElementById('chatContainer');
 	// Disable chat for local/singleplayer or explicit disable flag; only enable when in an online room
-	const isLocal = window.sessionStorage.getItem("vanilla") === '1';
-	const isSingle = window.sessionStorage.getItem('isSinglePlayer') === '1';
-	const disableChat = window.sessionStorage.getItem('disableChat') === '1';
+	const isLocal = window.sessionStorage.getItem('vanilla') === '1';
 	const hasRoom = Boolean(window.sessionStorage.getItem('roomCode'));
-	console.log("Chat conditions:", { isLocal, isSingle, disableChat, hasRoom, chatMount });
-	if (!isLocal && !isSingle && !disableChat && hasRoom && chatMount) {
+	console.log({ isLocal, hasRoom });
+	if (!isLocal && window.sessionStorage.getItem('isSinglePlayer') == '0' && hasRoom && chatMount) {
 		console.log("Mounting chat for multiplayer game");
 		mountChat(chatMount);
-		console.log("Chat mounted:", chatMount);
+		console.log("Chat mounted");
 		// Move chat inside game canvas area for gameplay and set in-game mode
 		const wrapper = document.getElementById('pongGameWrapper');
 		if (wrapper && chatMount.parentElement !== wrapper) {
@@ -71,7 +69,7 @@ async function renderPong() {
 		}
 		setChatMode('ingame');
 		hideChatUI();
-	} else if (!isLocal && !isSingle && !disableChat && hasRoom) {
+	} else if (!isLocal && window.sessionStorage.getItem('isSinglePlayer') == '0' && hasRoom) {
 		// Fallback: ensure chat appears during gameplay even if container was removed
 		const fallback = document.createElement('div');
 		fallback.id = 'chatContainer';
@@ -149,12 +147,6 @@ function showGameModeMenu() {
 			if (!AI)
 				return ;
 			console.log(AI);
-			// Mark singleplayer so chat remains disabled
-			window.sessionStorage.setItem('isSinglePlayer', '1');
-			// Explicitly disable chat for Yohai (ai-type=2) regardless of room state
-			if (AI === '2') {
-				window.sessionStorage.setItem('disableChat', '1');
-			}
 			startSinglePlayerGame(Number(AI), username!);
 		});
 	});
@@ -168,14 +160,12 @@ function showGameModeMenu() {
 		if (!socket.connected)
 			try { socket.connect(); } catch {}
 		window.sessionStorage.removeItem('isSinglePlayer');
-		window.sessionStorage.removeItem('disableChat');
 		showMultiplayerMenu();
 	});
 
 	document.getElementById("backBtn")?.addEventListener("click", () => {
 		// Clear singleplayer flag when backing out
 		window.sessionStorage.removeItem('isSinglePlayer');
-		window.sessionStorage.removeItem('disableChat');
 		history.back();
 	});
 }
@@ -190,7 +180,6 @@ async function backToDashboard() {
 		btn.addEventListener("click", () => {
 			// Clear singleplayer flag when leaving to dashboard
 			window.sessionStorage.removeItem('isSinglePlayer');
-			window.sessionStorage.removeItem('disableChat');
 			// Leave game room and unmount chat when returning to dashboard
 			const code = window.sessionStorage.getItem('roomCode');
 			if (code) {

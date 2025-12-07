@@ -124,12 +124,10 @@ function ensureDOM(target: HTMLElement) {
   closeBtnEl = target.querySelector('#roomChatClose') as HTMLButtonElement | null;
   showBtnEl = target.querySelector('#roomChatShowBtn') as HTMLButtonElement | null;
 
-  // Inject header item into the list and set code
   injectOrUpdateHeader();
 }
 
 function injectOrUpdateHeader() {
-  // Requirement: completely remove the ROOM: XXXXX header from the chat UI.
   // If a header exists from a previous render, remove it; do not re-create.
   if (!listEl) return;
   const header = listEl.querySelector('#roomChatTitle') as HTMLElement | null;
@@ -240,7 +238,6 @@ export function setChatMode(mode: 'default' | 'ingame') {
   if (!panel) return;
   if (mode === 'ingame') {
     panel.style.position = 'absolute';
-    // Ensure waiting-room centering styles are cleared in-game
     (panel.style as any).transform = '';
     panel.style.height = '25vh';
     panel.style.width = '320px';
@@ -366,7 +363,6 @@ function renderRoster(players: Array<{id: string; name: string; inRoom?: boolean
   });
   // Dynamic roster height based on number of players; cap to keep box compact
   try {
-    // Waiting room requirement: always reserve space for 6 names
     const fixedHeight = 24 * 6;
     (rosterEl as HTMLElement).style.height = fixedHeight + 'px';
     (rosterEl as HTMLElement).style.overflowY = 'auto';
