@@ -123,6 +123,7 @@ function showGameModeMenu() {
 			<div id="singlePlayerOptions" class="create-options">
 				<button class="neon-subbtn" ai-type="1">PhantAI</button>
 				<button class="neon-subbtn" ai-type="2">YohAI</button>
+				<button class="neon-subbtn" ai-type="3">PhantAIv2</button>
        		</div>
 			<button class="neon-btn" id="multiPlayerBtn">MULTIPLAYER</button>
 			<button class="exit-btn" id="backBtn">BACK</button>

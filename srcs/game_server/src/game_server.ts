@@ -17,8 +17,8 @@ import { Server, Socket } from "socket.io";
 import { GameMath } from "./game/pong/pong_logic";
 import * as dotenv from "dotenv";
 import { neural_intercept, state_intercept, neural_ai, state } from "./AI/yohai";
-import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet, calculateHitpoint } from "./AI/phantai";
-
+import { sample_data, Layer_Dense, relu, softmax, LoadWeights, oheToDiscreet } from "./AI/phantai";
+import { sample_data2, Layer_Dense2, relu2, tanh, LoadWeights2, calculateHitpoint } from "./AI/regression";
 import { reactive_model } from "./AI/urmom";
 
 export let urmom: state_intercept;
@@ -47,8 +47,10 @@ type Room = {
   matchId?: string | null;
   ai_bot?: reactive_model;
   phantai?: number | null;
+  phantaiV2?: number | null;
   ai_timer?: NodeJS.Timeout | null;
   actionTimer?: NodeJS.Timeout | null;
+  ai_paddle?: number [] | null;
   interval?: number | null;
   vanilla?: number | null;
   chat?: {
@@ -732,6 +734,24 @@ if(room.vanilla==1)
     paddle.right = input2.right;
   }
   }
+
+    if(room.ai_paddle && room.game.paddles[1].active){
+		console.log("HPI: AI PADDLE CHECK")
+	room.game.paddles[1].right=0;
+	room.game.paddles[1].left=0;
+	room.game.paddles[1].up=0;
+	room.game.paddles[1].down=0;
+	
+	if(room.game.paddles[1].x<room.ai_paddle[0])
+		room.game.paddles[1].right=1;
+	else if(room.game.paddles[1].x>room.ai_paddle[0])
+		room.game.paddles[1].left=1;
+	if(room.game.paddles[1].y<room.ai_paddle[1])
+		room.game.paddles[1].up=1;
+	else if(room.game.paddles[1].y>room.ai_paddle[1])
+		room.game.paddles[1].down=1;
+	console.log("moveeee: D-"+room.game.paddles[1].right+", A-"+room.game.paddles[1].left+", W-"+room.game.paddles[1].up+", S-"+room.game.paddles[1].down);
+  }
   
   //Update game state
   await room.game.update(room.isSinglePlayer!);
@@ -798,7 +818,7 @@ function handleAIRequest(socket: Socket): void {
   const { room } = findPlayerRoom(socket.id);
   let AI: number = -1;
 
-  if (room && room.isSinglePlayer! >= 0 && room.isSinglePlayer! < 3)
+  if (room && room.isSinglePlayer! >= 0 && room.isSinglePlayer! < 4)
     AI = room.isSinglePlayer!;
   console.log(room);
   
@@ -953,7 +973,7 @@ export async function run_phantai(room: Room) {
     // set timer(variable)
     setTimer(room, AI_Paddle);
     let samples = sample_data(0, curState);
-    let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+    let fixed= samples[0].map((input:any) => input.map((nbr:any, idx:any) => {
 	  if(idx<3 || idx > 5) return nbr/50;
 	  else return nbr/0.5;
     }));
@@ -966,7 +986,7 @@ export async function run_phantai(room: Room) {
 	  layer3.forward(layer2.output);
     let action= oheToDiscreet(layer3.output);
     let move:number=8;
-	  action.map((item, idx) => {
+	  action.map((item:any, idx:any) => {
 		if(item==1)
       move=idx;
 	  });
@@ -980,6 +1000,51 @@ export async function run_phantai(room: Room) {
     }
     console.log("paddle AI update", action);
 	console.log("ROOM IN PHANTAI: "+ room.code!+ ", interval id: ",+room.ai_timer! );
+    }, 1000);
+}
+
+export async function run_phantai2(room: Room) {
+  //const AIidx = room.players.indexOf("AI-" + room.code);
+  //const AI_Paddle = room.game.paddles[AIidx];
+  // await setTimer(room, AI_Paddle);
+  room.ai_timer = setInterval(() => {
+    if(!room.inProgress) {
+      if (room.ai_timer)
+        clearInterval(room.ai_timer);
+      room.ai_timer = null;
+      return ;
+    }
+    const curState = room.game.getState();
+    //getTimeToHold(room, 1);
+    if (!room.interval)
+        room.interval = 100;
+    // set timer(variable)
+    //setTimer(room, AI_Paddle);
+    let samples = sample_data2(0, curState);
+let fixed= samples[0].map((input) => input.map((nbr, idx) => {
+	if(idx<3 || idx > 5) return nbr/50;
+	else return nbr/1.1;
+}));
+let layer1 = new Layer_Dense2(8, 64, relu2);
+let layer2 = new Layer_Dense2(64, 32, relu2);
+let layer3 = new Layer_Dense2(32, 2, tanh);
+    LoadWeights2(layer1, layer2, layer3);
+    layer1.forward(fixed);
+	  layer2.forward(layer1.output);
+	  layer3.forward(layer2.output);
+
+	  room.ai_paddle= [];
+	  room.ai_paddle?.push(layer3.output[0][0]*50);//x
+	  room.ai_paddle?.push(layer3.output[0][1]*50);//y
+	  console.log("ai paddle: ");
+    console.log(room.ai_paddle);
+    // if (AI_Paddle && AI_Paddle.active) {
+    //   AI_Paddle.up = actions[move].includes('up') ? 1 : 0;
+    //   AI_Paddle.down = actions[move].includes('down') ? 1 : 0;
+    //   AI_Paddle.left = actions[move].includes('left') ? 1 : 0;
+    //   AI_Paddle.right = actions[move].includes('right') ? 1 : 0;
+    // }
+    // console.log("paddle AI update", action);
     }, 1000);
 }
 
@@ -1007,6 +1072,14 @@ function handleSinglePlayerRoom(socket: Socket, ai_type: number, alias: string):
     rooms[code].phantai = 1;
     if(rooms[code].phantai) {
       run_phantai(rooms[code]);
+    }
+  }
+  else if(ai_type === 3){
+	console.log("AI TYPE IS 3")
+	rooms[code].playerUsernames.set(rooms[code].players[1], "BOSS_PHANTAI");
+    rooms[code].phantaiV2 = 1;
+	if(rooms[code].phantaiV2) {
+      run_phantai2(rooms[code]);
     }
   }
   else {

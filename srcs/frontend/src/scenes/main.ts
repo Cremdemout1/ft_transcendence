@@ -213,7 +213,7 @@ async function import_meshes(
 
   if(AI){
 
-	let AImodel= AI==1 ? phanta : yohai;
+	let AImodel= AI==1 || AI==3 ? phanta : yohai;
 	let AI_meshes: BABYLON.ISceneLoaderAsyncResult;
     console.log(AImodel);
 	try {
@@ -621,7 +621,7 @@ const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
 
       orb.isVisible = false;
       orb.material = orbmaterial;
-      orb.setParent(meshes.arena!);
+      orb.setParent(meshes.arena!);3
       orb.position.set(
         serverGameState.hitPoint.pos.x,
         serverGameState.hitPoint.pos.y,
