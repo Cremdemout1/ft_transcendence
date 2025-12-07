@@ -1406,6 +1406,13 @@ function handleChatInvite(socket: Socket, payload: { to?: string; username?: str
     socket.emit("chat:inviteError", { message: "User not found or offline." });
     return;
   }
+  // Disallow inviting players currently queued for a tournament
+  try {
+    if (tournamentManager.waitingPlayers.has(targetId)) {
+      socket.emit("chat:inviteError", { message: "Player is currently in a tournament queue." });
+      return;
+    }
+  } catch {}
   // Disallow inviting players who are already in a game (any room)
   try {
     for (const code of Object.keys(rooms)) {
