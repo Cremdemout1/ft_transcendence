@@ -99,7 +99,22 @@ function showGameModeMenu() {
 	const app = document.getElementById("app");
 	if (!app) return;
 	if (!socket.connected)
-		try { socket.connect(); } catch {}
+		try { 
+	socket.connect();
+	if(!socket.connected)
+		throw new Error("Wait for connection please")
+	 } catch(e) {
+		const message = e instanceof Error ? e.message : null;
+		const btn = document.getElementById("playBtn");
+		let msg = document.getElementById("message");
+		if(!msg){
+			msg = document.createElement("div");
+  			msg.id = "message";
+			btn!.insertAdjacentElement("afterend", msg);
+		}
+		msg.textContent = message;
+		return;
+	 }
 	app.innerHTML = `
 		<div id="gameModeMenu" class="terminal-menu">
 			<h2 class="terminal-title">SELECT MODE</h2>

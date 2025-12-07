@@ -17,36 +17,7 @@ enum State {
 
 export async function initBabylon() {
 
-// 	if (typeof window !== "undefined" && navigator.userAgent.includes("Firefox")) {
-//   const proto = WebGLRenderingContext.prototype as any;
-//   const originalGetExtension = proto.getExtension;
-
-//   proto.getExtension = function (name: string) {
-//     if (name === "WEBGL_debug_renderer_info") {
-//       return null;
-//     }
-//     return originalGetExtension.call(this, name);
-//   };
-// }
   const canvas = document.getElementById("pongCanvas") as HTMLCanvasElement;
-//   var gl = canvas.getContext('webgl');
-// if(gl){
-// gl.getParameter(gl.RENDERER);
-// gl.getExtension("EXT_color_buffer_half_float");
-//   gl.getExtension("WEBGL_color_buffer_float");
-// }
-
-// const originalWarn = console.warn;
-// console.warn = (...args) => {
-//   if (
-//     typeof args[0] === "string" &&
-//     args[0].includes("Tex image TEXTURE_2D level 0 is incurring lazy initialization")
-//   ) {
-//     return;
-//   }
-//   originalWarn(...args);
-// };
-
 
   if (!canvas) {
     console.error("Canvas not found!");

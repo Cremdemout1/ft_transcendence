@@ -76,6 +76,8 @@ async function changeUsername(fastify: FastifyInstance)
             return reply.status(400).send({error: "Username invalid"});
 
         console.log("new username: " + newUsername + "\nold username: " + username);
+		if (newUsername === username)
+        	return reply.status(409).send({error: "Username can't be the same"});
 		try{checkregexBackend(newUsername, null, null, null, null);
 		}catch(err){
 			const message = err instanceof Error ? err.message : null;

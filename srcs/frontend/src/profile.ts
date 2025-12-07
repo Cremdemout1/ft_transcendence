@@ -13,10 +13,16 @@
 import { checkLoginState } from './dashboard';
 
 function decodeJwt(token: string | null) {
+	try{
     if (token === null)
     {
         location.hash = "#login";
         throw new Error("jwt is null");
+    }
+    } catch (e) {
+		const message = e instanceof Error ? e.message : null;
+        console.error(message);
+        return null;
     }
     try {
         const payloadBase64Url = token.split('.')[1];

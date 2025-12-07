@@ -69,6 +69,13 @@ async function logout() {
    const btn = document.getElementById('logoutBtn');
    const messageDiv = document.querySelector("#message");
    const jwt = decodeJwt(sessionStorage.getItem('jwt'));
+   if(!jwt)
+   {
+		sessionStorage.removeItem('jwt');
+        sessionStorage.removeItem('twoFA');
+        location.href = '/#login';
+		return;
+   }
    const email = jwt.email;
     if (btn) {
     btn.addEventListener('click', async() => {
