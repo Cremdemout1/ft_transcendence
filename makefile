@@ -10,13 +10,11 @@
 #                                                                              #
 # **************************************************************************** #
 
-USER=rfontes-
-
 DOCKER_COMPOSE = docker compose
 YML 		   = ./docker-compose.yml
 
-DEV_DB_DIR	   = /home/$(USER)/Data/sqlite-data
-DEV_DB_PATH	   = file:/home/$(USER)/Data/sqlite-data/database.sqlite
+DEV_DB_DIR	   = /home/$(shell whoami)/Data/sqlite-data
+DEV_DB_PATH	   = file:/home/$(shell whoami)/Data/sqlite-data/database.sqlite
 #no more hardcoded buffoonery
 PROD_DB_PATH   = file:/data/database.sqlite
 

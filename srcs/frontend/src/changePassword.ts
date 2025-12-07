@@ -26,10 +26,10 @@ async function renderchangePassword() {
     app.innerHTML = `
     <div>
         <p>Changing <b>${userData.username}</b>'s password</p> 
-        <input type='password' id='oldPassword' placeholder="Enter old Password" required></input>
-        <input type='password' id='newPassword' placeholder="Enter new Password" required></input>
-        <input type='password' id='newPasswordCopy' placeholder="Confirm" required></input>
-        <button type='submit' id="changePassword">change</button>
+        <input class="input" type='password' id='oldPassword' placeholder="Enter old Password" required />
+        <input class="input" type='password' id='newPassword' placeholder="Enter new Password" required />
+        <input class="input" type='password' id='newPasswordCopy' placeholder="Confirm" required />
+        <button class="btn" type='submit' id="changePassword">change</button>
     </div>
     <div id='message'></div>
     `;
