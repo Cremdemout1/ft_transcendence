@@ -160,8 +160,6 @@ function showGameModeMenu() {
 	});
 
 	document.getElementById("localGameBtn")?.addEventListener("click", () => {
-		// Mark local game so chat remains disabled
-		window.sessionStorage.setItem('isLocalGame', '1');
 		startLocalGame();
 	})
 
@@ -175,8 +173,6 @@ function showGameModeMenu() {
 	});
 
 	document.getElementById("backBtn")?.addEventListener("click", () => {
-		// Clear local game flag when backing out
-		window.sessionStorage.removeItem('isLocalGame');
 		// Clear singleplayer flag when backing out
 		window.sessionStorage.removeItem('isSinglePlayer');
 		window.sessionStorage.removeItem('disableChat');
@@ -192,8 +188,6 @@ async function backToDashboard() {
 	const btn = document.getElementById("backToDashboard");
 	if (btn) {
 		btn.addEventListener("click", () => {
-			// Clear local game flag when leaving to dashboard
-			window.sessionStorage.removeItem('isLocalGame');
 			// Clear singleplayer flag when leaving to dashboard
 			window.sessionStorage.removeItem('isSinglePlayer');
 			window.sessionStorage.removeItem('disableChat');

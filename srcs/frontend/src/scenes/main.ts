@@ -740,7 +740,7 @@ const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
     // Only emit readiness for finals when this client is actually in a tournament room
     if (roomCode && tournamentId && tournamentId !== 'null') {
       socket.emit('tournament:readyForFinal', { code: roomCode });
-      console.log('Emitted tournament:readyForFinal', roomCode);
+      console.log('Emitted tournament:readyForFinal '+ roomCode+ "tourn id: "+ tournamentId);
     }
   } catch (e) {
     console.warn('Failed to emit tournament:readyForFinal', e);

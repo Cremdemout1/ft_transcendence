@@ -387,7 +387,25 @@ class TournamentManager {
             round: 2
           }
         };
-      
+		const s1 = this.io.sockets.sockets.get(w1.id as any) as Socket | undefined;
+        const s2 = this.io.sockets.sockets.get(w2.id as any) as Socket | undefined;
+        if (!s1){ 
+			console.log(`Tournament ${tid}: winner socket ${w1.id} not connected`);
+			cleanupRoom(finalRoomCode);
+			const champSocket = s2;
+            if (champSocket) {
+              champSocket.emit("tournamentWinner", { tournamentId: tid, champion: w2.alias });
+            }
+		}
+        if (!s2){ 
+			console.log(`Tournament ${tid}: winner socket ${w2.id} not connected`);
+			cleanupRoom(finalRoomCode);
+			const champSocket = s1;
+            if (champSocket) {
+              champSocket.emit("tournamentWinner", { tournamentId: tid, champion: w1.alias });
+            } 
+		}
+		      
         tournament.winners = [];
         // Track which finalists have acknowledged they're ready to receive start
         tournament.finalReady = new Set();
@@ -403,11 +421,7 @@ class TournamentManager {
             console.error('Final readiness fallback error', e);
           }
         }, 1600);
-        
-        const s1 = this.io.sockets.sockets.get(w1.id as any) as Socket | undefined;
-        const s2 = this.io.sockets.sockets.get(w2.id as any) as Socket | undefined;
-        if (!s1) console.log(`Tournament ${tid}: winner socket ${w1.id} not connected`);
-        if (!s2) console.log(`Tournament ${tid}: winner socket ${w2.id} not connected`);
+    
 
         if (s1) {
           console.log(`Tournament ${tid}: instructing ${w1.alias} to join final ${finalRoomCode}`);
@@ -504,11 +518,17 @@ class TournamentManager {
     });
     // If they were in an active tournament match, find match and award win to opponent
     for (const tid in this.tournaments) {
+		console.log("tid in handle disconnect loop: ");
+		console.log(tid);
       const tournament = this.tournaments[tid];
       for (const roomCode in tournament.activeMatches) {
+		console.log("checking room "+ roomCode+" in tid:");
+		console.log(tid);
         const match = tournament.activeMatches[roomCode];
         if (match.players.includes(socketId) && !match.winner) {
+			console.log("passed include");
           const winnerIdx = match.players[0] === socketId ? 1 : 0;
+		  console.log("winner ="+winnerIdx);
           this.handleMatchOver(roomCode, winnerIdx);
         }
       }
@@ -954,7 +974,7 @@ export async function run_phantai(room: Room) {
     }
     console.log("paddle AI update", action);
 	console.log("ROOM IN PHANTAI: "+ room.code!+ ", interval id: ",+room.ai_timer! );
-    }, 1000);
+    }, 100);
 }
 
 function handleSinglePlayerRoom(socket: Socket, ai_type: number, alias: string): void {

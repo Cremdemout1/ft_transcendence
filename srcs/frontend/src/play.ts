@@ -172,7 +172,7 @@ socket.on('tournamentWinner', ({ tournamentId, champion }) => {
 			<div style="max-width:1000px;padding:40px;border-radius:12px;background:linear-gradient(90deg,#081427,#01303a);box-shadow:0 12px 60px rgba(0,0,0,.8);">
 				<h1 style="font-size:56px;margin:0 0 12px;color:#ffd700;">CONGRATULATIONS</h1>
 				<h2 id="tournamentChampionName" style="font-size:40px;margin:0 0 18px;">${champion}</h2>
-				<p style="font-size:20px;margin:0 0 28px;">You won the tournament''}!</p>
+				<p style="font-size:20px;margin:0 0 28px;">You won the tournament!</p>
 				<button id="tournamentChampionClose" style="padding:14px 22px;border-radius:8px;border:none;background:#fff;color:#000;font-weight:700;cursor:pointer;">Back to dashboard</button>
 			</div>
 		`;
