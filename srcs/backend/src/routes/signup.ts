@@ -13,6 +13,7 @@
 import { FastifyInstance,FastifyRequest } from 'fastify';
 import * as bcrypt from 'bcrypt';
 import { orm } from '../server';
+import { checkregexBackend } from '../db/db_queries';
 
 interface signupBody
 {
@@ -83,11 +84,12 @@ async function SignUp(fastify: FastifyInstance) {
     fastify.post('/api/signup', localSignUpOps, async (request: ReqBody<signupBody>, reply: any) =>
     {
         const { email, password, username, firstname, lastname }: signupBody = request.body;
-        const invalidChars = ['\'', '\"', '`'];
 
-        const invalid = invalidChars.some(char => email.includes(char)) || invalidChars.some(char => password.includes(char)) || invalidChars.some(char => username.includes(char)) || invalidChars.some(char => firstname.includes(char)) || invalidChars.some(char => lastname.includes(char));
-        if (invalid)
-            return reply.code(422).send({ error:"Invalid", message: 'Error: invalid characters' });
+        try{checkregexBackend(username, firstname, lastname, email, password);
+		}catch(err) {
+			const message = err instanceof Error ? err.message : null;
+            return reply.code(422).send({ error:"Invalid", message: message });
+		}
         const existingUser = orm.getUserByEmail(email);
         if (existingUser) {
             return (reply.code(409).send({
@@ -105,8 +107,8 @@ async function SignUp(fastify: FastifyInstance) {
         }
         let userInfoTableID: number;
         const userInfo = orm.createUserInfo(firstname, lastname, username);
-        if (userInfo === -1)
-            return reply.status(422).send({ error: 'firstname, lastname or username contains invalid characters' });
+        if (!userInfo)
+            return reply.status(400).send({ error: 'error creating user' });
         userInfoTableID = userInfo ? userInfo.lastInsertRowid : null;
         if (!userInfoTableID)
             console.log("no player id for some reaosnnn");
@@ -120,11 +122,9 @@ async function SignUp(fastify: FastifyInstance) {
             provider_id = 'GOOGLE_ID'; // TODO: replace with actual Google provider_id
         else if (login_type === '42')
             provider_id = 'INTRA_ID'; // TODO: replace with actual 42 provider_id
-        if (orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID) == -1)
-            return reply.status(422).send({ error: 'email or password contains invalid characters' });
+        if (!orm.createUser(email, hashedPassword!, provider_id, login_type, userInfoTableID))
+            return reply.status(400).send({ error: 'error creating user' });
         const user = await orm.getProtectedUser(email, password);
-        if (user === -1)
-            return reply.status(422).send({ error: 'email or password contains invalid characters' });
         const idx = user ? user.user_id : null;
         const userInformation = orm.getUserInfoTable(idx);
         if (user)

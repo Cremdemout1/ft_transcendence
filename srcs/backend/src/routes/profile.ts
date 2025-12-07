@@ -14,6 +14,7 @@ import { authenticateJWT } from "./dashboard";
 import { FastifyRequest, FastifyInstance } from "fastify";
 import { createNewToken } from './token';
 import { orm } from '../server';
+import { checkregexBackend } from "../db/db_queries";
 
 type myRequest = FastifyRequest;
 
@@ -75,8 +76,11 @@ async function changeUsername(fastify: FastifyInstance)
             return reply.status(400).send({error: "Username invalid"});
 
         console.log("new username: " + newUsername + "\nold username: " + username);
-        if (newUsername === username)
-            return reply.status(409).send({error: "Username can't be the same"});
+		try{checkregexBackend(newUsername, null, null, null, null);
+		}catch(err){
+			const message = err instanceof Error ? err.message : null;
+			return reply.code(422).send({ error:"Invalid", message: message });
+		}
         const existingUser = orm.getUserByUsername(newUsername);
         console.log("existing user: ");
         console.log(existingUser);
@@ -88,8 +92,8 @@ async function changeUsername(fastify: FastifyInstance)
             //     where: { id: user.user_id },
             //     data:  { username: newUsername }
             // });
-            if (orm.updateUser(user.user_id, 'username', newUsername) == -1)
-                return reply.status(422).send({ error: 'new username contains invalid characters' });
+            if (!orm.updateUser(user.user_id, 'username', newUsername))
+                return reply.status(400).send({ error: 'Username invalid' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -113,15 +117,20 @@ async function changeFirstname(fastify: FastifyInstance)
         const user = request.user as JWTformat;
 
         if (!newFirstname || newFirstname.trim() === '')
-            return reply.status(400).send({error: "newFirstname invalid"});
+            return reply.status(400).send({error: "new firstname invalid"});
         else
         {
             // await prisma.user_info.update({
             //     where: { id: user.user_id },
             //     data:  { firstname: newFirstname }
             // });
-            if (orm.updateUser(user.user_id, 'firstname', newFirstname) == -1)
-                return reply.status(422).send({ error: 'new firstname contains invalid characters' });
+			try{checkregexBackend(null, newFirstname, null, null, null);
+			}catch(err){
+				const message = err instanceof Error ? err.message : null;
+				return reply.code(422).send({ error:"Invalid", message: message });
+			}
+            if (!orm.updateUser(user.user_id, 'firstname', newFirstname))
+                return reply.status(400).send({ error: 'new firstname invalid' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)
@@ -145,15 +154,20 @@ async function changeLastname(fastify: FastifyInstance)
         const user = request.user as JWTformat;
 
         if (!newLastname || newLastname.trim() === '')
-            return reply.status(400).send({error: "new Lastname invalid"});
+            return reply.status(400).send({error: "new lastname invalid"});
         else
         {
             // await prisma.user_info.update({
             //     where: { id: user.user_id },
             //     data:  { lastname: newLastname }
             // });
-            if (orm.updateUser(user.user_id, 'lastname', newLastname) == -1)
-                return reply.status(422).send({ error: 'new lastname contains invalid characters' });
+			try{checkregexBackend(null, null, newLastname, null, null);
+			}catch(err){
+				const message = err instanceof Error ? err.message : null;
+				return reply.code(422).send({ error:"Invalid", message: message });
+			}
+            if (!orm.updateUser(user.user_id, 'lastname', newLastname))
+                return reply.status(400).send({ error: 'new lastname invalid' });
         }
         const newToken = await createNewToken(fastify, user);
         if (newToken)

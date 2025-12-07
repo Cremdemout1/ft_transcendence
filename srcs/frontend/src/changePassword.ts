@@ -59,6 +59,7 @@ async function changePassword() {
 
         if (newPassword !== newPasswordCopy)
             return messageDiv.textContent = 'Error changing password: Passwords don\'t match';
+		
         // try {
         //     checkregex(null, null, null, null, newPassword);
         //     checkregex(null, null, null, null, oldPassword);

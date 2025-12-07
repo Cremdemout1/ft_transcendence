@@ -14,6 +14,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 // import { exchangeCodeForToken, getAuthURL, decodeToken } from '../google_auth';
 import { send2FAcode } from './token';
 import { orm } from '../server';
+import { checkregexBackend } from '../db/db_queries';
 
 interface loginBody
 {
@@ -129,10 +130,12 @@ async function login(fastify: FastifyInstance)
         const { email, password }: loginBody = request.body;
         
         // const user = await getUser(email, password);
+		try{checkregexBackend(null, null, null, email, password);
+		}catch(err) {
+            return reply.code(422).send({ error:"Invalid", message: "Invalid email or password" });
+		}
         const user = await orm.getProtectedUser(email, password);
-        if (user === -1)
-            return reply.status(422).send({ error: 'email or password contains invalid characters' });
-        else if (user === null)
+        if (user === null)
             return reply.code(401).send({ error: 'Invalid email or password' });
         console.log(user);
         const idx = user ? user.user_id : null;

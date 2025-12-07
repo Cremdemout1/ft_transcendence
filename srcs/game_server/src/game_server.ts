@@ -112,31 +112,31 @@ class TournamentManager {
       }
     }
 
-    // alias que já estão no torneio
-    for (const tid in this.tournaments) {
-      const t = this.tournaments[tid];
-      try {
-        if (t.players) {
-          for (const p of t.players.values()) {
-            if ((p.alias || '').toString().toLowerCase() === aliasLower) {
-              const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
-              if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
-              return;
-            }
-          }
-        }
-        if (t.activeMatches) {
-          for (const m of Object.values(t.activeMatches) as any[]) {
-            if (m && m.aliases && (m.aliases as any[]).some((a: any) => (a || '').toString().toLowerCase() === aliasLower)) {
-              const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
-              if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
-              return;
-            }
-          }
-        }
-      } catch (e) {
-      }
-    }
+    // // alias que já estão no torneio
+    // for (const tid in this.tournaments) {
+    //   const t = this.tournaments[tid];
+    //   try {
+    //     if (t.players) {
+    //       for (const p of t.players.values()) {
+    //         if ((p.alias || '').toString().toLowerCase() === aliasLower) {
+    //           const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
+    //           if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
+    //           return;
+    //         }
+    //       }
+    //     }
+    //     if (t.activeMatches) {
+    //       for (const m of Object.values(t.activeMatches) as any[]) {
+    //         if (m && m.aliases && (m.aliases as any[]).some((a: any) => (a || '').toString().toLowerCase() === aliasLower)) {
+    //           const s = this.io.sockets.sockets.get(socketId as any) as Socket | undefined;
+    //           if (s) s.emit('tournament:aliasError', { message: 'Alias already in use' });
+    //           return;
+    //         }
+    //       }
+    //     }
+    //   } catch (e) {
+    //   }
+    // }
 	console.log("stillllll join tourn")
     this.waitingPlayers.set(socketId, { alias: safeAlias });
     this.io.emit("tournamentQueueUpdate", {
@@ -396,6 +396,8 @@ class TournamentManager {
             if (champSocket) {
               champSocket.emit("tournamentWinner", { tournamentId: tid, champion: w2.alias });
             }
+			delete this.tournaments[tid];
+			return;
 		}
         if (!s2){ 
 			console.log(`Tournament ${tid}: winner socket ${w2.id} not connected`);
@@ -403,7 +405,9 @@ class TournamentManager {
 			const champSocket = s1;
             if (champSocket) {
               champSocket.emit("tournamentWinner", { tournamentId: tid, champion: w1.alias });
-            } 
+            }
+			delete this.tournaments[tid];
+			return;
 		}
 		      
         tournament.winners = [];
@@ -743,6 +747,8 @@ if(room.vanilla==1)
   io.to(roomCode).emit("gameState", { gameState: room.game.getState() });
   // detect match winner and notify tournament manager
   const state = room.game.getState();
+//   if(input.reset==1)
+// 	state.winner=playerIdx;
   if (typeof state.winner === "number" && state.winner >= 0) {
     const winnerIdx = state.winner;
     const winnerSocketId = room.players[winnerIdx] || null;
@@ -974,7 +980,7 @@ export async function run_phantai(room: Room) {
     }
     console.log("paddle AI update", action);
 	console.log("ROOM IN PHANTAI: "+ room.code!+ ", interval id: ",+room.ai_timer! );
-    }, 100);
+    }, 1000);
 }
 
 function handleSinglePlayerRoom(socket: Socket, ai_type: number, alias: string): void {
@@ -1248,7 +1254,7 @@ function handleDisconnect(socket: Socket): void {
           break;
         }
       }
-      if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4 && room.inProgress==true) || (room.numPlayers === 6 && room.players.length< 6 && room.inProgress==true))) {
+      else if (!room.tournamentId && ((room.numPlayers === 4 && room.players.length< 4 && room.inProgress==true) || (room.numPlayers === 6 && room.players.length< 6 && room.inProgress==true))) {
           let winnerName;
 		  if(room.winnerUser)
 			winnerName =room.winnerUser;
@@ -1265,7 +1271,8 @@ function handleDisconnect(socket: Socket): void {
           cleanupRoom(code);
           break;
         }
-
+	    else if(!room.inProgress && room.players.length==0)
+			cleanupRoom(code);
       break;
     }
   }

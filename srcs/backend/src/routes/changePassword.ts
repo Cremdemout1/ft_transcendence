@@ -15,6 +15,7 @@ import { FastifyRequest, FastifyInstance } from "fastify";
 import { JWTformat } from "./profile";
 import * as bcrypt from 'bcrypt';
 import { orm } from "../server";
+import { checkregexBackend } from "../db/db_queries";
 
 type myRequest = FastifyRequest;
 
@@ -45,10 +46,11 @@ async function changePasswordLogic(fastify: FastifyInstance)
             return ;
         const userData = request.user as JWTformat;
         const { oldPassword, newPassword } = request.body as passwordChangeBody;
-        
+		try{checkregexBackend(null, null, null, null, oldPassword);
+		}catch(err) {
+			return reply.status(403).send({ error: 'Old password is incorrect' });
+		}
         const user = orm.getUserByEmail(userData.email);
-        if (user === -1)
-            return reply.status(422).send({ error: 'Email contains invalid characters' });
         if (!user)
             return reply.status(404).send({ error: 'User not found' });
         else if (!user.password)
@@ -56,10 +58,16 @@ async function changePasswordLogic(fastify: FastifyInstance)
         const isValid = await bcrypt.compare(oldPassword, user.password);
         if (!isValid)
             return reply.status(403).send({ error: 'Old password is incorrect' });
-
+		try{
+            checkregexBackend(null, null, null, null, newPassword);
+        }
+        catch(err) {
+            const message = err instanceof Error ? err.message : null;
+            return reply.code(422).send({ error:"Invalid", message: message });
+        }
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-        if (orm.updateUser(user.user_id, "password", hashedNewPassword) == -1)
-            return reply.status(422).send({ error: 'new password contains invalid characters' });
+        if (!orm.updateUser(user.user_id, "password", hashedNewPassword))
+            return reply.status(404).send({ error: 'Password update failed' });
         return reply.send( { message: 'successfully changed password' } );
     })
 }

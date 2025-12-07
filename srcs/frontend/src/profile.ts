@@ -172,10 +172,12 @@ function attachUsernameChange() {
                         }
                     } catch {}
             }
-            else
-                throw new Error(data.error);
+            else{
+                if (messageDiv)
+                    messageDiv.textContent = `Error changing username: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
+            }
         } catch (err) {
-            messageDiv.textContent = `${err}`;
+            messageDiv!.textContent = `${err}`;
         }
     };
 

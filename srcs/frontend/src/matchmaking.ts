@@ -196,6 +196,7 @@ socket.on("gameState", ({ gameState }: { gameState: any }) => {
 
 
 socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: number }) => {
+	if(location.hash=="#endGame") return;
     console.log("playerCount event received:", count, numPlayers);
   const app = document.getElementById('app');
   if (app) {
