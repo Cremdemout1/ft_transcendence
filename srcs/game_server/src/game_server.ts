@@ -918,7 +918,7 @@ export async function run_ai(room: Room) {
       AI_Paddle.right = action.includes('right') ? 1 : 0;
     }
     console.log("paddle AI update", action);
-    }, 1000);
+    }, 100);
 }
 
 function getTimeToHold(room: Room, ai_type: number) {
@@ -1000,7 +1000,7 @@ export async function run_phantai(room: Room) {
     }
     console.log("paddle AI update", action);
 	console.log("ROOM IN PHANTAI: "+ room.code!+ ", interval id: ",+room.ai_timer! );
-    }, 1000);
+    }, 100);
 }
 
 export async function run_phantai2(room: Room) {
