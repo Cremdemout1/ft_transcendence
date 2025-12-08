@@ -38,9 +38,12 @@ async function checkLoginState(path: string | null) {
 async function fetchDashboard() {
     checkLoginState("/api/dashboard");
     sessionStorage.removeItem("isSinglePlayer");
+    sessionStorage.removeItem("lastMatchWinner");
+    sessionStorage.removeItem("roomCode");
     sessionStorage.removeItem("numPlayers");
     sessionStorage.removeItem("vanilla");
 	sessionStorage.removeItem('inTournament');
+	sessionStorage.removeItem('ended');
     window.addEventListener("popstate", () => {
         if (window.location.hash !== "#pong") {
             // console.log("found someone going away from game")

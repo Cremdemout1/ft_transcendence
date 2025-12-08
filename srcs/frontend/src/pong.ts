@@ -94,27 +94,30 @@ async function play() {
 		});
 	}
 }
-
-function showGameModeMenu() {
-	const app = document.getElementById("app");
-	if (!app) return;
-	if (!socket.connected)
+function kms(btn: HTMLElement)
+{
 		try { 
-	socket.connect();
 	if(!socket.connected)
 		throw new Error("Wait for connection please")
 	 } catch(e) {
 		const message = e instanceof Error ? e.message : null;
-		const btn = document.getElementById("playBtn");
 		let msg = document.getElementById("message");
 		if(!msg){
 			msg = document.createElement("div");
   			msg.id = "message";
-			btn!.insertAdjacentElement("afterend", msg);
+			btn.insertAdjacentElement("afterend", msg);
 		}
 		msg.textContent = message;
-		return;
+		return 1;
 	 }
+	 return 0;
+}
+
+function showGameModeMenu() {
+	const app = document.getElementById("app");
+	if (!app) return;
+	if(!socket.connected)
+		socket.connect();
 	app.innerHTML = `
 		<div id="gameModeMenu" class="terminal-menu">
 			<h2 class="terminal-title">SELECT MODE</h2>
@@ -163,18 +166,22 @@ function showGameModeMenu() {
 			if (!AI)
 				return ;
 			console.log(AI);
+			kms(btn! as HTMLElement);
 			startSinglePlayerGame(Number(AI), username!);
 		});
 	});
 
 	document.getElementById("localGameBtn")?.addEventListener("click", () => {
+		const btn= document.getElementById("localGameBtn");
+		kms(btn!);
 		startLocalGame();
 	})
 
 	document.getElementById("multiPlayerBtn")?.addEventListener("click", () => {
 		// Ensure singleplayer flag is cleared when switching to multiplayer
-		if (!socket.connected)
-			try { socket.connect(); } catch {}
+		const btn= document.getElementById("multiPlayerBtn");
+		if(kms(btn!)==1)
+			return;
 		window.sessionStorage.removeItem('isSinglePlayer');
 		showMultiplayerMenu();
 	});

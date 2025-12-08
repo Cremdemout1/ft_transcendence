@@ -184,3 +184,11 @@ export function print_score(paddles: any, player_nbr: number, units: stick[]) {
 	print_number(1, Math.floor(score % 10), i, units);
   }
 }
+
+export function print_score_final(player_nbr: number, units: stick[]) {
+  for (let i = 0; i < player_nbr; i++) {
+	let score = 0;
+	if (score > 9) print_number(0, Math.floor(score / 10), i, units);
+	print_number(1, Math.floor(score % 10), i, units);
+  }
+}

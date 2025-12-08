@@ -41,7 +41,14 @@ async function renderWinScreen() { // playerIDX is undefined
             <a href="#dashboard" class="btn">Back to Dashboard</a>
         </div>
     `;
+	sessionStorage.setItem('ended', '1');
+
+	// sessionStorage.removeItem('lastMatchWinner');
+	// sessionStorage.removeItem('roomCode');
+	// sessionStorage.removeItem('numPlayers');
+	// sessionStorage.removeItem('vanilla');
 }
+
 
 //win screen contains:
 // congratulations message

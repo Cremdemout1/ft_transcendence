@@ -358,6 +358,10 @@ drawCyberPunkBG();
         // Cleanup only if navigating to login/signup **from a protected route**
         if ((currentRoute === "login" || currentRoute === "signup") && protectedRoutes.includes(lastRoute))
             sendCleanup();
+
+		if (window.sessionStorage.getItem("ended"))
+			location.hash = "dashboard";
+
         lastRoute = currentRoute;
     });
 

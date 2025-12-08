@@ -115,8 +115,8 @@ async function verify2faCode () {
     <div id='2FA-verification'>
         <p>We've sent a code to "${email}". Please enter the code in the email below</p>
         <h3>Enter code here: </h3>
-        <input id='twoFA' placeholder='code'></input>
-        <button type='submit' id="enter2FA">enter</button>
+		<input class="input" id='twoFA' placeholder='code' />
+        <button class="btn" type='submit' id="enter2FA">enter</button>
         <p id="error-msg"></p>
     </div>`;
     send2FA();

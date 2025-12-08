@@ -605,6 +605,12 @@ const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
     }
     //console.log("WINNER: " + serverGameState.winner);
     update_ball(meshes, serverGameState);
+	if(serverGameState.paddles[0].active==1 && serverGameState.paddles[1].active==1 && (serverGameState.paddles[0].score>4 || serverGameState.paddles[1].score>4))
+	{
+		serverGameState.paddles[0].score=0;
+		serverGameState.paddles[1].score=0;
+		reset=1;
+	}
     reset = update_reset(meshes, serverGameState, trail, reset, player_nbr);
     update_paddles(meshes, serverGameState);
     if (serverGameState.hit) {
