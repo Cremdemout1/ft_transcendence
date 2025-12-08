@@ -215,7 +215,7 @@ async function import_meshes(
 
 	let AImodel= AI==1 || AI==3 ? phanta : yohai;
 	let AI_meshes: BABYLON.ISceneLoaderAsyncResult;
-    console.log(AImodel);
+    // console.log(AImodel);
 	try {
     AI_meshes = await BABYLON.SceneLoader.ImportMeshAsync(
       "",
@@ -316,7 +316,7 @@ export async function createGameScene( //function that makes all the visuals (up
     socket.on(
       "playerCountResponse",
       ({ numPlayers }: { numPlayers: number }) => {
-        console.log("playerCountResponse event received:", numPlayers);
+        // console.log("playerCountResponse event received:", numPlayers);
         resolve(numPlayers);
       }
     );
@@ -331,7 +331,7 @@ export async function createGameScene( //function that makes all the visuals (up
     socket.on(
       "playerIDResponse",
       ({ playerIdx }: { playerIdx: number }) => {
-        console.log("playerIDResponse event received:", playerIdx);
+        // console.log("playerIDResponse event received:", playerIdx);
         resolve(playerIdx+1);
       }
     );
@@ -347,7 +347,7 @@ export async function createGameScene( //function that makes all the visuals (up
     socket.on(
       "vanillaResponse",
       ({ vanilla }: { vanilla: number }) => {
-        console.log("vanillaResponse event received:", vanilla);
+        // console.log("vanillaResponse event received:", vanilla);
         resolve(vanilla);
       }
     );
@@ -362,7 +362,7 @@ export async function createGameScene( //function that makes all the visuals (up
     socket.on(
       "AIResponse",
       ({ AI }: { AI: number }) => {
-        console.log("AIResponse event received:", AI);
+        // console.log("AIResponse event received:", AI);
         resolve(AI);
       }
     );
@@ -683,7 +683,7 @@ const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
   //cleanup when leaving the #pong route so rendering and socket handlers stop
   const onHashChange = () => {
     if (!location.hash.startsWith("#pong")) {
-      console.log("Leaving #pong — cleaning up scene and handlers");
+    //   console.log("Leaving #pong — cleaning up scene and handlers");
       try {
         socket.off("gameState", onGameState);
       } catch (e) {
@@ -746,7 +746,7 @@ const envTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
     // Only emit readiness for finals when this client is actually in a tournament room
     if (roomCode && tournamentId && tournamentId !== 'null') {
       socket.emit('tournament:readyForFinal', { code: roomCode });
-      console.log('Emitted tournament:readyForFinal '+ roomCode+ "tourn id: "+ tournamentId);
+    //   console.log('Emitted tournament:readyForFinal '+ roomCode+ "tourn id: "+ tournamentId);
     }
   } catch (e) {
     console.warn('Failed to emit tournament:readyForFinal', e);

@@ -1186,7 +1186,7 @@ function handleJoinRoom(socket: Socket, code: string, alias: string): void {
   
   //Start game if room is full
   if (room.players.length === room.numPlayers) {
-    console.log(`Room ${code} is full, starting game!`);
+    // console.log(`Room ${code} is full, starting game!`);
     // Activate paddles now that all players are present
     // Ensure any leftover timers or AI from previous activity are stopped
     clearRoomResources(room);
@@ -1218,7 +1218,7 @@ function handleJoinRoom(socket: Socket, code: string, alias: string): void {
       });
     }
 
-    console.log(`Emitting gameStart to room ${code}`);
+    // console.log(`Emitting gameStart to room ${code}`);
     io.to(code).emit("gameStart", { code, numPlayers: room.numPlayers });
 
     //Send initial game state to all players
@@ -1227,7 +1227,7 @@ function handleJoinRoom(socket: Socket, code: string, alias: string): void {
         room.game.resetBall(room.isSinglePlayer!);
         room.game.update(room.isSinglePlayer!); // Initialize the game state
         io.to(code).emit("gameState", { gameState: room.game.getState() });
-        console.log(`Sent initial game state to room ${code}`);
+        // console.log(`Sent initial game state to room ${code}`);
       } catch (err) {
         console.error(`Error sending initial game state for ${code}:`, err);
       }
@@ -1255,13 +1255,13 @@ function handleQuickplay(socket: Socket): void {
     };
     
     activateRoomPaddles(rooms[roomId]);
-    console.log(`Created new quickplay room: ${roomId}`);
+    // console.log(`Created new quickplay room: ${roomId}`);
   }
   
   rooms[roomId].players.push(socket.id);
   socket.join(roomId);
   
-  console.log(`Player ${socket.id} joined quickplay room ${roomId} (${rooms[roomId].players.length}/6)`);
+//   console.log(`Player ${socket.id} joined quickplay room ${roomId} (${rooms[roomId].players.length}/6)`);
   
   socket.emit("roomJoined", { code: roomId, numPlayers: 6, tournamentId: rooms[roomId].tournamentId ?? null });
   io.to(roomId).emit("playerCount", { count: rooms[roomId].players.length, numPlayers: 6 });
@@ -1269,19 +1269,19 @@ function handleQuickplay(socket: Socket): void {
   
   //Start game if room is full
   if (rooms[roomId].players.length === 6) {
-    console.log(`Quickplay room ${roomId} is full, starting game!`);
+    // console.log(`Quickplay room ${roomId} is full, starting game!`);
     io.to(roomId).emit("gameStart", { code: roomId, numPlayers: 6 });
   }
 }
 
 function handleDisconnect(socket: Socket): void {
-  console.log(`Socket ${socket.id} disconnected`);
+//   console.log(`Socket ${socket.id} disconnected`);
   
   for (const code in rooms) {
     const room = rooms[code];
     const playerIndex = room.players.indexOf(socket.id);
 
-    console.log("outsidee")
+    // console.log("outsidee")
     // if (rooms[code].isSinglePlayer) {
     //   console.log("insidee")
     //   clearInterval(room.actionTimer!);
@@ -1291,7 +1291,7 @@ function handleDisconnect(socket: Socket): void {
 
     if (playerIndex !== -1) {
       room.players.splice(playerIndex, 1);
-      console.log(`Player ${socket.id} removed from room ${code} (${room.players.length}/${room.numPlayers} remaining)`);
+    //   console.log(`Player ${socket.id} removed from room ${code} (${room.players.length}/${room.numPlayers} remaining)`);
       // chat system message with best-known name
       const name = socketUsername[socket.id] || socket.id.substring(0, 6);
       pushAndBroadcastChat(code, {
@@ -1316,7 +1316,7 @@ function handleDisconnect(socket: Socket): void {
 			winnerName =room.winnerUser;
 		  else
 			winnerName = room.playerUsernames.get(winnerId) || socketUsername[winnerId] || winnerId.substring(0,6);
-          console.log(`Player ${socket.id} disconnected from 1v1 room ${code}; awarding forfeit win to ${winnerId}`);
+        //   console.log(`Player ${socket.id} disconnected from 1v1 room ${code}; awarding forfeit win to ${winnerId}`);
           // Emit matchOver so clients follow the normal end-of-match flow
 		  room.inProgress = false;
           io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'You won by forfeit!' });
@@ -1333,10 +1333,10 @@ function handleDisconnect(socket: Socket): void {
 			winnerName =room.winnerUser;
 		  else
 			winnerName = "everyone else";
-          console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
+        //   console.log(`Player ${socket.id} disconnected from multiplayer room ${code}; awarding forfeit win to everyone else`);
           // Emit matchOver so clients follow the normal end-of-match flow
 		  room.inProgress = false;
-		  console.log("SENDING WINNER: "+ winnerName);
+		//   console.log("SENDING WINNER: "+ winnerName);
           io.to(code).emit("matchOver", { username: winnerName, tournamentId: null, reason: 'forfeit', message: 'Everyone wins by forfeit!' });
           // Ensure room is no longer in progress and clear resources
           clearRoomResources(room);
@@ -1541,14 +1541,8 @@ io.on("connection", (socket: Socket) => {
   });
 
   socket.on("leaveGame", ({ code }: { code: string }) => {
-    // const { roomCode, room } = findPlayerRoom(socket.id);
-    // if (!room)
-    //     console.log("urmom");
     let room = rooms[code];
-    console.log("inside socket on leaveGame", code);
-    console.log(room?.isSinglePlayer);
     if (room) {
-      console.log("inside socket on leaveGame for", code);
       clearRoomResources(room);
     }
     if (room?.vanilla || room?.isSinglePlayer)

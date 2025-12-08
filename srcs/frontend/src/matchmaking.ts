@@ -93,7 +93,7 @@ function start6PlayerGame(alias: string) {
 
 // Register socket event listeners ONCE to avoid duplication
 socket.on("roomCreated", async ({ code, numPlayers }: { code: string, numPlayers: number }) => {
-    console.log("roomCreated event received:", code, numPlayers);
+    // console.log("roomCreated event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to backend
     const app = document.getElementById('app');
     if (app) {
@@ -117,7 +117,7 @@ socket.on("roomCreated", async ({ code, numPlayers }: { code: string, numPlayers
 });
 
 socket.on("singlePlayerRoomCreated", async ({ code }: { code: string }) => {
-    console.log("single player room created event received:", code, 1);
+    // console.log("single player room created event received:", code, 1);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to backend
 
     sessionStorage.setItem('roomCode', code);
@@ -125,13 +125,13 @@ socket.on("singlePlayerRoomCreated", async ({ code }: { code: string }) => {
 });
 
 socket.on("roomJoined", async ({ code, numPlayers, tournamentId }: { code: string, numPlayers: number, tournamentId?: string | null }) => {
-    console.log("roomJoined event received:", code, numPlayers);
+    // console.log("roomJoined event received:", code, numPlayers);
     const app = document.getElementById('app');
 
     // If we're already inside the game view (#pong), do not overwrite the canvas/UI
     // with the 'Joined Room' waiting UI. Just update session storage and return.
     if (location.hash.startsWith('#pong')) {
-        console.log('roomJoined received while in #pong — updating sessionStorage only');
+        // console.log('roomJoined received while in #pong — updating sessionStorage only');
         sessionStorage.setItem('roomCode', code);
         sessionStorage.setItem('numPlayers', numPlayers.toString());
         // also notify game scene via a playerCount event in case it needs to update UI
@@ -162,12 +162,12 @@ socket.on("roomJoined", async ({ code, numPlayers, tournamentId }: { code: strin
 });
 
 socket.on("error", ({ message }: { message: string }) => {
-    console.log("Socket error event received:", message);
+    // console.log("Socket error event received:", message);
     alert(message); // Show error to user
 });
 
 socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: { code: string, numPlayers: number, isSinglePlayer: number, vanilla: number }) => {
-    console.log("gameStart event received:", code, numPlayers);
+    // console.log("gameStart event received:", code, numPlayers);
     //socket.emit("playerCountRequest", { numPlayers}); // emit number of players to main.ts
         document.body.classList.add("game-active");
         // Ensure the main app container is visible so the pong canvas can be mounted
@@ -178,7 +178,6 @@ socket.on("gameStart", ({ code, numPlayers, isSinglePlayer = 0, vanilla = 0 }: {
         sessionStorage.setItem("vanilla", String(vanilla)); 
     sessionStorage.setItem("roomCode", String(code)); 
     sessionStorage.setItem("numPlayers", String(numPlayers)); 
-    console.log("aaaaaaaaaaaaaaa");
    
         location.href = '/#pong';
         // clear flag after a short grace period
@@ -197,7 +196,7 @@ socket.on("gameState", ({ gameState }: { gameState: any }) => {
 
 socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: number }) => {
 	if(location.hash=="#endGame") return;
-    console.log("playerCount event received:", count, numPlayers);
+    // console.log("playerCount event received:", count, numPlayers);
   const app = document.getElementById('app');
   if (app) {
     let infoDiv = document.getElementById('playerCountInfo');
@@ -214,13 +213,10 @@ socket.on("playerCount", ({ count, numPlayers }: { count: number, numPlayers: nu
 // ver isto melhor
 function renderTournamentQueue(waitingPlayers: string[]) {
     const app = document.getElementById('app');
-	// console.log("wah")
     if (!app || !sessionStorage.getItem('inTournament')) return;
-	// console.log("lalala");
     // Only show the tournament queue UI when the multiplayer/tournament UI is present
     const multiplayerVisible = !!document.getElementById('multiplayerMenu') || !!document.getElementById('tournamentAliasModal') || location.hash === '#multiplayer';
     if (!multiplayerVisible) return;
-	console.log(location.hash);
     let queueDiv = document.getElementById('tournamentQueue');
     if (!queueDiv) {
         queueDiv = document.createElement('div');
@@ -230,7 +226,6 @@ function renderTournamentQueue(waitingPlayers: string[]) {
         queueDiv.style.marginTop = '8px';
         app.appendChild(queueDiv);
     }
-	console.log("everything")
     queueDiv.innerHTML = `<h3>Tournament Queue (${waitingPlayers.length}/4)</h3>` +
         `<ol>${waitingPlayers.map(alias => `<li>${alias}</li>`).join('')}</ol>`;
 }
@@ -244,12 +239,10 @@ function hideOverlaysExceptApp() {
 }
 
 socket.on("tournamentQueueUpdate", ({ waitingCount, waitingPlayers }: { waitingCount: number, waitingPlayers: string[] }) => {
-    console.log("tournamentQueueUpdate:", waitingCount, waitingPlayers);
     renderTournamentQueue(waitingPlayers);
 });
 
 socket.on('tournament:aliasError', ({ message }: { message?: string }) => {
-    console.log('tournament alias error:', message);
     const modal = document.getElementById('tournamentAliasModal');
     if (modal) {
         modal.style.display = 'block';
@@ -322,7 +315,6 @@ socket.on("tournamentRoundInfo", ({ round, opponent }: { round: number, opponent
 
 // Handle match result for tournament participants
 socket.on("tournament:matchResult", ({ result, message, tournamentId }: { result: string, message: string, tournamentId?: string }) => {
-    console.log("tournament:matchResult", result, message, tournamentId);
     // Simple UI: modal/overlay
     let el = document.getElementById('tournamentResultOverlay');
     if (!el) {

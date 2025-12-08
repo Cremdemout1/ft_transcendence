@@ -358,7 +358,7 @@ layer2.biases  = saved.layer2.biases;
 layer3.weights = saved.layer3.weights;
 layer3.biases  = saved.layer3.biases;
 
-console.log("Model loaded!");
+// console.log("Model loaded!");
 }
 
 // function oheToDiscreet(output: [][]){

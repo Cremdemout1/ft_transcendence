@@ -22,7 +22,6 @@ async function renderPong() {
 
 	const app = document.getElementById("app");
 	if (!app) return;
-	console.log("RENDER PONG");
 	const isSinglePlayer = sessionStorage.getItem("isSinglePlayer") === '1';
 	app.innerHTML = isSinglePlayer ? `
 
@@ -42,7 +41,6 @@ async function renderPong() {
 }
 	if(window.sessionStorage.getItem('numPlayers')=='-700' || !window.sessionStorage.getItem('roomCode'))
 	{
-		console.log("killing myselffff");
 		socket.emit('leaveGame', { code: window.sessionStorage.getItem('roomCode') });
 		el!.style.display = "block";
 		location.hash='dashboard';
@@ -53,11 +51,8 @@ async function renderPong() {
 	// Disable chat for local/singleplayer or explicit disable flag; only enable when in an online room
 	const isLocal = window.sessionStorage.getItem('vanilla') === '1';
 	const hasRoom = Boolean(window.sessionStorage.getItem('roomCode'));
-	console.log({ isLocal, hasRoom });
 	if (!isLocal && window.sessionStorage.getItem('isSinglePlayer') == '0' && hasRoom && chatMount) {
-		console.log("Mounting chat for multiplayer game");
 		mountChat(chatMount);
-		console.log("Chat mounted");
 		// Move chat inside game canvas area for gameplay and set in-game mode
 		const wrapper = document.getElementById('pongGameWrapper');
 		if (wrapper && chatMount.parentElement !== wrapper) {
@@ -165,7 +160,6 @@ function showGameModeMenu() {
 			const AI = btn.getAttribute('ai-type');
 			if (!AI)
 				return ;
-			console.log(AI);
 			kms(btn! as HTMLElement);
 			startSinglePlayerGame(Number(AI), username!);
 		});
@@ -206,7 +200,6 @@ async function backToDashboard() {
 			// Leave game room and unmount chat when returning to dashboard
 			const code = window.sessionStorage.getItem('roomCode');
 			if (code) {
-				console.log("backto dashboard");
 				socket.emit('leaveGame', { code });
 			}
 			unmountChat();

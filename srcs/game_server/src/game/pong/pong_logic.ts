@@ -128,7 +128,7 @@ export class GameMath {
 		this.paddle_speed();
 	this.first=1;
 	this.ball.accel_fac=1.08;
-	console.log(this.first);
+	// console.log(this.first);
   	}
 	const now = Date.now();
 	if(AI==0)

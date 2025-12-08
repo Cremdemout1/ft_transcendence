@@ -17,13 +17,12 @@ let pingInterval: number | undefined;
 export function startPing() {
     if (pingInterval) 
         clearInterval(pingInterval);
-    console.log("inside ping function");
 
     pingInterval = window.setInterval(async () => {
         const jwt = sessionStorage.getItem('jwt');
 
         if (!jwt) {
-            console.log("JWT missing, stopping ping");
+            // console.log("JWT missing, stopping ping");
             stopPing();
             return;
         }
@@ -37,7 +36,7 @@ export function startPing() {
                 },
                 body: JSON.stringify({ email: decodeJwt(jwt).email })
             });
-            console.log("Ping response status:", res.status);
+            // console.log("Ping response status:", res.status);
             if (!res.ok) {
                 console.warn("ping failed, maybe session expired");
                 stopPing();
@@ -52,6 +51,6 @@ export function stopPing() {
     if (pingInterval) {
         clearInterval(pingInterval);
         pingInterval = undefined;
-        console.log("ping stopped");
+        // console.log("ping stopped");
     }
 }

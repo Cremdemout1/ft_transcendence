@@ -25,7 +25,6 @@ export function update_reset(
     //need to reset the trail before putting the ball back in the center
     if (trail) {
       trail.stop();
-      console.log("RESET!");
       reset = 1;
     }
   } else if (reset) {

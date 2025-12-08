@@ -104,18 +104,14 @@ function showMultiplayerMenu(push = true) {
 	const confirmBtn = document.getElementById('tournamentAliasConfirm');
 	const cancelBtn = document.getElementById('tournamentAliasCancel');
 	if (confirmBtn) confirmBtn.onclick = () => {
-		console.log("is this thing on?");
-		console.log("socket connected?", socket.connected);
 
 		const input = document.getElementById('tournamentAliasInput') as HTMLInputElement;
 		const alias = input?.value?.trim() || getUsernameFromJwt() || 'Player';
-		console.log("alias: "+ alias);
 		if (alias.length < 1) return;
 		if (!socket.connected)
 			try { socket.connect(); } catch {}
 		sessionStorage.setItem('inTournament', '1');
 		socket.emit('joinTournament', alias);
-		console.log("below emit")
 		const create = document.getElementById('createGameBtn');
 		if (create) create.style.display = 'none';
 		const join = document.getElementById('joinGameBtn');
@@ -150,7 +146,6 @@ socket.on('matchOver', ({ username, tournamentId, reason, message }: { username:
 });
 
 socket.on('tournamentWinner', ({ tournamentId, champion }) => {
-	console.log('tournamentWinner', tournamentId, champion);
 	let modal = document.getElementById('tournamentChampionModal');
 	if (!modal) {
 		modal = document.createElement('div');

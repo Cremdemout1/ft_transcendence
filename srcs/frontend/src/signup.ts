@@ -70,7 +70,6 @@ async function backendSignup() {
             });
 
             const data = await res.json();
-            console.log(data);
             if (res.ok) {
                 sessionStorage.setItem('jwt', data.token);
                 if (messageDiv) {
@@ -84,10 +83,10 @@ async function backendSignup() {
                     messageDiv.textContent = `Sign up failed: ${data.message || data.error || 'Unknown error'}`;
                 }
             }
-            console.log("Response form backend:", data);
         }
         catch(err) {
-            console.log("Error connecting to backend:", err);
+            // console.log("Error connecting to backend:", err);
+			void(err);
         }
     });
 }

@@ -20,7 +20,6 @@ export async function initBabylon() {
   const canvas = document.getElementById("pongCanvas") as HTMLCanvasElement;
 
   if (!canvas) {
-    console.error("Canvas not found!");
     return;
   }
 

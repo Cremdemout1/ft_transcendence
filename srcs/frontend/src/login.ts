@@ -60,7 +60,8 @@ async function backendLogin() {
             }
         }
         catch(err) {
-            console.log("Error connecting to backend:", err);
+            // console.log("Error connecting to backend:", err);
+			void(err);
         }
     });
 }
@@ -92,11 +93,12 @@ async function logout() {
                     messageDiv.textContent = `Logout failed: ${data.message || JSON.stringify(data.error) || "Unknown error"}`;
                 }
             }
-            else
-                console.log(data.message);
+            // else
+            //     console.log(data.message);
         }
         catch(err) {
-            console.log("Error connecting to backend:", err);
+            // console.log("Error connecting to backend:", err);
+			void(err);
         }
         sessionStorage.removeItem('jwt');
         sessionStorage.removeItem('twoFA');
@@ -107,7 +109,6 @@ async function logout() {
 
 async function verify2faCode () {
     const app = document.getElementById('app');
-    console.log("VERIFY 2FA");
     if (!app)
         return ;
     const email = sessionStorage.getItem('pendingEmail');

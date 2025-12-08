@@ -201,7 +201,7 @@ export function loss_categoricalCrossEntropy(ohe_target: number [][], curr_outpu
 		if(choice==indexes[idx])
 			accuracy+=1/indexes.length;
 	});
-	console.log("accuracy:"+ accuracy);
+	// console.log("accuracy:"+ accuracy);
 	return losses.reduce((prev, current) => prev + current) / losses.length;
 }
 
@@ -334,8 +334,7 @@ export class Optimizer_SGD {
 
 	public update_lr(iterations: number){
 		this.learning_rate=this.learning_rate*1/(1+this.decay*iterations);
-		if(iterations%100==0)
-			console.log("lr: "+ this.learning_rate);
+
 	}
 }
 
@@ -353,7 +352,7 @@ layer2.biases  = saved.layer2.biases;
 layer3.weights = saved.layer3.weights;
 layer3.biases  = saved.layer3.biases;
 
-console.log("Model loaded!");
+// console.log("Model loaded!");
 }
 
 export function oheToDiscreet(output: number[][]){

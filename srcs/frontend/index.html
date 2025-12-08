@@ -177,12 +177,10 @@ function router() {
     if (firstSegment === 'me' && params.get('section') === 'change-password') {
         renderchangePassword();
     } else if (firstSegment === 'login' && params.get('section') === '2FA-verification') {
-        console.log("IF");
         if (sessionStorage.getItem('jwt')) location.href = '/#dashboard';
         verify2faCode();
     } else {
         render();
-        console.log(firstSegment);
     }
 }
 
@@ -311,24 +309,11 @@ drawCyberPunkBG();
         const params = new URLSearchParams(queryString);
         let firstSegment = path.toLowerCase();
 
-        if (firstSegment !== "pong") {
-            console.log("outside of pong");
-        }
-        else {
+        if (firstSegment === "pong") {
             const roomCode = window.sessionStorage.getItem("roomCode");
             window.sessionStorage.setItem('numPlayers', '-700');
         }
 
-        // if (performance.getEntriesByType("navigation")[0].type  === "reload") {
-        //     console.log("refreshing");
-            // return ;
-        // }
-        // const currentRoute = window.location.hash.replace("#", "").split('?')[0].toLowerCase() || "login";
-        
-        // // Only cleanup if leaving a protected page
-        // if (protectedRoutes.includes(currentRoute)) {
-        //     sendCleanup();
-        // }
         event.returnValue = '';
     };
     window.addEventListener("unload", UnloadHandler);
@@ -345,7 +330,6 @@ drawCyberPunkBG();
         const blob = new Blob([JSON.stringify({ email })], { type: 'application/json' });
 
         const sent = navigator.sendBeacon("/api/logout", blob);
-        console.log('Cleanup beacon sent:', sent, 'for email:', email);
 
         // Optional: remove session storage items
         sessionStorage.removeItem('jwt');

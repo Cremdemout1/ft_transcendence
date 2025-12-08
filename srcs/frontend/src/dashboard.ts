@@ -23,12 +23,8 @@ async function checkLoginState(path: string | null) {
                 Authorization: `Bearer ${token}`,
             },
         });
-        const data = await res.json();
-        if (res.ok) {
-            //display user info correctly later
-            console.log(data);
-        } else {
-            console.log(`Failed to authenticate user: ${JSON.stringify(data.error) || 'Unknown error'}`);
+        // const data = await res.json();
+        if (!res.ok) {
             sessionStorage.removeItem("jwt");
             return location.hash = '/#login';
         }
@@ -46,13 +42,10 @@ async function fetchDashboard() {
 	sessionStorage.removeItem('ended');
     window.addEventListener("popstate", () => {
         if (window.location.hash !== "#pong") {
-            // console.log("found someone going away from game")
-            // console.log(window.location.hash)
 			const el = document.getElementById("bgCanvas");
 			if (el) {
   el.style.display = "block";
 }
-			console.log("FETCH dashboard");
 			if(sessionStorage.getItem('roomCode'))
             	socket.emit("leaveGame", { code: sessionStorage.getItem('roomCode') });
         }
